@@ -1,0 +1,445 @@
+// Modulos/Principales/Matricula/matricula.js
+const { AttachmentBuilder, EmbedBuilder } = require('discord.js');
+const { generarTarjetaMatricula } = require('./tarjeta_matricula');
+const { regionAPlatforma, verificarCuentaRiot, obtenerSummoner, obtenerRangos } = require("../../../API's/Riot/lol_api");
+const { obtenerRangoTFT } = require("../../../API's/Riot/tft_api");
+
+const Usuario = require('../../../Base_Datos/MongoDB/Usuario.js');
+const IntentoMatricula = require('../../../Base_Datos/MongoDB/IntentoMatricula.js'); // NUEVA BASE DE DATOS
+const { logNuevaMatricula, actualizarGaleria } = require('./bitacora');
+
+const ICONOS_VERIFICACION = [2, 5, 6, 11, 12];
+const TIEMPO_INICIAL = 10 * 60 * 1000;    
+const TIEMPO_EXPIRACION = 15 * 60 * 1000; 
+const INTERVALO_VERIFICACION = 30 * 1000; 
+
+const MAX_INTENTOS = 3;
+const TIEMPO_COOLDOWN = 30 * 60 * 1000; 
+
+const CANVAS_VERIFICACION = {
+    2: 'https://i.imgur.com/z6bovLx.png',
+    5: 'https://i.imgur.com/joY5sDH.png',
+    6: 'https://i.imgur.com/lyhDDfz.png',
+    11: 'https://i.imgur.com/LqRb15A.png',
+    12: 'https://i.imgur.com/oXeX0Be.png'
+};
+
+const ESTADO_VERIFICACION = {
+    APROBADA: 'https://i.imgur.com/U48F8TX.png',
+    DENEGADA: 'https://i.imgur.com/XScBueH.png',
+    CANCELADA: 'https://i.imgur.com/LWwGrbf.png',
+    ERROR: 'https://i.imgur.com/PhzYaUF.png'
+};
+
+const usuariosEnMatricula = new Map();
+
+function getMensajes() {
+    delete require.cache[require.resolve('./mensajes')];
+    return require('./mensajes');
+}
+
+function obtenerIconoAleatorio(iconoActual = null) {
+    const disponibles = ICONOS_VERIFICACION.filter(id => id !== iconoActual);
+    return disponibles[Math.floor(Math.random() * disponibles.length)];
+}
+
+async function usuarioYaRegistrado(discordId) {
+    try {
+        const usuario = await Usuario.findOne({ Discord_ID: discordId });
+        return !!usuario; 
+    } catch {
+        return false;
+    }
+}
+
+async function guardarUsuario(datosUsuario) {
+    try {
+        await Usuario.findOneAndUpdate(
+            { Discord_ID: datosUsuario.Discord_ID },
+            datosUsuario,
+            { upsert: true, returnDocument: 'after' } 
+        );
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+// 🚦 NUEVO SISTEMA DE CASTIGOS CON MONGODB
+async function registrarFalloIntento(userId) {
+    try {
+        let intento = await IntentoMatricula.findOne({ Discord_ID: userId });
+        if (!intento) {
+            intento = new IntentoMatricula({ Discord_ID: userId, Fallos: 0 });
+        }
+
+        intento.Fallos += 1;
+
+        if (intento.Fallos >= MAX_INTENTOS) {
+            intento.CooldownHasta = new Date(Date.now() + TIEMPO_COOLDOWN);
+        }
+
+        await intento.save();
+    } catch (error) {
+        console.error("Error guardando intento en MongoDB:", error);
+    }
+}
+
+async function preValidarCuenta(userId, gameName, tagLine) {
+    const regionesValidas = ['LAN', 'LAS', 'NA', 'BR'];
+    const promesas = regionesValidas.map(async (region) => {
+        try {
+            const resultado = await verificarCuentaRiot(gameName, tagLine, region);
+            if (!resultado.existe) return null;
+
+            const plataforma = regionAPlatforma[region];
+            const summoner = await obtenerSummoner(resultado.data.puuid, plataforma);
+            if (!summoner) return null;
+
+            return {
+                region, puuid: resultado.data.puuid, plataforma, summoner,
+                gameName: resultado.data.gameName, tagLine: resultado.data.tagLine
+            };
+        } catch {
+            return null;
+        }
+    });
+
+    const resultados = await Promise.all(promesas);
+    const cuentasEncontradas = resultados.filter(r => r !== null);
+
+    const estadoActual = usuariosEnMatricula.get(userId);
+    if (estadoActual) {
+        estadoActual.preValidacion = cuentasEncontradas;
+        usuariosEnMatricula.set(userId, estadoActual);
+    }
+}
+
+async function generarYGuardarTarjeta(estadoUsuario) {
+    const [rangos, rangoTFT] = await Promise.all([
+        obtenerRangos(estadoUsuario.puuid, estadoUsuario.plataforma),
+        obtenerRangoTFT(estadoUsuario.gameName, estadoUsuario.tagLine, estadoUsuario.plataforma)
+    ]);
+
+    let numeroTotal = 1;
+    try {
+        numeroTotal = (await Usuario.countDocuments()) + 1;
+    } catch {}
+
+    const imageBuffer = await generarTarjetaMatricula({
+        gameName: estadoUsuario.gameName, 
+        tagLine: estadoUsuario.tagLine,
+        nivel: estadoUsuario.summonerLevel, 
+        iconoId: estadoUsuario.iconoValidacion,
+        soloq: rangos.soloq, 
+        flex: rangos.flex,
+        numeroUsuario: numeroTotal
+    });
+
+    const attachment = new AttachmentBuilder(imageBuffer, { name: 'tarjeta.png' });
+    const embed = new EmbedBuilder().setColor('#171b23').setImage('attachment://tarjeta.png');
+
+    return { 
+        tarjeta: { embed, attachment }, 
+        rangosGuardados: { soloq: rangos.soloq, flex: rangos.flex, tft: rangoTFT },
+        numeroMatricula: numeroTotal 
+    };
+}
+
+async function preGenerarTarjeta(userId, estadoUsuario) {
+    try {
+        const datosGenerados = await generarYGuardarTarjeta(estadoUsuario);
+        const estadoActual = usuariosEnMatricula.get(userId);
+        if (estadoActual && estadoActual.etapa === 'validacion') {
+            estadoActual.tarjetaPreGenerada = datosGenerados.tarjeta;
+            estadoActual.rangosPreCargados = datosGenerados.rangosGuardados;
+            estadoActual.numeroMatricula = datosGenerados.numeroMatricula; 
+            usuariosEnMatricula.set(userId, estadoActual);
+        }
+    } catch {}
+}
+
+async function validarRiotID(message, estadoUsuario) {
+    const riotIDLimpio = message.content.replace(/[\u200B-\u200D\uFEFF\u200E\u200F\u202A-\u202E\u2066-\u2069]/g, '').trim();
+
+    if (!riotIDLimpio.includes('#')) return message.channel.send(getMensajes().TAGIncorrectoMatricula);
+
+    const [nombre, tag] = riotIDLimpio.split('#');
+    if (!nombre || !tag) return message.channel.send(getMensajes().IDIncorrectoMatricula);
+
+    estadoUsuario.riotID = riotIDLimpio;
+    estadoUsuario.gameName = nombre.trim();
+    estadoUsuario.tagLine = tag.trim();
+    estadoUsuario.etapa = 'region';
+    usuariosEnMatricula.set(message.author.id, estadoUsuario);
+
+    await message.channel.send(getMensajes().RegionMatricula(riotIDLimpio));
+    preValidarCuenta(message.author.id, estadoUsuario.gameName, estadoUsuario.tagLine).catch(() => {});
+}
+
+async function validarRegion(message, estadoUsuario) {
+    const region = message.content.trim().toUpperCase();
+    const regionesValidas = ['LAN', 'LAS', 'NA', 'BR'];
+
+    if (!regionesValidas.includes(region)) return message.channel.send(getMensajes().RegionInvalidaMatricula);
+
+    estadoUsuario.region = region;
+    const datosPreValidados = estadoUsuario.preValidacion?.find(d => d.region === region);
+    
+    let loadingMessage = null;
+    if (!datosPreValidados) loadingMessage = await message.channel.send(getMensajes().CargandoValidacion);
+
+    let puuid, plataforma, summoner, gameName, tagLine;
+
+    if (datosPreValidados) {
+        ({ puuid, plataforma, summoner, gameName, tagLine } = datosPreValidados);
+    } else {
+        const resultado = await verificarCuentaRiot(estadoUsuario.gameName, estadoUsuario.tagLine, region);
+        if (!resultado.existe) return fallarBusquedaCuenta(message, loadingMessage, estadoUsuario);
+
+        plataforma = regionAPlatforma[region];
+        puuid = resultado.data.puuid;
+        summoner = await obtenerSummoner(puuid, plataforma);
+
+        if (!summoner) return fallarBusquedaCuenta(message, loadingMessage, estadoUsuario);
+
+        gameName = resultado.data.gameName;
+        tagLine = resultado.data.tagLine;
+    }
+
+    try {
+        const cuentaExistente = await Usuario.findOne({ PUUID: puuid });
+        if (cuentaExistente) {
+            estadoUsuario.etapa = 'riotid'; 
+            usuariosEnMatricula.set(message.author.id, estadoUsuario);
+            const msgEnUso = getMensajes().CuentaYaEnUso || 'Esta cuenta ya pertenece a otro usuario.';
+            return loadingMessage ? await loadingMessage.edit(msgEnUso) : await message.channel.send(msgEnUso);
+        }
+    } catch {}
+
+    try {
+        if (estadoUsuario.timeoutInicial) {
+            clearTimeout(estadoUsuario.timeoutInicial);
+            estadoUsuario.timeoutInicial = null;
+        }
+
+        const iconoAsignado = obtenerIconoAleatorio(summoner.profileIconId);
+        
+        Object.assign(estadoUsuario, {
+            etapa: 'validacion', puuid, plataforma, gameName, tagLine,
+            iconoActual: summoner.profileIconId, iconoValidacion: iconoAsignado,
+            summonerLevel: summoner.summonerLevel,
+            tiempoInicio: Date.now(),
+            tiempoExpiracion: Date.now() + TIEMPO_EXPIRACION
+        });
+
+        const embedVerificacion = new EmbedBuilder().setColor('#171b23').setImage(CANVAS_VERIFICACION[iconoAsignado]);
+        const contenidoMensaje = { content: getMensajes().ValidacionEnProceso, embeds: [embedVerificacion] };
+        
+        estadoUsuario.verificacionMsg = loadingMessage 
+            ? await loadingMessage.edit(contenidoMensaje) 
+            : await message.channel.send(contenidoMensaje);
+
+        usuariosEnMatricula.set(message.author.id, estadoUsuario);
+        iniciarPolling(message, estadoUsuario);
+
+    } catch {
+        const errorMsg = getMensajes().ErrorMatricula;
+        loadingMessage ? await loadingMessage.edit(errorMsg) : await message.channel.send(errorMsg);
+    }
+}
+
+async function fallarBusquedaCuenta(message, loadingMessage, estadoUsuario) {
+    estadoUsuario.etapa = 'riotid';
+    usuariosEnMatricula.set(message.author.id, estadoUsuario);
+    const msg = getMensajes().CuentaNoEncontradaMatricula;
+    return loadingMessage ? loadingMessage.edit(msg) : message.channel.send(msg);
+}
+
+function iniciarPolling(message, estadoUsuario) {
+    const userId = message.author.id;
+    preGenerarTarjeta(userId, estadoUsuario);
+
+    const intervalo = setInterval(async () => {
+        const estadoActual = usuariosEnMatricula.get(userId);
+        if (!estadoActual || estadoActual.etapa !== 'validacion') return clearInterval(intervalo);
+
+        if (Date.now() >= estadoActual.tiempoExpiracion) {
+            clearInterval(intervalo);
+            usuariosEnMatricula.delete(userId);
+            await registrarFalloIntento(userId);
+
+            if (estadoActual.verificacionMsg) {
+                const embedDenegada = new EmbedBuilder().setColor('#171b23').setImage(ESTADO_VERIFICACION.DENEGADA);
+                await estadoActual.verificacionMsg.edit({ content: getMensajes().ValidacionDenegada, embeds: [embedDenegada] }).catch(()=>{});
+            }
+            return message.channel.send(getMensajes().ValidacionExpirada);
+        }
+
+        try {
+            const summoner = await obtenerSummoner(estadoActual.puuid, estadoActual.plataforma);
+            if (!summoner) return;
+
+            if (summoner.profileIconId === estadoActual.iconoValidacion) {
+                clearInterval(intervalo);
+
+                if (estadoActual.verificacionMsg) {
+                    const embedAprobada = new EmbedBuilder().setColor('#171b23').setImage(ESTADO_VERIFICACION.APROBADA);
+                    await estadoActual.verificacionMsg.edit({ content: getMensajes().ValidacionAprobada, embeds: [embedAprobada] }).catch(()=>{});
+                }
+
+                let datosTarjeta;
+                let numMatricula;
+                if (estadoActual.tarjetaPreGenerada) {
+                    datosTarjeta = { tarjeta: estadoActual.tarjetaPreGenerada, rangosGuardados: estadoActual.rangosPreCargados };
+                    numMatricula = estadoActual.numeroMatricula;
+                } else {
+                    const resultado = await generarYGuardarTarjeta(estadoActual);
+                    datosTarjeta = { tarjeta: resultado.tarjeta, rangosGuardados: resultado.rangosGuardados };
+                    numMatricula = resultado.numeroMatricula;
+                }
+
+                const fechaActual = new Date();
+                const fechaFormateada = `${String(fechaActual.getDate()).padStart(2, '0')}/${String(fechaActual.getMonth() + 1).padStart(2, '0')}/${fechaActual.getFullYear()}`;
+
+                const datosGuardar = {
+                    Discord_ID: userId,
+                    Discord_Nick: message.author.username,
+                    Fecha: fechaFormateada,
+                    Riot_ID: `${estadoActual.gameName}#${estadoActual.tagLine}`,
+                    Region: estadoActual.region,
+                    PUUID: estadoActual.puuid,
+                    Nivel: estadoActual.summonerLevel,
+                    Icono_ID: estadoActual.iconoValidacion,
+                    Rangos: {
+                        Flex: datosTarjeta.rangosGuardados?.flex || null,
+                        SoloQ: datosTarjeta.rangosGuardados?.soloq || null,
+                        TFT: datosTarjeta.rangosGuardados?.tft || null
+                    }
+                };
+
+                await guardarUsuario(datosGuardar);
+                usuariosEnMatricula.delete(userId);
+                
+                // Si completó la matrícula, le borramos cualquier castigo previo
+                await IntentoMatricula.deleteOne({ Discord_ID: userId });
+
+                await message.channel.send(getMensajes().MatriculaCompletada);
+                await message.channel.send({
+                    embeds: [datosTarjeta.tarjeta.embed],
+                    files: [datosTarjeta.tarjeta.attachment]
+                });
+
+                await logNuevaMatricula(message.client, message.author, datosGuardar.Riot_ID, numMatricula);
+                await actualizarGaleria(message.client);
+            }
+        } catch {}
+    }, INTERVALO_VERIFICACION);
+
+    estadoUsuario.intervalo = intervalo;
+    usuariosEnMatricula.set(userId, estadoUsuario);
+}
+
+async function cancelarMatricula(message) {
+    const userId = message.author.id;
+    const estadoUsuario = usuariosEnMatricula.get(userId);
+    if (!estadoUsuario) return;
+
+    if (estadoUsuario.timeoutInicial) clearTimeout(estadoUsuario.timeoutInicial);
+    if (estadoUsuario.intervalo) clearInterval(estadoUsuario.intervalo);
+
+    let mensajeCancelacion = getMensajes().MatriculaCancelada;
+    
+    if (estadoUsuario.etapa === 'validacion') {
+        mensajeCancelacion = getMensajes().CancelacionDuranteValidacion;
+        if (estadoUsuario.verificacionMsg) {
+            const embedCancelada = new EmbedBuilder().setColor('#171b23').setImage(ESTADO_VERIFICACION.CANCELADA);
+            await estadoUsuario.verificacionMsg.edit({
+                content: getMensajes().ValidacionCancelada,
+                embeds: [embedCancelada]
+            }).catch(() => {});
+        }
+    }
+
+    usuariosEnMatricula.delete(userId);
+    await registrarFalloIntento(userId);
+    await message.channel.send(mensajeCancelacion);
+}
+
+async function ejecutarMatricula(message) {
+    const esEnDM = message.channel.isDMBased();
+    const responder = (texto) => esEnDM ? message.channel.send(texto) : message.reply(texto);
+    const userId = message.author.id;
+    
+    // 🚦 VERIFICACIÓN DE CASTIGOS EN MONGODB
+    try {
+        const recordIntentos = await IntentoMatricula.findOne({ Discord_ID: userId });
+        if (recordIntentos && recordIntentos.CooldownHasta) {
+            if (Date.now() < recordIntentos.CooldownHasta.getTime()) {
+                const timestampSegundos = Math.floor(recordIntentos.CooldownHasta.getTime() / 1000);
+                const tiempoDinamico = `<t:${timestampSegundos}:R>`;
+                const msgCooldown = getMensajes().EnCooldownMatricula 
+                    ? getMensajes().EnCooldownMatricula(tiempoDinamico) 
+                    : `¡Has superado el límite de intentos permitidos! \n\nPor favor, espera **${tiempoDinamico}** antes de volver a intentarlo.`;
+                return responder(msgCooldown);
+            } else {
+                // Ya pasó su tiempo de castigo, lo borramos de la DB
+                await IntentoMatricula.deleteOne({ Discord_ID: userId });
+            }
+        }
+    } catch (error) {
+        console.error("Error validando cooldown:", error);
+    }
+
+    if (await usuarioYaRegistrado(userId)) {
+        return responder(getMensajes().UsuarioYaMatriculado(message.author));
+    }
+    
+    if (usuariosEnMatricula.has(userId)) {
+        return responder(getMensajes().MatriculaYaEnProceso);
+    }
+    
+    try {
+        const dmChannel = esEnDM ? message.channel : await message.author.createDM();
+        await dmChannel.send(getMensajes().ArranqueMatricula);
+        
+        const timeoutInicial = setTimeout(async () => {
+            const estado = usuariosEnMatricula.get(userId);
+            if (estado && (estado.etapa === 'riotid' || estado.etapa === 'region')) {
+                usuariosEnMatricula.delete(userId);
+                await registrarFalloIntento(userId);
+                try { await dmChannel.send(getMensajes().TiempoAgotadoInicial); } catch {}
+            }
+        }, TIEMPO_INICIAL);
+
+        usuariosEnMatricula.set(userId, { etapa: 'riotid', timeoutInicial: timeoutInicial });
+        if (!esEnDM) await responder(getMensajes().LlamadoMatricula(message.author));
+    } catch (error) {
+        usuariosEnMatricula.delete(userId);
+        if (!esEnDM) {
+            const bloqueado = error.code === 50007 || error.message?.includes('Cannot send messages');
+            await responder(bloqueado ? getMensajes().FalloLlamadoMatricula(message.author) : getMensajes().ErrorInicioMatricula);
+        }
+    }
+}
+
+async function procesarRespuestaDM(message) {
+    const estadoUsuario = usuariosEnMatricula.get(message.author.id);
+    if (!estadoUsuario) return;
+    
+    if (estadoUsuario.etapa === 'riotid') {
+        await validarRiotID(message, estadoUsuario);
+    } else if (estadoUsuario.etapa === 'region') {
+        await validarRegion(message, estadoUsuario);
+    }
+}
+
+module.exports = {
+    name: 'matricula',
+    execute: ejecutarMatricula,
+    ejecutarCancelar: cancelarMatricula,
+    procesarRespuestaDM,
+    usuariosEnMatricula,
+    ESTADO_VERIFICACION,
+    CANVAS_VERIFICACION
+};
