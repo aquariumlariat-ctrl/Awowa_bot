@@ -1,4 +1,4 @@
-// Modelos/Usuario.js
+// Base_Datos/MongoDB/Usuario.js
 const mongoose = require('mongoose');
 
 const usuarioSchema = new mongoose.Schema({
@@ -8,8 +8,9 @@ const usuarioSchema = new mongoose.Schema({
     Riot_ID: { type: String, required: true },
     Region: { type: String, required: true },
     PUUID: { type: String, required: true },
-    Nivel: { type: Number, required: true },     // 👈 NUEVO
-    Icono_ID: { type: Number, required: true },  // 👈 NUEVO
+    Nivel: { type: Number, required: true },     
+    Icono_ID: { type: Number, required: true },  
+    Numero_Matricula: { type: Number, required: true }, // 👈 NUEVO CAMPO OFICIAL
     Rangos: {
         Flex: { type: Object, default: null },
         SoloQ: { type: Object, default: null },

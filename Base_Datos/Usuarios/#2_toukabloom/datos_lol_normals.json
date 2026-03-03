@@ -1,0 +1,166 @@
+{
+    "Resumen": {
+        "Victorias": 2,
+        "Derrotas": 1,
+        "WinRate": 67
+    },
+    "Campeones": {
+        "Seraphine": {
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0,
+            "kills": 8,
+            "deaths": 6,
+            "assists": 18
+        },
+        "Vayne": {
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1,
+            "kills": 1,
+            "deaths": 5,
+            "assists": 2
+        },
+        "Jinx": {
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0,
+            "kills": 20,
+            "deaths": 4,
+            "assists": 6
+        }
+    },
+    "Companeros": {
+        "dQtgVF-54yI3xQxrC5jJ2Q0lbMu2bx9-23X9s6VurH7IHq7S3g5XWiOksd7729yaTmqiPf-M0RyPmA": {
+            "nick": "Valudp",
+            "tag": "かおり",
+            "icono": 1625,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "p57h9PefTMzqbfatslryHISip4H8C-MJ6rwmtgHawzm3OZq99fLoEsQhJUwHXhnWWnW5x7ggw-ZbNg": {
+            "nick": "ByeCuLatter",
+            "tag": "pich2",
+            "icono": 6255,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "wLE1M7hSgPjogVGkpjFvzmlUVnMeCw8u2C-2gG8ev7QoTaH70yznEBgQYP_IZNt-216uc1OkE-q92Q": {
+            "nick": "suckealo",
+            "tag": "LAN",
+            "icono": 6049,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "FyROkGVPn0cFJTbrBz854YzfkkKCWhsXjnCWXAr30LUXd7ids3J3z2Raok2H5LuoktHmLrMOqczaJA": {
+            "nick": "Bombi",
+            "tag": "Ysi",
+            "icono": 7091,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "PWT_GOj57zDyTgIuxAKzOA8bgwIHWY0XwVjWfQxaPQfo9pg8dCbYRxfKfhbUiuV7dYqj_wrvi3xwUQ": {
+            "nick": "Zani20",
+            "tag": "AMEN",
+            "icono": 6255,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "Gsbw0yEfFcxSJMnSxSv-HkmAO90IYJnqd-J7KWTOs20st1oa17EtBNV4kGt-NVUtLfxXe03w8nVv8Q": {
+            "nick": "Kranel",
+            "tag": "LAN",
+            "icono": 3614,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "bTBxcxwpTO6rVfWerk9gwQm-DPWV9hHbnY9H6zpVR9s4X7K11WWGt80xFs3jW73P1GVCR-X17McfzQ": {
+            "nick": "reksai69uwu",
+            "tag": "1045",
+            "icono": 6485,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "Ayc7dHUgKfTlD2YVCju0hMwQrGhKjAOdA-0AlJKwB_micN2PFEv4VNqKuKLuTil_deVXrfuXXQtkdw": {
+            "nick": "Milieth",
+            "tag": "7037",
+            "icono": 3161,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "Le7KCjqcVUDUqhBk4eRv-ny4_WromaL85Pa_L0tpspQvHxFDPF0w6dMnqminniABdI7uINfyMw4tvg": {
+            "nick": "Yimbe",
+            "tag": "2420",
+            "icono": 4413,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "yciR5vQVjNum3HYXQ0B4roujR5_kgDpHNZ4AtAAS-bGLTBp7PaNcoA4tNrak073mRLF2DZiVlNCsiw": {
+            "nick": "Mimi",
+            "tag": "Kadis",
+            "icono": 6622,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "FU5ih9BUPscz_x06TVO1t7SEky30f7qTTeWvVXqRrgIJyMH2l7WgHZVjdAzIzE1CqIfLmYX4jLBkQw": {
+            "nick": "Sawkpa",
+            "tag": "Chan",
+            "icono": 4070,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "hep-u8L_dVRs4mv1UmBdvOOdjgMZ9Ah-9I3CJtUius7EbIr_KGnOneJ_WxNarpkXa76MNWzvJ5peHg": {
+            "nick": "ZOE JUBILADA",
+            "tag": "LAN",
+            "icono": 4626,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        }
+    },
+    "Historial": [
+        {
+            "matchId": "LA1_1694821867",
+            "fecha": 1771492900041,
+            "queueId": 400,
+            "campeon": "Seraphine",
+            "kills": 8,
+            "deaths": 6,
+            "assists": 18,
+            "victoria": true,
+            "rol": "BOTTOM"
+        },
+        {
+            "matchId": "LA1_1684325801",
+            "fecha": 1768522444375,
+            "queueId": 400,
+            "campeon": "Vayne",
+            "kills": 1,
+            "deaths": 5,
+            "assists": 2,
+            "victoria": false,
+            "rol": "BOTTOM"
+        },
+        {
+            "matchId": "LA1_1683392820",
+            "fecha": 1768254594553,
+            "queueId": 400,
+            "campeon": "Jinx",
+            "kills": 20,
+            "deaths": 4,
+            "assists": 6,
+            "victoria": true,
+            "rol": "BOTTOM"
+        }
+    ]
+}

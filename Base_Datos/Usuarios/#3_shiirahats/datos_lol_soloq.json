@@ -1,0 +1,782 @@
+{
+    "Resumen": {
+        "Victorias": 11,
+        "Derrotas": 8,
+        "WinRate": 58
+    },
+    "Campeones": {
+        "Lucian": {
+            "partidas": 3,
+            "victorias": 2,
+            "derrotas": 1,
+            "kills": 50,
+            "deaths": 27,
+            "assists": 17
+        },
+        "Draven": {
+            "partidas": 5,
+            "victorias": 5,
+            "derrotas": 0,
+            "kills": 78,
+            "deaths": 42,
+            "assists": 33
+        },
+        "Smolder": {
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1,
+            "kills": 7,
+            "deaths": 8,
+            "assists": 7
+        },
+        "Zac": {
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1,
+            "kills": 6,
+            "deaths": 15,
+            "assists": 15
+        },
+        "Zeri": {
+            "partidas": 2,
+            "victorias": 1,
+            "derrotas": 1,
+            "kills": 8,
+            "deaths": 19,
+            "assists": 9
+        },
+        "Kayn": {
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0,
+            "kills": 12,
+            "deaths": 12,
+            "assists": 10
+        },
+        "KSante": {
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1,
+            "kills": 4,
+            "deaths": 12,
+            "assists": 1
+        },
+        "Gwen": {
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0,
+            "kills": 20,
+            "deaths": 12,
+            "assists": 4
+        },
+        "Malphite": {
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1,
+            "kills": 12,
+            "deaths": 8,
+            "assists": 13
+        },
+        "Pantheon": {
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1,
+            "kills": 11,
+            "deaths": 14,
+            "assists": 12
+        },
+        "Milio": {
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1,
+            "kills": 0,
+            "deaths": 5,
+            "assists": 21
+        },
+        "Jhin": {
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0,
+            "kills": 15,
+            "deaths": 8,
+            "assists": 9
+        }
+    },
+    "Companeros": {
+        "_3cZmNZk4CILuu7CoETgCkxKtPg-IRhqFJ41dDsWc2qTYmnjc1glTI8iDug-VYPWypUlYvscClSGug": {
+            "nick": "Smookahontas",
+            "tag": "LAN",
+            "icono": 5466,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "ez_nGR7l0PGfj6a7ZwqdLsCOyTDGCjIGVwqHoPiGXlUGBFn4JJVghtGKj6PHSodgivTwAy6fhvFWJw": {
+            "nick": "diebvb29",
+            "tag": "9638",
+            "icono": 6381,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "VcIGZd21vHRIroOvNfwZ6j8JkZif5oaZ7JC1dae1iMZt4k9MWFCJTv8kXKNtoSZxab80CP8mg8BJHw": {
+            "nick": "EL TIO BENI",
+            "tag": "LAN",
+            "icono": 5450,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "1eobOGGgzSwVnpO0tYtYZx375SUIPVoXWl6z8VKLx4FXTBMG83hCKNtth-kwLxyvoI-wBQkaJjq95w": {
+            "nick": "Shiirahats",
+            "tag": "LAN",
+            "icono": 6064,
+            "partidas": 19,
+            "victorias": 11,
+            "derrotas": 8
+        },
+        "vg4512SIIm8VCbbQ_lUX8t1LGMNwezC0g86qlXMl06R1JYs07EmK6VZBp6j0bLrYj_RKwoWatp2e-A": {
+            "nick": "HeartBrok33n",
+            "tag": "LAN",
+            "icono": 5769,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "a2qI5W9BKzEXIoG543ahryiBvtJozXQ_aLP3ITsQLj3iN0fFYCCzu--6hGnjKVr7MBnKg5VYQXMw3A": {
+            "nick": "matiss",
+            "tag": "1122",
+            "icono": 6921,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "NUpqV3k1fKZVCu8eHHmmwX-LFKYltefrE4tdngSLsoo-CefPIp8AT9tycoVv2arzeVhs3YV4MHQmog": {
+            "nick": "PaLvIx",
+            "tag": "LAN",
+            "icono": 6525,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "xOsjJl2GoSUulRhPvDcZ9aKRz1lU28_FHDVO19eID0Jf7QimTV_t2oGEnGUYeDDf1QpexXpmr7XooA": {
+            "nick": "Elizza",
+            "tag": "BEBE",
+            "icono": 5456,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "s5p806ZQ1VJfQvOT0em1QGmxGWUQCsC_gVyYI91JpKLt_9aORktvBDu3QPfR3apXIuhT_VMQSz7EAQ": {
+            "nick": "GIGACHAD1403",
+            "tag": "LAN",
+            "icono": 6383,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "sOcbw1ozHKv948qah1ZFFGQrwNwty1De5oehti6iTAGv105eapE6tbRtNiUZCE7_B01j-FRbT2jPeA": {
+            "nick": "Joyboy RR",
+            "tag": "LAN",
+            "icono": 7015,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "7CztlwK7TlRaY05vY5Brq-LQ-q74l_Kf-GYwC1Fo8A_Q6Mk3HxOVAJJjGTcgR-yR16nAY0pCfQOlsA": {
+            "nick": "kentadicho",
+            "tag": "LAN",
+            "icono": 6767,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "pF0ttNnEvHvrnKRzJQavnbzoREKBKM74CXmXotJcnJIWloM_j-AvI0KHUC-Q8sbZ6I-KAPhlKRTaZA": {
+            "nick": "SPOI",
+            "tag": "LAN",
+            "icono": 3796,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "Kt7R9KqHdy9w-eBu2jHecJEPezQhFFAtw0TiIIeTTWCJ-UZTHqhZSXm9gL0FgXPkiyb2LFewjeI_cw": {
+            "nick": "Yoni KS",
+            "tag": "LAN",
+            "icono": 714,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "reXJwG01Z1u6TLdRX1Ei4hM6zw4v21ORpfqu6Z_ntzXiXu2aFEWjlzLh5WvUclbCHi2_mrfCbGM5jg": {
+            "nick": "DASS110",
+            "tag": "LAN",
+            "icono": 4019,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "NQs6NrtvhE7nZtKBsqvecPvVCT5GI_a_gCBrIBEghfR1cYIEEJLxF94qSis99F0YC23DBtbkg42fKw": {
+            "nick": "Chinatsu",
+            "tag": "JPN",
+            "icono": 4630,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "W9_XGloov1LBDBCpGWWhgRh8vGLu4Dp6c2QPLfhXnzP7mxfVMa5Z7QFC7EJfkINcvVXlbcmPjQBcjA": {
+            "nick": "Prince Royce",
+            "tag": "2671",
+            "icono": 6050,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "ekoaVSQyCIHdFcX4ioyMO2PY--w8gmrIdPgJo9hANQ9Mj_Gbi50phGpkrUjcIOnNXqqtGLsBFy6aQw": {
+            "nick": "MORENOuwu",
+            "tag": "LAN",
+            "icono": 745,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "YepQstn-TrLYm3Wizejl_Ej2DelAOsifuZmPkdufjs9oF-TwCPnXFa1MhK0Nr24uUC2T0BN01uM5Lw": {
+            "nick": "Popote",
+            "tag": "8820",
+            "icono": 5767,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "aCyDqK8maeWXPlcELIYRNEAA9uJ5hi3rsZmFlLfdp8zLmhn1GrngrvHTaic2KMA1L8fSZHKQQ3l9UQ": {
+            "nick": "ArrozChinoyCoca",
+            "tag": "0352",
+            "icono": 4652,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "LvyBcw4fba7dRitMC05deTGg3lzZPjbSS9IcZxdt1IJ9FpGrcNvh9vnUeHeDEFZvaALnc0EbPdL65g": {
+            "nick": "Antonio Margaret",
+            "tag": "6431",
+            "icono": 938,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "ndla-8CF_ASmvShfMdaxe9Xjn4RELmLLd98oOpaw2AnTg8yDDR1svpLZaMLmpNJK8D8ZZTv72a9aWA": {
+            "nick": "nmhc",
+            "tag": "LAN",
+            "icono": 4279,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "5rUuR4KKNRr65SV9mWm6JOqYRBOd_XfDZ6K9-ZDJgkFYaeEvkoY04V4R3yJwWipnJL2ePySrt_VUeQ": {
+            "nick": "THEblackFENIX",
+            "tag": "LAN",
+            "icono": 3506,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "05-GvRxUUbzc11KlkpXQOH8pD5QOMvQPDRcJnIVb3Gz1Qu98WCbO7vIHzFkXVKxlVshAY8dzNerb8A": {
+            "nick": "IIIG0LD3NIII",
+            "tag": "LAN",
+            "icono": 6883,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "WHxvXKhO_UzPNFB0cqAW3JkbqgUPVuowmQfzUhiWi9fjiKlVv2ZXX8QQ2Hiq6CeECg16_xXIEoeHqQ": {
+            "nick": "machote011",
+            "tag": "LAN",
+            "icono": 3001,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "bwaiT0bpnDEaCayY0lAHwoC6MbwS-gy6IpeWUoZRqTBp6aXs3l1x1rDa-cJmhwdYa6vF-TBH0Uwftg": {
+            "nick": "mipepino",
+            "tag": "LAN",
+            "icono": 6737,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "4xsc5iRs5vKiCtFeyug7Wn-Rvvtl1NL1pqdPUJBC7ujJF9MYiECB5jExctaCwXuHvMwNhgV4KVjSfg": {
+            "nick": "Rey del Mondongo",
+            "tag": "LAN",
+            "icono": 7028,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "I_aNaBJVxbzpWPddw-XMZNBlpOqk1TNLjcLOFDERMI_QWzWzjO8G4t4Zir9EHBWp4msmSaT3BVsT7A": {
+            "nick": "lathrell",
+            "tag": "LAN",
+            "icono": 2092,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "RejxevSvjcjMnlFxYXzdqgKgl8v-lFyht1Qa5fnFnm7_DHBrlB0tvHNzmG3fbMBg5Uo2lFaucAuf2w": {
+            "nick": "aaarea15",
+            "tag": "LAN",
+            "icono": 4652,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "Z05o57g0Oe3-D6cOJkClrMiI0FQuTQhrCvrJ58ib1w_UeveeeGNYz8-Pb1BLXeOOfS0Ev29z56C_Zg": {
+            "nick": "Mooncakke",
+            "tag": "LAN",
+            "icono": 6680,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "gzal7Frsqs3nYA0X3n77FKNEGckdVBomM9p9_M-lRBAmmWtaILEyYQ3ta4-68FK_zcXrRg4FBXjsvQ": {
+            "nick": "Dutenaemaluis",
+            "tag": "LAN",
+            "icono": 1212,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "CHGk29cS09U64-4gciTerXey69CKw4hoXcck08gAsdwatP957o6-p4N9Sk9hlroff5JfXU6o5D39dg": {
+            "nick": "ExotiKushh",
+            "tag": "LAN",
+            "icono": 6492,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "GBuCKJDlj8ioxrqIhPJ2Jfn9FbhM8iG2DNn3PrnVVUM1V5Q2VSP93u7HVyMm_eqwt0lTHIP0a14EoQ": {
+            "nick": "xXsexsation",
+            "tag": "LAN",
+            "icono": 6446,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "j1VFbq95DA_8u237Vxrby9jvhVWokYlTDDYYGznO-z6VY8WrUYynZlXyZBpbGpDUXJAphwCzX8LHAw": {
+            "nick": "HolyGam3r",
+            "tag": "LAN",
+            "icono": 5768,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "2VPluAP82n2F6cHEcn38oXlVNS-TCeY_bF_RXh3Y3C8sC3y9aXqztpIA_WbjIHZ1wV0_lDCsfnVTxg": {
+            "nick": "Zz Deivid zZ",
+            "tag": "LAN",
+            "icono": 6003,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "TqEu470FKr2VgJuG6_lGdc1p3dAhA8KZF6L9aUBl5yCdUuSCHOSCV-UYeAcbeJ6KrctLKcTNdr7Ezw": {
+            "nick": "ArielPantuflaFea",
+            "tag": "bronz",
+            "icono": 3867,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "d3Hj_x11UXau9Ud0YzzsaIlyMGVSytW_U85nRTZoVmPgfZGoCBUzpT7qW_KR77ByAWvtDuJC48pIgw": {
+            "nick": "Pyke Tyson",
+            "tag": "UFC",
+            "icono": 6932,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "fqxmUpBSF7BJJgXkZiH9B_WVJQT_ZkUvsul4QJCuhAgr7dNKxyUgZRCVNTNIHqn3oDTvL1Pyzi1OHA": {
+            "nick": "Xharny",
+            "tag": "Xhar",
+            "icono": 3155,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "cMVf-zOBzC-jyFvtWCUucaBoTYJmHtnyUOtzxIMIE4e3aIRSQIq3deFfjbqVp1VMnSLLrVfCwkXwyw": {
+            "nick": "xxleumasxx01",
+            "tag": "LAN",
+            "icono": 5454,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "yMhBzvx_x6zqgD0YYsFKwp7Z8BeNkSGiSHEl5iLF0Iho-jCmLlLvxo_OQ9996wwR78pTUOq4q9Wbnw": {
+            "nick": "elpepe100702",
+            "tag": "LAN",
+            "icono": 2074,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "XF8J-cCkNN4xpxYD5UaDTAu-ocIyJUjBYOiUNT-Zg2i4-lk6tZeRZov88dzU3Xkx_lGNkEjdN0gAuw": {
+            "nick": "TouchTheSun",
+            "tag": "8259",
+            "icono": 5982,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "28EJHqEzZXk0sfOmjt8vbk0U6JxaK3EFucK5jNnVgZyLtV6cAgRySqE29iMLwJlWu59fPaaCZk4Tjw": {
+            "nick": "Alvar",
+            "tag": "Aiden",
+            "icono": 3183,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "1RXiQzkEvIr_u3o6odLcUsP7QtFtwV9R1ghcHKoxHAouTeE1q5Yvl1sI3ARByvDbbNA3DJzuoQy-Gg": {
+            "nick": "quasooo",
+            "tag": "queso",
+            "icono": 5987,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "4pMTUw_RXrZaWwTHYoN3XXYeeYfL2STS9_7nKEmWmO_SV6aA2B81qDA1BdK5MIv7w6_edIgxLoEr2Q": {
+            "nick": "Akirah",
+            "tag": "78133",
+            "icono": 980,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "NClQYNvc5Vx5dyy0DBwmO02RhHw3TevUeoDv7Vh1eLDJNKv4sIErX97GW_aJqT6J9NyzgQBnBaPkzQ": {
+            "nick": "Thronex  Sparta",
+            "tag": "LAN",
+            "icono": 4053,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "cpGvd78wpsx5YZYrN6pFkQpHXlFCjlA8k3g8Q0Mrf1RpD-LCuxmm0RSO0E0i_AY_s09cige8AEYfrA": {
+            "nick": "Decks",
+            "tag": "MYCAT",
+            "icono": 4793,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "9tR1WcQnbG-R9JTfWj45BsWI4m8rt39XmD22OwwDTFwRRizJ4YxH_WGrMv6r_98GNM0mRS6JFxQT4w": {
+            "nick": "Welysan",
+            "tag": "LAN",
+            "icono": 6762,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "DqaHF897tG-SrBPVjdmXwTuuneUu2regV6uKbjOouiCAzgeudiQFeUH8I9y4EgkyH7zj11QnV3iahw": {
+            "nick": "Cs Yeferson",
+            "tag": "1052",
+            "icono": 3798,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "Il33zCd2N9XACaXAUJJImdMAUaPsM-c3W-FsTMJXsOQklpn15n2loWbygC_uew20tRMh4SGMiLkIFw": {
+            "nick": "jesucris",
+            "tag": "LAN",
+            "icono": 4957,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "AhwT81StciRETmEKWSkLOGyUmsK2q39u3nEwn1HWZQQ56Y-a5ukP1-oL4ckLHRCChF8Yz3-U_WWNSw": {
+            "nick": "Horo",
+            "tag": "2017",
+            "icono": 4655,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "PuxgJNV_UGD1v1D_Wj3-8xspChA7lTpjliPeFCOeBEQ-LCNzlLn_dYw1zh6Nyu8XE_96yAli7gmf2A": {
+            "nick": "BURRITO D FRIJOL",
+            "tag": "ARINA",
+            "icono": 6265,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "8DeK3ETVT8NVmRT33CLRxPHy4sOr1xia_VS9Cq-086Yap5NiaOSJxQDm9QsrifgqzKMCDdiUi-0QIw": {
+            "nick": "Musss0lini",
+            "tag": "333",
+            "icono": 6622,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "9ibbcOXOUbHVmB5Eyoh3NIgidGKiQhDRMPsg_OGzLQPLQDPGIJ5k0jBr-iIkbbzueyoJeTz85CTdzg": {
+            "nick": "jacabin",
+            "tag": "3333",
+            "icono": 29,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "aJCHYV3vKkIMIwTV1twnKbYgggo8FD97rV-_bbKPWBYT3HzNCFHXiNGvSFK_FLpK91JaCp0lMUUlPA": {
+            "nick": "Muchin17",
+            "tag": "LAN",
+            "icono": 6415,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "v2SBVwl5X2SYVjqwMoyR_TV-AfzYe775njSyyNCSi_2RKWShQnlat06HdumupTj-iOk8lGAfNB4idg": {
+            "nick": "Manquito LK",
+            "tag": "LAN",
+            "icono": 4652,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "qXEUWNfzzahBy2c0Y_OksxFbNNy43Yc0ZP4K40foXd-djTSvjD-99p_Ajd5GjMLMDGmU3ZoMJu07eA": {
+            "nick": "AA SergioTw",
+            "tag": "LAN",
+            "icono": 5430,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "QEqaVwe6ffOBCTurwHCIspOAND3zHGqmnKSBbz2ZbNTtxzA-Oo2eqBXEah0xEeWIQaoK30mGr3tbnw": {
+            "nick": "Keriaz",
+            "tag": "Keria",
+            "icono": 23,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "vftfgz-gW869j4QAwpGz1hHxAj4BTM37H-Fd-tu_DplRuvPwSe67U_L-lUjoTYhVpLltqMffmpkhMw": {
+            "nick": "ElponteEn4",
+            "tag": "LAN",
+            "icono": 6768,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "_3SjeX2xwbN1BmLg8lzX_MwmG2B7TX90N-QpoL-f3o61Sq3kKmEHt28cAVCNg_hapiGNBOebxSX-fg": {
+            "nick": "Xavi725",
+            "tag": "9388",
+            "icono": 6489,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        }
+    },
+    "Historial": [
+        {
+            "matchId": "LA1_1694249181",
+            "fecha": 1771312426918,
+            "queueId": 420,
+            "campeon": "Lucian",
+            "kills": 9,
+            "deaths": 13,
+            "assists": 2,
+            "victoria": false,
+            "rol": "BOTTOM"
+        },
+        {
+            "matchId": "LA1_1694244083",
+            "fecha": 1771310754617,
+            "queueId": 420,
+            "campeon": "Lucian",
+            "kills": 12,
+            "deaths": 2,
+            "assists": 5,
+            "victoria": true,
+            "rol": "BOTTOM"
+        },
+        {
+            "matchId": "LA1_1691322402",
+            "fecha": 1770483668711,
+            "queueId": 420,
+            "campeon": "Draven",
+            "kills": 17,
+            "deaths": 6,
+            "assists": 4,
+            "victoria": true,
+            "rol": "BOTTOM"
+        },
+        {
+            "matchId": "LA1_1690234540",
+            "fecha": 1770152361352,
+            "queueId": 420,
+            "campeon": "Draven",
+            "kills": 15,
+            "deaths": 12,
+            "assists": 11,
+            "victoria": true,
+            "rol": "BOTTOM"
+        },
+        {
+            "matchId": "LA1_1690221847",
+            "fecha": 1770149640638,
+            "queueId": 420,
+            "campeon": "Smolder",
+            "kills": 7,
+            "deaths": 8,
+            "assists": 7,
+            "victoria": false,
+            "rol": "BOTTOM"
+        },
+        {
+            "matchId": "LA1_1689527835",
+            "fecha": 1769966664023,
+            "queueId": 420,
+            "campeon": "Draven",
+            "kills": 11,
+            "deaths": 14,
+            "assists": 5,
+            "victoria": true,
+            "rol": "BOTTOM"
+        },
+        {
+            "matchId": "LA1_1688630075",
+            "fecha": 1769718313750,
+            "queueId": 420,
+            "campeon": "Zac",
+            "kills": 6,
+            "deaths": 15,
+            "assists": 15,
+            "victoria": false,
+            "rol": "JUNGLE"
+        },
+        {
+            "matchId": "LA1_1688620872",
+            "fecha": 1769716484749,
+            "queueId": 420,
+            "campeon": "Draven",
+            "kills": 19,
+            "deaths": 4,
+            "assists": 2,
+            "victoria": true,
+            "rol": "BOTTOM"
+        },
+        {
+            "matchId": "LA1_1688612995",
+            "fecha": 1769714474105,
+            "queueId": 420,
+            "campeon": "Draven",
+            "kills": 16,
+            "deaths": 6,
+            "assists": 11,
+            "victoria": true,
+            "rol": "BOTTOM"
+        },
+        {
+            "matchId": "LA1_1688608683",
+            "fecha": 1769712980280,
+            "queueId": 420,
+            "campeon": "Zeri",
+            "kills": 2,
+            "deaths": 11,
+            "assists": 0,
+            "victoria": false,
+            "rol": "BOTTOM"
+        },
+        {
+            "matchId": "LA1_1685682656",
+            "fecha": 1768889236690,
+            "queueId": 420,
+            "campeon": "Lucian",
+            "kills": 29,
+            "deaths": 12,
+            "assists": 10,
+            "victoria": true,
+            "rol": "BOTTOM"
+        },
+        {
+            "matchId": "LA1_1684178485",
+            "fecha": 1768458477619,
+            "queueId": 420,
+            "campeon": "Kayn",
+            "kills": 12,
+            "deaths": 12,
+            "assists": 10,
+            "victoria": true,
+            "rol": "JUNGLE"
+        },
+        {
+            "matchId": "LA1_1684169321",
+            "fecha": 1768456300175,
+            "queueId": 420,
+            "campeon": "KSante",
+            "kills": 4,
+            "deaths": 12,
+            "assists": 1,
+            "victoria": false,
+            "rol": "TOP"
+        },
+        {
+            "matchId": "LA1_1684155097",
+            "fecha": 1768453266943,
+            "queueId": 420,
+            "campeon": "Gwen",
+            "kills": 20,
+            "deaths": 12,
+            "assists": 4,
+            "victoria": true,
+            "rol": "TOP"
+        },
+        {
+            "matchId": "LA1_1683574463",
+            "fecha": 1768283474152,
+            "queueId": 420,
+            "campeon": "Malphite",
+            "kills": 12,
+            "deaths": 8,
+            "assists": 13,
+            "victoria": false,
+            "rol": "JUNGLE"
+        },
+        {
+            "matchId": "LA1_1683560491",
+            "fecha": 1768280848894,
+            "queueId": 420,
+            "campeon": "Pantheon",
+            "kills": 11,
+            "deaths": 14,
+            "assists": 12,
+            "victoria": false,
+            "rol": "UTILITY"
+        },
+        {
+            "matchId": "LA1_1682609208",
+            "fecha": 1768028445060,
+            "queueId": 420,
+            "campeon": "Zeri",
+            "kills": 6,
+            "deaths": 8,
+            "assists": 9,
+            "victoria": true,
+            "rol": "BOTTOM"
+        },
+        {
+            "matchId": "LA1_1682146974",
+            "fecha": 1767917144297,
+            "queueId": 420,
+            "campeon": "Milio",
+            "kills": 0,
+            "deaths": 5,
+            "assists": 21,
+            "victoria": false,
+            "rol": "UTILITY"
+        },
+        {
+            "matchId": "LA1_1682133605",
+            "fecha": 1767914450901,
+            "queueId": 420,
+            "campeon": "Jhin",
+            "kills": 15,
+            "deaths": 8,
+            "assists": 9,
+            "victoria": true,
+            "rol": "BOTTOM"
+        }
+    ]
+}

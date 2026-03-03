@@ -1,0 +1,64 @@
+{
+    "Resumen": {
+        "Victorias": 1,
+        "Derrotas": 0,
+        "WinRate": 100
+    },
+    "Campeones": {
+        "Corki": {
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0,
+            "kills": 14,
+            "deaths": 7,
+            "assists": 5
+        }
+    },
+    "Companeros": {
+        "Zk5Vq8EFtu5DdTRK_zDSGBaIityLVz2Gxw7AU7t-QIm42iInrJpkSiQZRGs-sBFr507FS9somuUq8w": {
+            "nick": "Mr Boulsack",
+            "tag": "4704",
+            "icono": 7059,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "f_R2r1H5cExIb_ntCtGL1aMlh8pmQr5HTd5ESD9azoPHTA6Qkw0h-RffHseKESDOunyrNZkWQAK4IA": {
+            "nick": "Leche de Kevin",
+            "tag": "Soda",
+            "icono": 5954,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "QwgLXIZJrxIjBpE_Z75EXevHQliequmk3jCJYw9tSlxr-HABmhk-3BTh-dCqduvYp4uy4GvxJffrhw": {
+            "nick": "Zenitsu",
+            "tag": "raik",
+            "icono": 6468,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "OWGi5IWU_7zpBL0_b-_78HQLtXsurGzp8BsTPSGQM5xvkhw8V9BWaFuAwhdop01DaSEJdMqNiwdIDg": {
+            "nick": "Hollu",
+            "tag": "Abyss",
+            "icono": 7037,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        }
+    },
+    "Historial": [
+        {
+            "matchId": "LA1_1683781184",
+            "fecha": 1768355022579,
+            "queueId": 420,
+            "campeon": "Corki",
+            "kills": 14,
+            "deaths": 7,
+            "assists": 5,
+            "victoria": true,
+            "rol": "BOTTOM"
+        }
+    ]
+}

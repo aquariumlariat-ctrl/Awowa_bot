@@ -1,11 +1,13 @@
 // Modulos/Principales/Matricula/matricula.js
 const { AttachmentBuilder, EmbedBuilder } = require('discord.js');
+const fs = require('fs');
+const path = require('path');
 const { generarTarjetaMatricula } = require('./tarjeta_matricula');
 const { regionAPlatforma, verificarCuentaRiot, obtenerSummoner, obtenerRangos } = require("../../../API's/Riot/lol_api");
 const { obtenerRangoTFT } = require("../../../API's/Riot/tft_api");
 
 const Usuario = require('../../../Base_Datos/MongoDB/Usuario.js');
-const IntentoMatricula = require('../../../Base_Datos/MongoDB/IntentoMatricula.js'); // NUEVA BASE DE DATOS
+const IntentoMatricula = require('../../../Base_Datos/MongoDB/IntentoMatricula.js'); 
 const { logNuevaMatricula, actualizarGaleria } = require('./bitacora');
 
 const ICONOS_VERIFICACION = [2, 5, 6, 11, 12];
@@ -65,7 +67,6 @@ async function guardarUsuario(datosUsuario) {
     }
 }
 
-// 🚦 NUEVO SISTEMA DE CASTIGOS CON MONGODB
 async function registrarFalloIntento(userId) {
     try {
         let intento = await IntentoMatricula.findOne({ Discord_ID: userId });
@@ -123,7 +124,13 @@ async function generarYGuardarTarjeta(estadoUsuario) {
 
     let numeroTotal = 1;
     try {
-        numeroTotal = (await Usuario.countDocuments()) + 1;
+        // Obtenemos el número más alto para no tener empalmes si se borran usuarios
+        const ultimoUsuario = await Usuario.findOne().sort({ Numero_Matricula: -1 });
+        if (ultimoUsuario && ultimoUsuario.Numero_Matricula) {
+            numeroTotal = ultimoUsuario.Numero_Matricula + 1;
+        } else {
+            numeroTotal = (await Usuario.countDocuments()) + 1;
+        }
     } catch {}
 
     const imageBuffer = await generarTarjetaMatricula({
@@ -311,6 +318,7 @@ function iniciarPolling(message, estadoUsuario) {
                     PUUID: estadoActual.puuid,
                     Nivel: estadoActual.summonerLevel,
                     Icono_ID: estadoActual.iconoValidacion,
+                    Numero_Matricula: numMatricula, // 👈 Guardado Oficial
                     Rangos: {
                         Flex: datosTarjeta.rangosGuardados?.flex || null,
                         SoloQ: datosTarjeta.rangosGuardados?.soloq || null,
@@ -320,9 +328,50 @@ function iniciarPolling(message, estadoUsuario) {
 
                 await guardarUsuario(datosGuardar);
                 usuariosEnMatricula.delete(userId);
-                
-                // Si completó la matrícula, le borramos cualquier castigo previo
                 await IntentoMatricula.deleteOne({ Discord_ID: userId });
+
+                // 👇 CREACIÓN DE LA CARPETA FÍSICA Y SUS 5 ARCHIVOS (PARA NUEVOS) 👇
+                try {
+                    const nickSeguro = message.author.username.replace(/[<>:"/\\|?*\x00-\x1F]/g, '').trim() || 'Jugador';
+                    const nombreCarpeta = `#${numMatricula}_${nickSeguro}`;
+                    const rutaCarpeta = path.join(__dirname, '../../../Base_Datos/Usuarios', nombreCarpeta);
+
+                    if (!fs.existsSync(rutaCarpeta)) {
+                        fs.mkdirSync(rutaCarpeta, { recursive: true });
+                    }
+
+                    const plantillaJuegos = {
+                        Resumen: { Victorias: 0, Derrotas: 0, WinRate: 0 },
+                        Campeones: {},
+                        Companeros: {},
+                        Historial: []
+                    };
+
+                    const archivosCrear = {
+                        'datos_basicos.json': {
+                            Discord_ID: userId,
+                            Discord_Nick: message.author.username,
+                            Numero_Matricula: numMatricula,
+                            Riot_ID: `${estadoActual.gameName}#${estadoActual.tagLine}`,
+                            PUUID: estadoActual.puuid,
+                            Region: estadoActual.region,
+                            Fecha_Matricula: fechaFormateada
+                        },
+                        'datos_lol_soloq.json': plantillaJuegos,
+                        'datos_lol_flex.json': plantillaJuegos,
+                        'datos_lol_normals.json': plantillaJuegos,
+                        'datos_lol_total.json': plantillaJuegos
+                    };
+
+                    for (const [nombreArchivo, contenidoVacio] of Object.entries(archivosCrear)) {
+                        const rutaArchivo = path.join(rutaCarpeta, nombreArchivo);
+                        if (!fs.existsSync(rutaArchivo)) {
+                            fs.writeFileSync(rutaArchivo, JSON.stringify(contenidoVacio, null, 4), 'utf8');
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error creando carpeta/archivos físicos del usuario nuevo:', e);
+                }
 
                 await message.channel.send(getMensajes().MatriculaCompletada);
                 await message.channel.send({
@@ -371,7 +420,6 @@ async function ejecutarMatricula(message) {
     const responder = (texto) => esEnDM ? message.channel.send(texto) : message.reply(texto);
     const userId = message.author.id;
     
-    // 🚦 VERIFICACIÓN DE CASTIGOS EN MONGODB
     try {
         const recordIntentos = await IntentoMatricula.findOne({ Discord_ID: userId });
         if (recordIntentos && recordIntentos.CooldownHasta) {
@@ -383,7 +431,6 @@ async function ejecutarMatricula(message) {
                     : `¡Has superado el límite de intentos permitidos! \n\nPor favor, espera **${tiempoDinamico}** antes de volver a intentarlo.`;
                 return responder(msgCooldown);
             } else {
-                // Ya pasó su tiempo de castigo, lo borramos de la DB
                 await IntentoMatricula.deleteOne({ Discord_ID: userId });
             }
         }
