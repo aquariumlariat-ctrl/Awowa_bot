@@ -7,8 +7,13 @@ try {
     GlobalFonts.registerFromPath(plusJakarta, 'Plus Jakarta Sans');
 } catch (e) { /* Ignorar si no carga la fuente */ }
 
+const COLOR_BG_CAJA = 'rgba(23, 27, 35, 0.5)'; 
+const COLOR_TEXTO_BASE = '#CDCECF'; 
+const COLOR_SEPARADOR_FADED = 'rgba(205, 206, 207, 0.4)';
+
 function obtenerColorKDA(kda) {
     const valor = parseFloat(kda);
+    if (isNaN(valor)) return COLOR_TEXTO_BASE;
     if (valor >= 6.0) return '#deccfb'; 
     if (valor >= 5.0) return '#ffe8a3'; 
     if (valor >= 4.0) return '#9ee0f4'; 
@@ -18,6 +23,7 @@ function obtenerColorKDA(kda) {
 
 function obtenerColorWR(wrTexto) {
     const valor = parseFloat(wrTexto);
+    if (isNaN(valor)) return COLOR_TEXTO_BASE;
     if (valor >= 65) return '#deccfb'; 
     if (valor >= 60) return '#ffe8a3'; 
     if (valor >= 55) return '#c4eeb0'; 
@@ -26,6 +32,8 @@ function obtenerColorWR(wrTexto) {
 }
 
 function dibujarTextoSeparado(ctx, textoCompleto, xCentrado, y, font, colorSolido, colorFaded, separador = " l ") {
+    if (!textoCompleto) return;
+    ctx.save();
     const partes = textoCompleto.split(separador); 
     ctx.font = font;
 
@@ -49,40 +57,18 @@ function dibujarTextoSeparado(ctx, textoCompleto, xCentrado, y, font, colorSolid
             currentX += ctx.measureText(separador).width; 
         }
     });
+    ctx.restore();
 }
 
-// ==========================================
-// ESTRUCTURA DE DATOS REALES (MOCK POR DEFECTO)
-// ==========================================
 const datosPerfilPorDefecto = {
-    notables: [
-        { champ: 'Ahri', kda: '2.4', wr: '100%', kdaStr: '8 l 2 l 10', partStr: '4 V l 0 D' },
-        { champ: 'Yasuo', kda: '3.5', wr: '55%', kdaStr: '5 l 4 l 6', partStr: '55 V l 45 D' },
-        { champ: 'Jinx', kda: '10.2', wr: '48%', kdaStr: '12 l 3 l 8', partStr: '48 V l 52 D' },
-        { champ: 'LeeSin', kda: '5.8', wr: '60%', kdaStr: '15 l 2 l 4', partStr: '60 V l 40 D' },
-        { champ: 'Thresh', kda: '1.1', wr: '25%', kdaStr: '20 l 1 l 15', partStr: '1 V l 3 D' }
-    ],
-    rendimiento: { wins: 345, losses: 310 },
-    roles: [
-        { nombre: 'MID', icono: 'https://i.imgur.com/WB2PDTS.png', wr: '62%', vic: '45 Victorias', der: '28 Derrotas' },
-        { nombre: 'JG', icono: 'https://i.imgur.com/IKquw1O.png', wr: '48%', vic: '15 Victorias', der: '16 Derrotas' }
-    ],
-    historial: [
-        { champ: 'Zed', vic: true }, { champ: 'Sylas', vic: false }, { champ: 'Ezreal', vic: true },
-        { champ: 'Caitlyn', vic: true }, { champ: 'Ezreal', vic: false }, { champ: 'Nautilus', vic: true },
-        { champ: 'Lulu', vic: false }, { champ: 'Jhin', vic: true }, { champ: 'Sylas', vic: true }
-    ],
-    companeros: [
-        { icono: '23', nick: 'Faker', tag: 'KR1', partidas: '120 Partidas' },
-        { icono: '24', nick: 'ShowMaker', tag: 'DK', partidas: '85 Partidas' },
-        { icono: '11', nick: 'JugadorRandom', tag: 'LAS', partidas: '60 Partidas' },
-        { icono: '14', nick: 'Ruler', tag: 'GEN', partidas: '42 Partidas' }
-    ]
+    nick: 'Jugador', // Agregamos el nick por defecto
+    notables: [],
+    rendimiento: { wins: 0, losses: 0 },
+    roles: [],
+    historial: [],
+    companeros: []
 };
 
-// ==========================================
-// FUNCIÓN PRINCIPAL DE DIBUJO (AHORA DINÁMICA)
-// ==========================================
 async function generarBoceto(datos = datosPerfilPorDefecto) {
     const width = 800;
     const height = 350; 
@@ -102,387 +88,412 @@ async function generarBoceto(datos = datosPerfilPorDefecto) {
 
     const subtituloFontSize = 17; 
     const fontBold = `bold ${subtituloFontSize}px "Plus Jakarta Sans"`;
+    const fontPequena = 'bold 14px "Plus Jakarta Sans"';
+
     ctx.font = fontBold;
+    const w1 = ctx.measureText('Solo/Dúo').width;
 
-    const texto1 = 'Solo/Dúo', texto2 = 'Flexible', texto3 = 'Normal', texto4 = 'Total'; 
-    const w1 = ctx.measureText(texto1).width;
-    const w2 = ctx.measureText(texto2).width;
-    const w3 = ctx.measureText(texto3).width;
-    const w4 = ctx.measureText(texto4).width;
-    
-    const sumaTextos = w1 + w2 + w3 + w4;
-    const gapMenu = (anchoTotalBloque - sumaTextos) / 3; 
-    
-    const centroBloqueX = inicioX + (anchoTotalBloque / 2);
-
-    const tituloRangoFontSize = 25; 
-    ctx.fillStyle = '#CDCECF'; 
-    ctx.font = `bold ${tituloRangoFontSize}px "Plus Jakarta Sans"`;
-    ctx.textAlign = 'center'; 
+    // 👇 NUEVO TÍTULO PRINCIPAL ÚNICO 👇
+    const nombreJugador = datos.nick || "Jugador";
+    ctx.fillStyle = '#ffffff'; 
+    ctx.font = `bold 26px "Plus Jakarta Sans"`;
+    ctx.textAlign = 'left'; 
     ctx.textBaseline = 'top';
-    ctx.fillText('Campeones Notables', centroBloqueX, tituloY);
+    ctx.fillText(`Perfil Competitivo de ${nombreJugador}`, inicioX, tituloY);
 
-    const subtituloY = tituloY + tituloRangoFontSize + 8; 
+    // Subtítulos Izquierda
+    ctx.fillStyle = '#dccaf9'; 
     ctx.textAlign = 'left'; 
     ctx.font = fontBold;
-
-    ctx.fillStyle = '#dccaf9'; 
-    ctx.fillText(texto1, inicioX, subtituloY); 
+    ctx.fillText('Solo/Dúo', inicioX, tituloY + 33); 
     
-    ctx.fillStyle = '#CDCECF'; 
-    ctx.globalAlpha = 0.5; 
-    ctx.fillText(texto2, inicioX + w1 + gapMenu, subtituloY); 
-    ctx.fillText(texto3, inicioX + w1 + gapMenu + w2 + gapMenu, subtituloY); 
-    ctx.fillText(texto4, inicioX + w1 + gapMenu + w2 + gapMenu + w3 + gapMenu, subtituloY); 
+    ctx.globalAlpha = 0.5;
+    ctx.fillStyle = COLOR_TEXTO_BASE;
+    ctx.fillText('Flexible', inicioX + w1 + 15, tituloY + 33); 
     ctx.globalAlpha = 1.0;
 
     const radioCajitas = 5; 
     const espacioEntreCajas = gapGral; 
-    const gapEntreBloques = gapGral; 
-    
-    const inicioCajasY = subtituloY + subtituloFontSize + 10; 
+    const inicioCajasY = tituloY + 60; 
 
-    const colorTextoGris = '#CDCECF';
-    const colorSeparadorFaded = 'rgba(205, 206, 207, 0.4)'; 
-    const fontPequena = 'bold 14px "Plus Jakarta Sans"';
+    const numNotablesReal = datos.notables.length;
 
-    // 1. DIBUJAR CAMPEONES NOTABLES (DINÁMICO)
+    // =========================================================
+    // 🎨 CAMPEONES NOTABLES
+    // =========================================================
     for (let i = 0; i < 5; i++) {
-        if(!datos.notables[i]) continue;
         const filaY = inicioCajasY + (i * (cajaSize + espacioEntreCajas));
-        const dataChamp = datos.notables[i];
+        const rectKdaX = inicioX + cajaSize + gapGral;
+        const rectWrX = rectKdaX + anchoBloqueKDA + gapGral;
 
-        ctx.fillStyle = 'rgba(23, 27, 35, 0.5)';
-        ctx.beginPath();
-        ctx.roundRect(inicioX, filaY, cajaSize, cajaSize, radioCajitas);
-        ctx.fill();
-        
-        try {
-            const img = await loadImage(`https://ddragon.leagueoflegends.com/cdn/14.4.1/img/champion/${dataChamp.champ}.png`);
-            ctx.save();
+        if (datos.notables[i]) {
+            ctx.fillStyle = COLOR_BG_CAJA;
             ctx.beginPath();
             ctx.roundRect(inicioX, filaY, cajaSize, cajaSize, radioCajitas);
-            ctx.clip(); 
-            ctx.drawImage(img, inicioX - 4, filaY - 4, cajaSize + 8, cajaSize + 8);
+            ctx.roundRect(rectKdaX, filaY, anchoBloqueKDA, cajaSize, radioCajitas);
+            ctx.roundRect(rectWrX, filaY, anchoBloqueWR, cajaSize, radioCajitas);
+            ctx.fill();
+
+            const dataChamp = datos.notables[i];
+            try {
+                const img = await loadImage(`https://ddragon.leagueoflegends.com/cdn/14.6.1/img/champion/${dataChamp.champ}.png`);
+                ctx.save();
+                ctx.beginPath();
+                ctx.roundRect(inicioX, filaY, cajaSize, cajaSize, radioCajitas);
+                ctx.clip(); 
+                ctx.drawImage(img, inicioX - 4, filaY - 4, cajaSize + 8, cajaSize + 8);
+                ctx.restore(); 
+            } catch (e) {}
+
+            ctx.textBaseline = 'top';
+            ctx.textAlign = 'center'; 
+            ctx.fillStyle = obtenerColorKDA(dataChamp.kda);
+            ctx.font = 'bold 20px "Plus Jakarta Sans"';
+            ctx.fillText(`${dataChamp.kda} KDA`, rectKdaX + (anchoBloqueKDA/2), filaY + 7);
+            
+            dibujarTextoSeparado(ctx, dataChamp.kdaStr, rectKdaX + (anchoBloqueKDA/2), filaY + 29, fontPequena, COLOR_TEXTO_BASE, COLOR_SEPARADOR_FADED);
+
+            ctx.textAlign = 'center'; 
+            ctx.fillStyle = obtenerColorWR(dataChamp.wr);
+            ctx.font = 'bold 20px "Plus Jakarta Sans"'; 
+            ctx.fillText(dataChamp.wr, rectWrX + (anchoBloqueWR/2), filaY + 7);
+            
+            dibujarTextoSeparado(ctx, dataChamp.partStr, rectWrX + (anchoBloqueWR/2), filaY + 29, fontPequena, COLOR_TEXTO_BASE, COLOR_SEPARADOR_FADED);
+
+        } else {
+            ctx.save(); 
+            const k = i - numNotablesReal; 
+            const alphaDinamico = Math.max(0.05, 0.6 - (k * 0.20)); 
+            
+            ctx.globalAlpha = alphaDinamico; 
+
+            ctx.fillStyle = COLOR_BG_CAJA;
+            ctx.beginPath();
+            ctx.roundRect(inicioX, filaY, cajaSize, cajaSize, radioCajitas);
+            ctx.roundRect(rectKdaX, filaY, anchoBloqueKDA, cajaSize, radioCajitas);
+            ctx.roundRect(rectWrX, filaY, anchoBloqueWR, cajaSize, radioCajitas);
+            ctx.fill();
+
             ctx.restore(); 
-        } catch (e) {}
-
-        const textoGrandeY = filaY + 7;  
-        const textoPequenoY = filaY + 29; 
-
-        // Bloque KDA
-        const rectKdaX = inicioX + cajaSize + gapEntreBloques;
-        ctx.fillStyle = 'rgba(23, 27, 35, 0.5)';
-        ctx.beginPath();
-        ctx.roundRect(rectKdaX, filaY, anchoBloqueKDA, cajaSize, radioCajitas);
-        ctx.fill();
-
-        const centroRectKdaX = rectKdaX + (anchoBloqueKDA / 2);
-        ctx.textBaseline = 'top';
-        ctx.textAlign = 'center';
-        ctx.fillStyle = obtenerColorKDA(dataChamp.kda);
-        ctx.font = 'bold 20px "Plus Jakarta Sans"';
-        ctx.fillText(`${dataChamp.kda} KDA`, centroRectKdaX, textoGrandeY);
-        dibujarTextoSeparado(ctx, dataChamp.kdaStr, centroRectKdaX, textoPequenoY, fontPequena, colorTextoGris, colorSeparadorFaded);
-
-        // Bloque WR
-        const rectWrX = rectKdaX + anchoBloqueKDA + gapEntreBloques;
-        ctx.fillStyle = 'rgba(23, 27, 35, 0.5)';
-        ctx.beginPath();
-        ctx.roundRect(rectWrX, filaY, anchoBloqueWR, cajaSize, radioCajitas);
-        ctx.fill();
-
-        const centroRectWrX = rectWrX + (anchoBloqueWR / 2);
-        ctx.textAlign = 'center'; 
-        ctx.fillStyle = obtenerColorWR(dataChamp.wr);
-        ctx.font = 'bold 20px "Plus Jakarta Sans"'; 
-        ctx.fillText(dataChamp.wr, centroRectWrX, textoGrandeY);
-        dibujarTextoSeparado(ctx, dataChamp.partStr, centroRectWrX, textoPequenoY, fontPequena, colorTextoGris, colorSeparadorFaded);
+        }
     }
 
     // ==========================================
-    // 4. BLOQUE DERECHO (ALINEADO A LA DERECHA)
+    // 🎨 RENDIMIENTO TOTAL Y ROLES (DERECHA)
     // ==========================================
     const margenDerecho = 10; 
-    const totalCajasAbajo = 9;
     const sizeAbajo = 44; 
     const gapAbajo = 8; 
-    const anchoColumnaDerecha = (totalCajasAbajo * sizeAbajo) + ((totalCajasAbajo - 1) * gapAbajo);
-
-    const rectGrandeX = width - margenDerecho - anchoColumnaDerecha; 
+    const rectGrandeX = width - margenDerecho - ((9 * sizeAbajo) + (8 * gapAbajo)); 
     
-    ctx.fillStyle = '#CDCECF'; 
-    ctx.font = `bold ${tituloRangoFontSize}px "Plus Jakarta Sans"`;
-    ctx.textAlign = 'left'; 
-    ctx.textBaseline = 'top';
-    ctx.fillText('Rendimiento Total', rectGrandeX, tituloY);
+    // (Se eliminó el texto antiguo de "Rendimiento Total" para dejar la zona limpia)
 
-    const rectGrandeY = subtituloY + 3; 
-    const rectGrandeAlto = 102; 
+    const rectGrandeY = tituloY + 33; 
     const rectGrandeAncho = 102; 
+    const rectGrandeAlto = 102; 
     
-    ctx.fillStyle = 'rgba(23, 27, 35, 0.5)';
+    ctx.fillStyle = COLOR_BG_CAJA;
     ctx.beginPath();
     ctx.roundRect(rectGrandeX, rectGrandeY, rectGrandeAncho, rectGrandeAlto, 10); 
     ctx.fill();
 
-    // ==========================================
-    // 5. CAJAS DE ROLES PRINCIPALES (DINÁMICO)
-    // ==========================================
-    const gapRoles = 10; 
-    const cajitasX = rectGrandeX + rectGrandeAncho + gapRoles;
-    const tituloRolesY = subtituloY; 
+    const cajitasX = rectGrandeX + rectGrandeAncho + 10;
     
-    ctx.fillStyle = '#CDCECF'; 
+    ctx.fillStyle = COLOR_TEXTO_BASE; 
     ctx.font = fontBold; 
     ctx.textAlign = 'left'; 
     ctx.textBaseline = 'top';
-    ctx.fillText('Roles Principales', cajitasX, tituloRolesY);
+    ctx.fillText('Roles Principales', cajitasX, tituloY + 33);
 
-    const cajitaSize = 40; 
-    const gapSubtituloCaja = 4;
-    const gapCajitasApiladas = 4;
-    const caja1Y = tituloRolesY + subtituloFontSize + gapSubtituloCaja; 
-    const caja2Y = caja1Y + cajitaSize + gapCajitasApiladas;
+    const cajitaSize = 38; 
+    const gapRoles = (rectGrandeAlto - subtituloFontSize - (cajitaSize * 2)) / 2; 
+    
+    const caja1Y = rectGrandeY + subtituloFontSize + gapRoles; 
+    const caja2Y = rectGrandeY + rectGrandeAlto - cajitaSize; 
+    const offsetIcono = 5; 
+    
+    const gapCajaTexto = 12; 
+    const textRolesX = cajitasX + cajitaSize + gapCajaTexto; 
 
-    const iconSize = 28;
-    const offsetIcono = 6; 
-    const textRolesX = cajitasX + cajitaSize + 12; 
-    const separadorGris = "I";
+    ctx.font = 'bold 20px "Plus Jakarta Sans"';
+    let maxWrWidth = 0;
+    for(let r = 0; r < 2; r++) {
+        if(datos.roles[r]) {
+            const currentWidth = ctx.measureText(datos.roles[r].wr).width;
+            if(currentWidth > maxWrWidth) maxWrWidth = currentWidth;
+        }
+    }
+
+    ctx.font = fontPequena;
+    let maxNumWidth = 0;
+    for(let r = 0; r < 2; r++) {
+        if(datos.roles[r]) {
+            const [numVic] = datos.roles[r].vic.split(' ');
+            const [numDer] = datos.roles[r].der.split(' ');
+            const w1 = ctx.measureText(numVic).width;
+            const w2 = ctx.measureText(numDer).width;
+            if (w1 > maxNumWidth) maxNumWidth = w1;
+            if (w2 > maxNumWidth) maxNumWidth = w2;
+        }
+    }
+
+    const posXSeparador = textRolesX + maxWrWidth + gapCajaTexto; 
+    ctx.font = 'bold 16px "Plus Jakarta Sans"';
+    const wSeparador = ctx.measureText("I").width;
+    const posXInicioTextosPequeños = posXSeparador + wSeparador + gapCajaTexto;
+    const posXNumerosCenter = posXInicioTextosPequeños + (maxNumWidth / 2);
+    const posXPalabras = posXNumerosCenter + (maxNumWidth / 2) + 4; 
 
     for(let r = 0; r < 2; r++) {
         if(!datos.roles[r]) continue;
         const rolData = datos.roles[r];
         const currentY = r === 0 ? caja1Y : caja2Y;
 
-        ctx.fillStyle = 'rgba(23, 27, 35, 0.5)';
+        ctx.fillStyle = COLOR_BG_CAJA;
         ctx.beginPath();
         ctx.roundRect(cajitasX, currentY, cajitaSize, cajitaSize, radioCajitas); 
         ctx.fill();
 
         try {
             const imgRol = await loadImage(rolData.icono);
-            ctx.drawImage(imgRol, cajitasX + offsetIcono, currentY + offsetIcono, iconSize, iconSize);
+            ctx.drawImage(imgRol, cajitasX + offsetIcono, currentY + offsetIcono, 28, 28);
         } catch (e) {}
+
+        const centroCajitaY = currentY + (cajitaSize / 2);
 
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = '#ffffff'; 
         ctx.font = 'bold 20px "Plus Jakarta Sans"';
-        ctx.fillText(rolData.wr, textRolesX, currentY + (cajitaSize / 2)); 
+        ctx.fillText(rolData.wr, textRolesX, centroCajitaY); 
         
-        let currX = textRolesX + ctx.measureText(rolData.wr).width + 10;
-
-        ctx.fillStyle = colorSeparadorFaded;
+        ctx.textAlign = 'left';
+        ctx.fillStyle = COLOR_SEPARADOR_FADED;
         ctx.font = 'bold 16px "Plus Jakarta Sans"'; 
-        ctx.fillText(separadorGris, currX, currentY + (cajitaSize / 2) - 1); 
+        ctx.fillText("I", posXSeparador, centroCajitaY - 1); 
         
-        currX += ctx.measureText(separadorGris).width + 10;
+        const [numVic, wordVic] = rolData.vic.split(' '); 
+        const [numDer, wordDer] = rolData.der.split(' ');
 
         ctx.font = fontPequena; 
-        ctx.fillStyle = colorTextoGris;
-        ctx.textBaseline = 'bottom';
-        ctx.fillText(rolData.vic, currX, currentY + (cajitaSize / 2) - 2); 
-        ctx.textBaseline = 'top';
-        ctx.fillText(rolData.der, currX, currentY + (cajitaSize / 2) + 2); 
+        ctx.fillStyle = COLOR_TEXTO_BASE;
+        ctx.textBaseline = 'middle'; 
+        
+        const jointOffset = 8.5; 
+
+        ctx.textAlign = 'center';
+        ctx.fillText(numVic, posXNumerosCenter, centroCajitaY - jointOffset); 
+        ctx.textAlign = 'left';
+        ctx.fillText(wordVic, posXPalabras, centroCajitaY - jointOffset); 
+
+        ctx.textAlign = 'center';
+        ctx.fillText(numDer, posXNumerosCenter, centroCajitaY + jointOffset); 
+        ctx.textAlign = 'left';
+        ctx.fillText(wordDer, posXPalabras, centroCajitaY + jointOffset); 
     }
 
-    // CAJA KDA ELIMINADA COMO SOLICITASTE. ESPACIO LIMPIO A LA DERECHA.
-
     // ==========================================
-    // 5.5 GRÁFICO DE MEDIALUNA (DINÁMICO)
+    // 🎨 MEDIALUNA / ARCO DE WINRATE 
     // ==========================================
-    const wins = datos.rendimiento.wins;
-    const losses = datos.rendimiento.losses;
+    const wins = datos.rendimiento.wins || 0;
+    const losses = datos.rendimiento.losses || 0;
     const totalGames = wins + losses; 
-    const winRatePorcentaje = Math.round((wins / totalGames) * 100);
+    let winRatePorcentaje = totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0;
+    let winAngle = totalGames > 0 ? Math.PI * (wins / totalGames) : 0;
 
-    const arcRadius = 38; 
-    const arcLineWidth = 12; 
-    const gapArco = 0.06; 
+    const arcRadius = 32; 
+    const arcLineWidth = 12;
+    const outerRadius = arcRadius + (arcLineWidth / 2); 
+    const bottomStroke = arcLineWidth / 2; 
 
+    const gapArcText = 12; 
+    const textHeight = 14; 
+
+    const segmentTotalHeight = outerRadius + bottomStroke + gapArcText + textHeight; 
+    
+    const boxCenterY = rectGrandeY + (rectGrandeAlto / 2); 
+    
+    const centerOffset = (-outerRadius + (bottomStroke + gapArcText + textHeight)) / 2; 
+    
+    const arcCenterY = boxCenterY - centerOffset; 
     const arcCenterX = rectGrandeX + (rectGrandeAncho / 2);
-    const arcCenterY = rectGrandeY + 58; 
+    
+    const textBaseY = arcCenterY + bottomStroke + gapArcText; 
+    
+    const gapArc = (wins > 0 && losses > 0) ? 0.06 : 0;
 
-    const winAngle = Math.PI * (wins / totalGames);
-
-    ctx.beginPath();
-    ctx.arc(arcCenterX, arcCenterY, arcRadius, Math.PI, Math.PI + winAngle - gapArco);
     ctx.lineWidth = arcLineWidth;
-    ctx.strokeStyle = '#2d6cff'; 
     ctx.lineCap = 'round'; 
-    ctx.stroke();
 
-    ctx.beginPath();
-    ctx.arc(arcCenterX, arcCenterY, arcRadius, Math.PI + winAngle + gapArco, Math.PI * 2);
-    ctx.strokeStyle = '#e84057'; 
-    ctx.stroke();
+    if (totalGames === 0) {
+        ctx.beginPath();
+        ctx.arc(arcCenterX, arcCenterY, arcRadius, Math.PI, Math.PI * 2);
+        ctx.strokeStyle = COLOR_SEPARADOR_FADED; 
+        ctx.stroke();
+    } else {
+        if (wins > 0) {
+            ctx.beginPath();
+            ctx.arc(arcCenterX, arcCenterY, arcRadius, Math.PI, Math.PI + winAngle - gapArc);
+            ctx.strokeStyle = '#2d6cff'; 
+            ctx.stroke();
+        }
+        if (losses > 0) {
+            ctx.beginPath();
+            ctx.arc(arcCenterX, arcCenterY, arcRadius, Math.PI + winAngle + gapArc, Math.PI * 2);
+            ctx.strokeStyle = '#e84057'; 
+            ctx.stroke();
+        }
+    }
 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = '#a3b8ff'; 
-    ctx.font = 'bold 18px "Plus Jakarta Sans"'; 
-    ctx.fillText(`${winRatePorcentaje}%`, arcCenterX, arcCenterY - 6); 
+    ctx.font = 'bold 16px "Plus Jakarta Sans"'; 
+    ctx.fillText(`${winRatePorcentaje}%`, arcCenterX, arcCenterY - 2); 
 
     ctx.textBaseline = 'top';
-    const separadorBigBox = "  I  "; 
-    dibujarTextoSeparado(ctx, `${wins} V${separadorBigBox}${losses} D`, arcCenterX, arcCenterY + 18, fontPequena, '#ffffff', colorSeparadorFaded, separadorBigBox);
+    dibujarTextoSeparado(ctx, `${wins} V  I  ${losses} D`, arcCenterX, textBaseY, fontPequena, '#ffffff', COLOR_SEPARADOR_FADED, "  I  ");
 
-    // ==========================================
-    // 6. MINI HISTORIAL (DINÁMICO)
-    // ==========================================
-    const gapSubtitulo = 10; 
-    const historialTituloY = subtituloY + 105 + gapSubtitulo; 
-    
-    ctx.fillStyle = '#CDCECF'; 
+    // =========================================================
+    // 🎨 MINI HISTORIAL
+    // =========================================================
+    const historialTituloY = tituloY + 145; 
+    ctx.fillStyle = COLOR_TEXTO_BASE; 
     ctx.font = fontBold; 
-    ctx.textAlign = 'left'; 
-    ctx.textBaseline = 'top';
+    ctx.textAlign = 'left';
     ctx.fillText('Mini Historial', rectGrandeX, historialTituloY);
 
-    const inicioXAbajo = rectGrandeX;
-    const yAbajo = historialTituloY + subtituloFontSize + gapSubtitulo;
+    const yAbajo = historialTituloY + 27;
+    const numHistorialReal = datos.historial.length;
 
-    const overlayVictoriaPastel = 'rgba(196, 238, 176, 0.40)'; 
-    const overlayDerrotaPastel = 'rgba(255, 179, 186, 0.40)';  
-
-    for (let j = 0; j < Math.min(datos.historial.length, totalCajasAbajo); j++) {
-        const xActual = inicioXAbajo + (j * (sizeAbajo + gapAbajo));
-        const partida = datos.historial[j];
-
-        ctx.fillStyle = 'rgba(23, 27, 35, 0.5)';
-        ctx.beginPath();
-        ctx.roundRect(xActual, yAbajo, sizeAbajo, sizeAbajo, radioCajitas);
-        ctx.fill();
-        
-        try {
-            const imgAbajo = await loadImage(`https://ddragon.leagueoflegends.com/cdn/14.4.1/img/champion/${partida.champ}.png`);
-            ctx.save();
+    for (let j = 0; j < 9; j++) {
+        const xActual = rectGrandeX + (j * (sizeAbajo + gapAbajo));
+        if (datos.historial[j]) {
+            ctx.fillStyle = COLOR_BG_CAJA;
             ctx.beginPath();
             ctx.roundRect(xActual, yAbajo, sizeAbajo, sizeAbajo, radioCajitas);
-            ctx.clip(); 
-            ctx.filter = 'grayscale(100%)'; 
-            ctx.drawImage(imgAbajo, xActual - 4, yAbajo - 4, sizeAbajo + 8, sizeAbajo + 8);
-            ctx.filter = 'none'; 
-            ctx.restore(); 
-        } catch (e) {}
-
-        ctx.fillStyle = partida.vic ? overlayVictoriaPastel : overlayDerrotaPastel;
-        ctx.beginPath();
-        ctx.roundRect(xActual, yAbajo, sizeAbajo, sizeAbajo, radioCajitas);
-        ctx.fill();
+            ctx.fill();
+            const partida = datos.historial[j];
+            try {
+                const imgAbajo = await loadImage(`https://ddragon.leagueoflegends.com/cdn/14.6.1/img/champion/${partida.champ}.png`);
+                ctx.save();
+                ctx.beginPath();
+                ctx.roundRect(xActual, yAbajo, sizeAbajo, sizeAbajo, radioCajitas);
+                ctx.clip(); 
+                ctx.filter = 'grayscale(100%)'; 
+                ctx.drawImage(imgAbajo, xActual - 4, yAbajo - 4, sizeAbajo + 8, sizeAbajo + 8);
+                ctx.filter = 'none'; 
+                ctx.restore(); 
+            } catch (e) {}
+            ctx.fillStyle = partida.vic ? 'rgba(196, 238, 176, 0.4)' : 'rgba(255, 179, 186, 0.4)';
+            ctx.beginPath();
+            ctx.roundRect(xActual, yAbajo, sizeAbajo, sizeAbajo, radioCajitas);
+            ctx.fill();
+        } else {
+            ctx.save();
+            const kH = j - numHistorialReal; 
+            const alphaDinamicoH = Math.max(0.05, 0.6 - (kH * 0.12)); 
+            ctx.globalAlpha = alphaDinamicoH;
+            ctx.fillStyle = COLOR_BG_CAJA;
+            ctx.beginPath();
+            ctx.roundRect(xActual, yAbajo, sizeAbajo, sizeAbajo, radioCajitas);
+            ctx.fill();
+            ctx.restore();
+        }
     }
 
     // ==========================================
-    // 7. COMPAÑEROS FRECUENTES (DINÁMICO)
+    // 🎨 COMPAÑEROS FRECUENTES
     // ==========================================
-    const inicioYJugandoCon = yAbajo + sizeAbajo + gapSubtitulo; 
-    
-    ctx.fillStyle = '#CDCECF'; 
+    const inicioYJugandoCon = yAbajo + sizeAbajo + 15; 
+    ctx.fillStyle = COLOR_TEXTO_BASE; 
     ctx.font = fontBold; 
     ctx.textAlign = 'left'; 
     ctx.textBaseline = 'top';
     ctx.fillText('Compañeros Frecuentes', rectGrandeX, inicioYJugandoCon);
 
-    const inicioCajasJugandoY = inicioYJugandoCon + subtituloFontSize + gapSubtitulo; 
+    const inicioCajasJugandoY = inicioYJugandoCon + 27; 
     const sizeJugado = 43; 
-    const gapJugado = 8; 
 
-    for(let k = 0; k < Math.min(datos.companeros.length, 4); k++) {
-        const fila = Math.floor(k / 2);
-        const columna = k % 2;
-        const compa = datos.companeros[k];
-
-        const yDuo = inicioCajasJugandoY + (fila * (sizeJugado + gapJugado));
-        const xDuo = rectGrandeX + (columna * 260);
-        
-        ctx.fillStyle = 'rgba(23, 27, 35, 0.5)';
-        ctx.beginPath();
-        ctx.roundRect(xDuo, yDuo, sizeJugado, sizeJugado, radioCajitas);
-        ctx.fill();
-
+    if (datos.companeros.length === 0) {
         try {
-            const imgDuo = await loadImage(`https://ddragon.leagueoflegends.com/cdn/14.4.1/img/profileicon/${compa.icono}.png`);
+            const imgVacio = await loadImage('https://i.imgur.com/T9iD6lO.png');
+            
+            const giantSquareHeight = (2 * sizeJugado) + 8; // 94px
+            const giantSquareSize = giantSquareHeight; 
+            
+            const emptyGridStartX = rectGrandeX;
+            const emptyGridStartY = inicioCajasJugandoY;
+
             ctx.save();
             ctx.beginPath();
-            ctx.roundRect(xDuo, yDuo, sizeJugado, sizeJugado, radioCajitas);
+            ctx.roundRect(emptyGridStartX, emptyGridStartY, giantSquareSize, giantSquareSize, radioCajitas);
             ctx.clip(); 
-            ctx.drawImage(imgDuo, xDuo - 4, yDuo - 4, sizeJugado + 8, sizeJugado + 8);
+            ctx.globalAlpha = 1.0; 
+            ctx.drawImage(imgVacio, emptyGridStartX, emptyGridStartY, giantSquareSize, giantSquareSize);
             ctx.restore(); 
-        } catch (e) {}
 
-        const textoX = xDuo + sizeJugado + 12; 
-        const maxAnchoTexto = 200 - (sizeJugado + 12); 
-        
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(textoX, yDuo, maxAnchoTexto, sizeJugado); 
-        ctx.clip(); 
-        
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 20px "Plus Jakarta Sans"'; 
-        ctx.textBaseline = 'top';
-        ctx.fillText(compa.nick, textoX, yDuo + 1);
+            const textStartX = emptyGridStartX + giantSquareSize + 20; 
+            const centroTextosY = emptyGridStartY + (giantSquareSize / 2); 
 
-        if (compa.tag) {
-            const nickWidth = ctx.measureText(compa.nick).width;
-            ctx.fillStyle = '#8e94a0'; 
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+
+            ctx.fillStyle = '#ffffff'; 
+            ctx.font = 'bold 18px "Plus Jakarta Sans"'; 
+            ctx.fillText("No encontré datos", textStartX, centroTextosY - 18);
+
+            ctx.fillStyle = COLOR_TEXTO_BASE; 
             ctx.font = fontPequena; 
-            ctx.fillText('#' + compa.tag, textoX + nickWidth + 2, yDuo + 4); 
+            ctx.fillText("Este usuario no tiene ninguna", textStartX, centroTextosY + 4);
+            ctx.fillText("partida con alguien en especial", textStartX, centroTextosY + 22);
+            
+        } catch (e) {
+            console.error("Error cargando la imagen de estado vacío", e);
         }
-
-        ctx.fillStyle = colorTextoGris;
-        ctx.font = fontPequena; 
-        ctx.fillText(compa.partidas, textoX, yDuo + 25); 
-
-        ctx.restore(); 
+    } else {
+        for(let k = 0; k < Math.min(datos.companeros.length, 4); k++) {
+            const fila = Math.floor(k / 2);
+            const columna = k % 2;
+            const compa = datos.companeros[k];
+            const yDuo = inicioCajasJugandoY + (fila * (sizeJugado + 8));
+            const xDuo = rectGrandeX + (columna * 260);
+            ctx.fillStyle = COLOR_BG_CAJA;
+            ctx.beginPath();
+            ctx.roundRect(xDuo, yDuo, sizeJugado, sizeJugado, radioCajitas);
+            ctx.fill();
+            try {
+                const imgDuo = await loadImage(`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/${compa.icono}.png`);
+                ctx.save();
+                ctx.beginPath();
+                ctx.roundRect(xDuo, yDuo, sizeJugado, sizeJugado, radioCajitas);
+                ctx.clip(); 
+                ctx.drawImage(imgDuo, xDuo - 4, yDuo - 4, sizeJugado + 8, sizeJugado + 8);
+                ctx.restore(); 
+            } catch (e) {}
+            const textoX = xDuo + sizeJugado + 12; 
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(textoX, yDuo, 200 - (sizeJugado + 12), sizeJugado); 
+            ctx.clip(); 
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 20px "Plus Jakarta Sans"'; 
+            ctx.textBaseline = 'top';
+            ctx.fillText(compa.nick, textoX, yDuo + 1);
+            if (compa.tag) {
+                const nickWidth = ctx.measureText(compa.nick).width;
+                ctx.fillStyle = '#8e94a0'; 
+                ctx.font = fontPequena; 
+                ctx.fillText('#' + compa.tag, textoX + nickWidth + 2, yDuo + 4); 
+            }
+            ctx.fillStyle = COLOR_TEXTO_BASE;
+            ctx.font = fontPequena; 
+            ctx.fillText(compa.partidas, textoX, yDuo + 25); 
+            ctx.restore(); 
+        }
     }
 
     return canvas.toBuffer('image/png');
 }
 
-// ==========================================
-// LÓGICA PARA OBTENER DATOS DE LA API DE RIOT
-// ==========================================
-// Nota importante: Para sacar todo este nivel de detalle (roles, compañeros), 
-// Riot no tiene un endpoint directo. Tienes que conseguir las últimas X partidas 
-// de un jugador y calcular las estadísticas iterando sobre ellas.
-async function obtenerDatosRiotAPI(riotIdGameName, riotIdTagLine, apiKey) {
-    const headers = { "X-Riot-Token": apiKey };
-    
-    try {
-        // 1. Obtener PUUID a través de Account-V1
-        const resAccount = await fetch(`https://americas.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${riotIdGameName}/${riotIdTagLine}`, { headers });
-        const accountData = await resAccount.json();
-        const puuid = accountData.puuid;
-
-        // 2. Obtener Summoner Data (Level, Profile Icon)
-        const resSummoner = await fetch(`https://la1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`, { headers });
-        const summonerData = await resSummoner.json();
-
-        // 3. Obtener Liga / Rendimiento Total
-        const resLeague = await fetch(`https://la1.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerData.id}`, { headers });
-        const leagueData = await resLeague.json();
-        
-        // 4. Obtener Lista de últimas 20 partidas (Match-V5)
-        const resMatches = await fetch(`https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?start=0&count=20`, { headers });
-        const matchIds = await resMatches.json();
-
-        // 5. Tendrías que iterar sobre cada 'matchId' haciendo un fetch a:
-        // `https://americas.api.riotgames.com/lol/match/v5/matches/${matchId}`
-        // Para calcular:
-        // - Qué rol jugó y si ganó/perdió (Para "Roles Principales")
-        // - Con qué otros PUUIDs compartió equipo en múltiples juegos (Para "Compañeros Frecuentes")
-        // - Qué campeones jugó y su KDA exacto (Para "Campeones Notables")
-
-        /* AQUÍ TRANSFORMARÍAS LOS DATOS AL FORMATO DE 'datosPerfilPorDefecto' 
-        Y LUEGO LLAMARÍAS A:
-        return generarBoceto(datosTransformados);
-        */
-       
-    } catch (error) {
-        console.error("Error consultando Riot API:", error);
-    }
-}
-
-module.exports = { generarBoceto, obtenerDatosRiotAPI };
+module.exports = { generarBoceto };
