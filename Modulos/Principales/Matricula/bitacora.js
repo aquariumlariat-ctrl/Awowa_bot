@@ -2,20 +2,17 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, AttachmentBuilder } = require('discord.js');
 const Usuario = require('../../../Base_Datos/MongoDB/Usuario.js');
 const { generarTarjetaMatricula } = require('./tarjeta_matricula');
-
-// Importamos las herramientas de la API para poder refrescar
 const { regionAPlatforma, obtenerSummoner, obtenerRangos } = require("../../../API's/Riot/lol_api");
 const { obtenerRangoTFT } = require("../../../API's/Riot/tft_api");
 
 const CANAL_LOGS_ID = '1475684884629426318';
 const CANAL_GALERIA_ID = '1475684653967872013';
 
-// Función ayudante para no repetir el código de los botones
 function crearBotones(currentPage, totalUsuarios) {
     return new ActionRowBuilder().addComponents(
         new ButtonBuilder().setCustomId('galeria_first').setEmoji('⏪').setStyle(ButtonStyle.Secondary).setDisabled(currentPage === 1),
         new ButtonBuilder().setCustomId('galeria_prev').setEmoji('◀️').setStyle(ButtonStyle.Primary).setDisabled(currentPage === 1),
-        new ButtonBuilder().setCustomId('galeria_refresh').setEmoji('🔄').setStyle(ButtonStyle.Success), // NUEVO BOTÓN
+        new ButtonBuilder().setCustomId('galeria_refresh').setEmoji('🔄').setStyle(ButtonStyle.Success),
         new ButtonBuilder().setCustomId('galeria_next').setEmoji('▶️').setStyle(ButtonStyle.Primary).setDisabled(currentPage === totalUsuarios)
     );
 }
@@ -91,7 +88,6 @@ function initGaleria(client) {
         if (!interaction.isButton() || !interaction.customId.startsWith('galeria_')) return;
 
         try {
-            // DeferUpdate es vital aquí: Le dice a Discord "espera, estoy cargando", así el botón gira sin crashear.
             await interaction.deferUpdate();
 
             const totalUsuarios = await Usuario.countDocuments();
@@ -103,18 +99,16 @@ function initGaleria(client) {
             if (interaction.customId === 'galeria_first') currentPage = 1;
             else if (interaction.customId === 'galeria_prev') currentPage = Math.max(1, currentPage - 1);
             else if (interaction.customId === 'galeria_next') currentPage = Math.min(totalUsuarios, currentPage + 1);
-            // Si es 'galeria_refresh', no cambiamos la página, nos quedamos en la misma.
 
             let usuario = await Usuario.findOne().sort({ _id: 1 }).skip(currentPage - 1);
             const [gameName, tagLine] = usuario.Riot_ID.split('#');
 
-            // 🔄 LÓGICA DEL BOTÓN DE REFRESCO 🔄
+            // 🔄 LÓGICA DEL BOTÓN DE REFRESCO (AHORA DIRECTO POR PUUID) 🔄
             if (interaction.customId === 'galeria_refresh') {
                 const plataforma = regionAPlatforma[usuario.Region];
                 
-                // Le pedimos a Riot los datos más frescos
                 const summoner = await obtenerSummoner(usuario.PUUID, plataforma);
-                const rangos = await obtenerRangos(usuario.PUUID, plataforma);
+                const rangos = await obtenerRangos(usuario.PUUID, plataforma); 
                 const tft = await obtenerRangoTFT(gameName, tagLine, plataforma);
 
                 if (summoner) {
@@ -125,11 +119,9 @@ function initGaleria(client) {
                 usuario.Rangos.Flex = rangos.flex;
                 usuario.Rangos.TFT = tft;
 
-                // Guardamos los nuevos datos en MongoDB
                 await usuario.save();
             }
 
-            // Ya sea que actualizamos o solo navegamos, dibujamos el Canvas
             const cardBuffer = await generarTarjetaMatricula({
                 gameName, tagLine,
                 nivel: usuario.Nivel,

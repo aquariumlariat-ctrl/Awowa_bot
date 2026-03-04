@@ -116,6 +116,7 @@ async function preValidarCuenta(userId, gameName, tagLine) {
     }
 }
 
+// 🔥 REPARADA: Usando PUUID directamente para buscar el rango
 async function generarYGuardarTarjeta(estadoUsuario) {
     const [rangos, rangoTFT] = await Promise.all([
         obtenerRangos(estadoUsuario.puuid, estadoUsuario.plataforma),
@@ -124,7 +125,6 @@ async function generarYGuardarTarjeta(estadoUsuario) {
 
     let numeroTotal = 1;
     try {
-        // Obtenemos el número más alto para no tener empalmes si se borran usuarios
         const ultimoUsuario = await Usuario.findOne().sort({ Numero_Matricula: -1 });
         if (ultimoUsuario && ultimoUsuario.Numero_Matricula) {
             numeroTotal = ultimoUsuario.Numero_Matricula + 1;
@@ -318,7 +318,7 @@ function iniciarPolling(message, estadoUsuario) {
                     PUUID: estadoActual.puuid,
                     Nivel: estadoActual.summonerLevel,
                     Icono_ID: estadoActual.iconoValidacion,
-                    Numero_Matricula: numMatricula, // 👈 Guardado Oficial
+                    Numero_Matricula: numMatricula,
                     Rangos: {
                         Flex: datosTarjeta.rangosGuardados?.flex || null,
                         SoloQ: datosTarjeta.rangosGuardados?.soloq || null,
@@ -330,7 +330,6 @@ function iniciarPolling(message, estadoUsuario) {
                 usuariosEnMatricula.delete(userId);
                 await IntentoMatricula.deleteOne({ Discord_ID: userId });
 
-                // 👇 CREACIÓN DE LA CARPETA FÍSICA Y SUS 5 ARCHIVOS (PARA NUEVOS) 👇
                 try {
                     const nickSeguro = message.author.username.replace(/[<>:"/\\|?*\x00-\x1F]/g, '').trim() || 'Jugador';
                     const nombreCarpeta = `#${numMatricula}_${nickSeguro}`;

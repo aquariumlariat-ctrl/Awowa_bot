@@ -11,10 +11,28 @@ const plataformaARouting = {
 // Función para pausar la ejecución y no ser baneados por Riot
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
+// 🛡️ Fetch Blindado anti-saturación
+async function fetchSeguro(url, options, retries = 3) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            const res = await fetch(url, options);
+            if (res.status === 200) return res;
+            if (res.status === 429) {
+                await delay(2000);
+                continue;
+            }
+            return res; 
+        } catch (e) {
+            await delay(1000);
+        }
+    }
+    return { status: 500 };
+}
+
 async function verificarCuentaRiot(gameName, tagLine) {
     const url = `https://americas.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`;
     try {
-        const response = await fetch(url, { headers: { 'X-Riot-Token': process.env.RIOT_API_KEY } });
+        const response = await fetchSeguro(url, { headers: { 'X-Riot-Token': process.env.RIOT_API_KEY } });
         if (response.status === 200) return { existe: true, data: await response.json() };
         if (response.status === 404) return { existe: false };
         return { existe: false, error: true };
@@ -26,7 +44,7 @@ async function verificarCuentaRiot(gameName, tagLine) {
 async function obtenerSummoner(puuid, plataforma) {
     const url = `https://${plataforma}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`;
     try {
-        const response = await fetch(url, { headers: { 'X-Riot-Token': process.env.RIOT_API_KEY } });
+        const response = await fetchSeguro(url, { headers: { 'X-Riot-Token': process.env.RIOT_API_KEY } });
         if (response.status === 200) return await response.json();
         return null;
     } catch {
@@ -34,10 +52,11 @@ async function obtenerSummoner(puuid, plataforma) {
     }
 }
 
-async function obtenerRangos(summonerId, plataforma) {
-    const url = `https://${plataforma}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`;
+// 🔥 NUEVO ENDPOINT DE RIOT: Directo por PUUID sin pasar por el Summoner ID obsoleto
+async function obtenerRangos(puuid, plataforma) {
+    const url = `https://${plataforma}.api.riotgames.com/lol/league/v4/entries/by-puuid/${puuid}`;
     try {
-        const response = await fetch(url, { headers: { 'X-Riot-Token': process.env.RIOT_API_KEY } });
+        const response = await fetchSeguro(url, { headers: { 'X-Riot-Token': process.env.RIOT_API_KEY } });
         if (response.status === 200) {
             const data = await response.json();
             const rangos = { soloq: null, flex: null };
@@ -56,13 +75,12 @@ async function obtenerRangos(summonerId, plataforma) {
     }
 }
 
-// 👇 EL EXTRACTOR CON EL "CORTAFUEGOS" MANUAL PARA EVADIR EL BUG DE RIOT
+// Extractor original intacto con su cortafuegos
 async function obtenerTodasLasPartidas(puuid, plataforma, queueId = 420, msgCarga) {
     try {
         const routing = plataformaARouting[plataforma] || 'americas';
         const headers = { 'X-Riot-Token': process.env.RIOT_API_KEY };
         
-        // Fecha de corte EXACTA (7 de enero de 2026)
         const inicioSeason2026 = new Date('2026-01-07T00:00:00Z');
         const limiteTiempoMs = inicioSeason2026.getTime(); 
         
@@ -71,18 +89,15 @@ async function obtenerTodasLasPartidas(puuid, plataforma, queueId = 420, msgCarg
         let buscarMas = true;
         let totalAnalizadas = 0;
 
-        // Bucle infinito hasta que topemos con una partida de 2025
         while (buscarMas) {
-            // Pedimos los IDs de 10 en 10
             const urlIds = `https://${routing}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?start=${start}&count=10&queue=${queueId}`;
             const idsRes = await fetch(urlIds, { headers });
             
             if (idsRes.status !== 200) break;
             const chunkIds = await idsRes.json();
             
-            if (chunkIds.length === 0) break; // Ya no hay más partidas en absoluto
+            if (chunkIds.length === 0) break;
 
-            // Descargamos las 10 partidas en paralelo para que sea rápido
             const matchPromises = chunkIds.map(async id => {
                 const res = await fetch(`https://${routing}.api.riotgames.com/lol/match/v5/matches/${id}`, { headers });
                 if (res.status === 429) {
@@ -95,13 +110,11 @@ async function obtenerTodasLasPartidas(puuid, plataforma, queueId = 420, msgCarg
             const chunkData = await Promise.all(matchPromises);
             let tocamosFondo = false;
 
-            // Revisamos una por una
             for (const match of chunkData) {
                 if (!match || !match.info) continue;
 
                 const fechaPartidaMs = match.info.gameCreation;
 
-                // 🛑 EL CORTAFUEGOS: Si es vieja, detenemos todo
                 if (fechaPartidaMs < limiteTiempoMs) {
                     tocamosFondo = true;
                     buscarMas = false; 
@@ -115,10 +128,9 @@ async function obtenerTodasLasPartidas(puuid, plataforma, queueId = 420, msgCarg
                 await msgCarga.edit(`⏳ \`Procesando... ${totalAnalizadas} partidas de SoloQ encontradas hasta ahora.\``).catch(()=>{});
             }
 
-            if (tocamosFondo) break; // Rompemos el ciclo while porque ya llegamos a 2025
-
+            if (tocamosFondo) break; 
             start += 10;
-            await delay(1250); // Pausa obligatoria para respetar a Riot (1.25 segs)
+            await delay(1250); 
         }
         
         return partidasValidas;

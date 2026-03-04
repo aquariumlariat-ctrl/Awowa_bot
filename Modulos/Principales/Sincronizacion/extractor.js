@@ -102,4 +102,46 @@ async function extraerHistorial2026(puuid, plataforma, msgCarga) {
     return data;
 }
 
-module.exports = { extraerHistorial2026 };
+// Añade esta función al final de tu extractor.js (antes de module.exports)
+
+async function extraerNuevasPartidas(puuid, plataforma, startTimeSecs) {
+    const routing = plataformaARouting[plataforma] || 'americas';
+    const headers = { 'X-Riot-Token': process.env.RIOT_API_KEY };
+    
+    const data = { soloq: [], flex: [], normals: [], total: [] };
+    let start = 0;
+    let seguir = true;
+
+    while (seguir) {
+        // 🎯 MAGIA: Le pasamos el startTimeSecs a Riot para que ignore lo viejo
+        const urlIds = `https://${routing}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?startTime=${startTimeSecs}&start=${start}&count=100`;
+        const chunkIds = await fetchConReintentos(urlIds, headers);
+        
+        if (!chunkIds || chunkIds.length === 0) break; // Si está vacío, no jugó nada nuevo.
+
+        for (let i = 0; i < chunkIds.length; i += 25) {
+            const batch = chunkIds.slice(i, i + 25);
+            const batchPromesas = batch.map(id => {
+                const url = `https://${routing}.api.riotgames.com/lol/match/v5/matches/${id}`;
+                return fetchConReintentos(url, headers);
+            });
+
+            const partidas = await Promise.all(batchPromesas);
+            
+            for (const match of partidas) {
+                if (!match || !match.info) continue;
+                
+                const q = match.info.queueId;
+                if (q === 420) { data.soloq.push(match); data.total.push(match); } 
+                else if (q === 440) { data.flex.push(match); data.total.push(match); } 
+                else if ([400, 430, 490].includes(q)) { data.normals.push(match); data.total.push(match); }
+            }
+            await delay(1000); 
+        }
+        start += 100;
+    }
+    return data;
+}
+
+// Actualiza tu module.exports para que incluya la nueva función:
+module.exports = { extraerHistorial2026, extraerNuevasPartidas };

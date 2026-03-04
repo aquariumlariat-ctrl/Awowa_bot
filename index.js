@@ -71,6 +71,9 @@ client.once('clientReady', async () => {
     const { initGaleria } = require('./Modulos/Principales/Matricula/bitacora');
     initGaleria(client);
 
+    const { iniciarCronSincronizacion } = require('./Modulos/Principales/Sincronizacion/actualizador_bg');
+    iniciarCronSincronizacion(client);
+
     const { estaHabilitado, obtenerChannelId } = require('./Modulos/Utilidades/Sincronizador/handler');
     const { sincronizarMensajes } = require('./Modulos/Utilidades/Sincronizador/parser');
 

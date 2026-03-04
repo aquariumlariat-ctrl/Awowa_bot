@@ -101,4 +101,86 @@ function formatearPartidas(partidas, miPuuid) {
     return json;
 }
 
-module.exports = { formatearPartidas };
+// Añade esta función al final de tu procesador.js (antes de module.exports)
+
+function inyectarNuevasPartidas(jsonActual, partidasNuevas, miPuuid) {
+    for (const match of partidasNuevas) {
+        const info = match.info;
+        const matchId = match.metadata.matchId;
+
+        // 🛡️ Prevensión de duplicados: Si la partida ya existe en el JSON, la ignoramos.
+        if (jsonActual.Historial.some(h => h.matchId === matchId)) continue;
+
+        const yo = info.participants.find(p => p.puuid === miPuuid);
+        if (!yo) continue;
+
+        let esRemake = false;
+        if (info.endOfGameResult) {
+            if (info.endOfGameResult !== "GameComplete") esRemake = true;
+        } else {
+            const duracionS = info.gameDuration > 10000 ? Math.floor(info.gameDuration / 1000) : info.gameDuration;
+            if (duracionS <= 240) {
+                const equipoPerdedor = info.participants.filter(p => !p.win);
+                const afkReal = equipoPerdedor.some(p => p.totalDamageDealtToChampions === 0 && p.goldEarned < 1500 && p.totalMinionsKilled === 0 && p.visionScore === 0);
+                if (afkReal) esRemake = true;
+            }
+        }
+
+        if (esRemake) continue;
+
+        const win = yo.win;
+
+        // 1. Sumar al Resumen
+        if (win) jsonActual.Resumen.Victorias++;
+        else jsonActual.Resumen.Derrotas++;
+
+        // 2. Sumar a Campeones
+        const cName = yo.championName;
+        if (!jsonActual.Campeones[cName]) {
+            jsonActual.Campeones[cName] = { partidas: 0, victorias: 0, derrotas: 0, kills: 0, deaths: 0, assists: 0 };
+        }
+        jsonActual.Campeones[cName].partidas++;
+        if (win) jsonActual.Campeones[cName].victorias++;
+        else jsonActual.Campeones[cName].derrotas++;
+        
+        jsonActual.Campeones[cName].kills += yo.kills;
+        jsonActual.Campeones[cName].deaths += yo.deaths;
+        jsonActual.Campeones[cName].assists += yo.assists;
+
+        // 3. Sumar a Compañeros
+        const myTeam = yo.teamId;
+        const companeros = info.participants.filter(p => p.teamId === myTeam && p.puuid !== miPuuid);
+        
+        for (const compa of companeros) {
+            const cPuuid = compa.puuid;
+            if (!jsonActual.Companeros[cPuuid]) {
+                jsonActual.Companeros[cPuuid] = { nick: compa.riotIdGameName || compa.summonerName, tag: compa.riotIdTagline || "", icono: compa.profileIcon, partidas: 0, victorias: 0, derrotas: 0 };
+            }
+            jsonActual.Companeros[cPuuid].partidas++;
+            if (win) jsonActual.Companeros[cPuuid].victorias++;
+            else jsonActual.Companeros[cPuuid].derrotas++;
+        }
+
+        // 4. Inyectar al Historial
+        jsonActual.Historial.push({
+            matchId: matchId,
+            fecha: info.gameCreation,
+            queueId: info.queueId,
+            campeon: cName,
+            kills: yo.kills,
+            deaths: yo.deaths,
+            assists: yo.assists,
+            victoria: win,
+            rol: yo.teamPosition || yo.individualPosition || "NONE"
+        });
+    }
+
+    // Recalcular WinRate
+    const tGames = jsonActual.Resumen.Victorias + jsonActual.Resumen.Derrotas;
+    jsonActual.Resumen.WinRate = tGames > 0 ? Math.round((jsonActual.Resumen.Victorias / tGames) * 100) : 0;
+
+    return jsonActual;
+}
+
+// Actualiza tu module.exports:
+module.exports = { formatearPartidas, inyectarNuevasPartidas };
