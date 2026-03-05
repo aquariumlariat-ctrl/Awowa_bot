@@ -1,5 +1,8 @@
 // API's/Riot/lol_api.js
 
+// 🎨 Paleta de colores ANSI
+const c = { v: '\x1b[32m', r: '\x1b[31m', a: '\x1b[33m', b: '\x1b[0m' };
+
 const regionAPlatforma = {
     'LAN': 'la1', 'LAS': 'la2', 'NA': 'na1', 'BR': 'br1'
 };
@@ -8,10 +11,19 @@ const plataformaARouting = {
     'la1': 'americas', 'la2': 'americas', 'na1': 'americas', 'br1': 'americas'
 };
 
-// Función para pausar la ejecución y no ser baneados por Riot
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
-// 🛡️ Fetch Blindado anti-saturación
+// 👇 NUEVA FUNCIÓN DE PING 👇
+async function verificarConexionLoL() {
+    try {
+        const url = `https://la1.api.riotgames.com/lol/status/v4/platform-data`;
+        const res = await fetch(url, { headers: { 'X-Riot-Token': process.env.RIOT_API_KEY } });
+        return res.status === 200; 
+    } catch {
+        return false;
+    }
+}
+
 async function fetchSeguro(url, options, retries = 3) {
     for (let i = 0; i < retries; i++) {
         try {
@@ -52,7 +64,6 @@ async function obtenerSummoner(puuid, plataforma) {
     }
 }
 
-// 🔥 NUEVO ENDPOINT DE RIOT: Directo por PUUID sin pasar por el Summoner ID obsoleto
 async function obtenerRangos(puuid, plataforma) {
     const url = `https://${plataforma}.api.riotgames.com/lol/league/v4/entries/by-puuid/${puuid}`;
     try {
@@ -75,7 +86,6 @@ async function obtenerRangos(puuid, plataforma) {
     }
 }
 
-// Extractor original intacto con su cortafuegos
 async function obtenerTodasLasPartidas(puuid, plataforma, queueId = 420, msgCarga) {
     try {
         const routing = plataformaARouting[plataforma] || 'americas';
@@ -135,12 +145,13 @@ async function obtenerTodasLasPartidas(puuid, plataforma, queueId = 420, msgCarg
         
         return partidasValidas;
     } catch (e) {
-        console.error("Error al extraer todas las partidas:", e);
+        console.error(`${c.r}·${c.b} [Riot API] Extracción masiva de partidas: ${c.r}Fallo${c.b}.`, e);
         return [];
     }
 }
 
 module.exports = {
+    verificarConexionLoL, // Exportamos el ping
     regionAPlatforma,
     verificarCuentaRiot,
     obtenerSummoner,

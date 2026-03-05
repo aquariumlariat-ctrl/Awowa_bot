@@ -2,6 +2,17 @@
 
 const TFT_API_KEY = process.env.TFT_API_KEY || process.env.RIOT_API_KEY;
 
+// 👇 NUEVA FUNCIÓN DE PING 👇
+async function verificarConexionTFT() {
+    try {
+        const url = `https://la1.api.riotgames.com/tft/status/v1/platform-data`;
+        const res = await fetch(url, { headers: { "X-Riot-Token": TFT_API_KEY } });
+        return res.status === 200;
+    } catch {
+        return false;
+    }
+}
+
 async function riotFetch(url) {
     try {
         const res = await fetch(url, { headers: { "X-Riot-Token": TFT_API_KEY } });
@@ -46,5 +57,6 @@ async function obtenerRangoTFT(gameName, tagLine, plataforma = 'la1') {
 }
 
 module.exports = {
+    verificarConexionTFT, // Exportamos el ping
     obtenerRangoTFT
 };

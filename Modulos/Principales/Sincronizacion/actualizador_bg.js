@@ -5,10 +5,13 @@ const Usuario = require('../../../Base_Datos/MongoDB/Usuario');
 const { extraerNuevasPartidas } = require('./extractor');
 const { inyectarNuevasPartidas } = require('./procesador');
 
+// 🎨 Paleta de colores ANSI
+const c = { v: '\x1b[32m', r: '\x1b[31m', a: '\x1b[33m', b: '\x1b[0m' };
+
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
 async function ejecutarMotorSilencioso() {
-    console.log("🔄 [CRON] Iniciando revisión silenciosa de partidas nuevas...");
+    console.log(`${c.v}·${c.b} [Sincronizacion] Iniciando escaneo de partidas de League of Legends...`);
     try {
         const todosLosUsuarios = await Usuario.find().sort({ Numero_Matricula: 1 });
         let totalNuevasPartidas = 0; 
@@ -24,14 +27,12 @@ async function ejecutarMotorSilencioso() {
             
             let jsonTotal = JSON.parse(fs.readFileSync(totalPath, 'utf8'));
 
-            // 🛡️ Creamos una "lista negra" (Set) con los IDs de las partidas que ya tienes
             const conocidos = new Set(jsonTotal.Historial ? jsonTotal.Historial.map(h => h.matchId) : []);
-
             const nuevasPartidas = await extraerNuevasPartidas(user.PUUID, user.Region, conocidos);
 
             if (nuevasPartidas.total.length > 0) {
                 totalNuevasPartidas += nuevasPartidas.total.length;
-                console.log(`✨ [CRON] ${nuevasPartidas.total.length} partidas nuevas procesadas para ${user.Discord_Nick}`);
+                console.log(`${c.v}·${c.b} [Sincronizacion] +${nuevasPartidas.total.length} partidas sincronizadas para ${user.Riot_ID} (${user.Discord_Nick}).`);
                 
                 const tipos = [
                     { id: 'soloq', file: 'datos_lol_soloq.json' },
@@ -55,21 +56,19 @@ async function ejecutarMotorSilencioso() {
         }
 
         if (totalNuevasPartidas === 0) {
-            console.log("✅ [CRON] Revisión terminada, sin nuevas partidas...");
+            console.log(`${c.a}·${c.b} [Sincronizacion] Escaneo finalizado sin novedades (0 partidas nuevas).`);
         } else {
-            console.log(`✅ [CRON] Revisión terminada. Se sincronizaron un total de ${totalNuevasPartidas} partidas nuevas.`);
+            console.log(`${c.v}·${c.b} [Sincronizacion] Ciclo completado. Se almacenaron ${c.v}${totalNuevasPartidas}${c.b} partidas nuevas.`);
         }
 
     } catch (error) {
-        console.error("❌ [CRON] Error:", error);
+        console.error(`${c.r}·${c.b} [Sincronizacion] Error crítico en el motor de fondo: ${c.r}Fallo${c.b}.`, error);
     }
 }
 
 function iniciarCronSincronizacion(client) {
-    // Se ejecuta 1 minuto después de encender el bot 
     setTimeout(() => {
         ejecutarMotorSilencioso();
-        // Se repite cada 10 minutos
         setInterval(ejecutarMotorSilencioso, 10 * 60 * 1000);
     }, 60 * 1000);
 }

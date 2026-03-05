@@ -2,6 +2,9 @@
 const { createCanvas, GlobalFonts, loadImage } = require('@napi-rs/canvas');
 const path = require('path');
 
+// 🎨 Paleta de colores ANSI
+const c = { v: '\x1b[32m', r: '\x1b[31m', a: '\x1b[33m', b: '\x1b[0m' };
+
 try {
     const plusJakarta = path.join(__dirname, '../../../Fonts/PlusJakartaSans-Regular.ttf');
     GlobalFonts.registerFromPath(plusJakarta, 'Plus Jakarta Sans');
@@ -449,7 +452,8 @@ async function generarBoceto(datos = datosPerfilPorDefecto) {
             ctx.fillText("partida con alguien en especial", textStartX, centroTextosY + 22);
             
         } catch (e) {
-            console.error("Error cargando la imagen de estado vacío", e);
+            // 👇 AQUI APLICAMOS EL ESTÁNDAR 👇
+            console.error(`${c.r}·${c.b} [Canvas] Carga de imagen de estado vacío: ${c.r}Fallo${c.b}.`, e);
         }
     } else {
         for(let k = 0; k < Math.min(datos.companeros.length, 4); k++) {

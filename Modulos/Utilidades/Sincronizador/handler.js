@@ -1,3 +1,4 @@
+// Modulos/Utilidades/Sincronizador/handler.js
 const fs = require('fs').promises;
 const path = require('path');
 const { sincronizarMensajes } = require('./parser');
@@ -32,8 +33,8 @@ async function handleMessageUpdate(oldMessage, newMessage) {
     const channelId = await obtenerChannelId();
     if (newMessage.channel.id !== channelId) return;
 
-    // Ejecución silenciosa
-    await sincronizarMensajes(newMessage.channel);
+    // 👇 MODIFICACIÓN: Le avisamos al parser que fue una edición 👇
+    await sincronizarMensajes(newMessage.channel, 'edit');
 }
 
 module.exports = {

@@ -4,6 +4,9 @@ const { AttachmentBuilder } = require('discord.js');
 const { generarBoceto } = require('../../Utilidades/Canvas/diseno_perfil.js');
 const { verificarCuentaRiot, obtenerSummoner, obtenerRangos, obtenerTodasLasPartidas, regionAPlatforma } = require('../../../API\'s/Riot/lol_api.js');
 
+// 🎨 Paleta de colores ANSI
+const c = { v: '\x1b[32m', r: '\x1b[31m', a: '\x1b[33m', b: '\x1b[0m' };
+
 const ICONOS_ROLES = {
     'ADC': 'https://i.imgur.com/fJofENZ.png',
     'JG': 'https://i.imgur.com/IKquw1O.png',
@@ -214,7 +217,8 @@ module.exports = [
                 }).catch(()=>{});
 
             } catch (error) {
-                console.error("Error ejecutando el comando perfil:", error);
+                // 👇 AQUI APLICAMOS EL ESTÁNDAR 👇
+                console.error(`${c.r}·${c.b} [Perfil] Ejecución del comando perfil: ${c.r}Fallo${c.b}.`, error);
                 await msgCarga.edit('❌ Hubo un error crítico procesando este perfil.').catch(()=>{});
             }
         }

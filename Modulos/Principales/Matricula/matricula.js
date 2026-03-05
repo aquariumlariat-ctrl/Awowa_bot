@@ -12,6 +12,9 @@ const IntentoMatricula = require('../../../Base_Datos/MongoDB/IntentoMatricula.j
 const Contador = require('../../../Base_Datos/MongoDB/contador.js'); 
 const { logNuevaMatricula, actualizarGaleria } = require('./bitacora');
 
+// 🎨 Paleta de colores ANSI
+const c = { v: '\x1b[32m', r: '\x1b[31m', a: '\x1b[33m', b: '\x1b[0m' };
+
 const ICONOS_VERIFICACION = [2, 5, 6, 11, 12];
 const TIEMPO_INICIAL = 10 * 60 * 1000;    
 const TIEMPO_EXPIRACION = 15 * 60 * 1000; 
@@ -35,7 +38,6 @@ const ESTADO_VERIFICACION = {
     ERROR: 'https://i.imgur.com/PhzYaUF.png'
 };
 
-// 💾 SISTEMA DE CACHÉ PERSISTENTE (MODO RESCATE) 💾
 const CACHE_FILE = path.join(__dirname, '../../../Base_Datos/Cache/matriculas_pendientes.json');
 try {
     const dir = path.dirname(CACHE_FILE);
@@ -63,7 +65,6 @@ function deleteEstadoUsuario(userId) {
     usuariosEnMatricula.delete(userId);
     actualizarCache();
 }
-// --------------------------------------------------
 
 function getMensajes() {
     delete require.cache[require.resolve('./mensajes')];
@@ -244,6 +245,8 @@ async function validarRegion(message, estadoUsuario) {
             estadoUsuario.etapa = 'riotid'; 
             setEstadoUsuario(message.author.id, estadoUsuario);
             const msgEnUso = getMensajes().CuentaYaEnUso || 'Esta cuenta ya pertenece a otro usuario.';
+            // 👇 NUEVO LOG: FIN POR CUENTA EN USO 👇
+            console.log(`${c.r}·${c.b} [Matricula] El usuario ${message.author.username} finalizó un proceso de matrícula. Razón: ${c.r}La cuenta de LoL ya está en uso${c.b}.`);
             return loadingMessage ? await loadingMessage.edit(msgEnUso) : await message.channel.send(msgEnUso);
         }
     } catch {}
@@ -304,6 +307,8 @@ function iniciarPolling(message, estadoUsuario) {
                 const embedDenegada = new EmbedBuilder().setColor('#171b23').setImage(ESTADO_VERIFICACION.DENEGADA);
                 await estadoActual.verificacionMsg.edit({ content: getMensajes().ValidacionDenegada, embeds: [embedDenegada] }).catch(()=>{});
             }
+            // 👇 NUEVO LOG: FIN POR EXPIRACIÓN DE VALIDACIÓN 👇
+            console.log(`${c.r}·${c.b} [Matricula] El usuario ${message.author.username} finalizó un proceso de matrícula. Razón: ${c.r}Tiempo de validación agotado${c.b}.`);
             return message.channel.send(getMensajes().ValidacionExpirada);
         }
 
@@ -391,7 +396,7 @@ function iniciarPolling(message, estadoUsuario) {
                         catch { await fsPromises.writeFile(rutaArchivo, JSON.stringify(contenidoVacio, null, 4), 'utf8'); }
                     }
                 } catch (e) {
-                    console.error('Error asíncrono creando archivos:', e);
+                    console.error(`${c.r}·${c.b} [Matricula] Error asíncrono creando archivos físicos: ${c.r}Fallo${c.b}.`, e);
                 }
 
                 await message.channel.send(getMensajes().MatriculaCompletada);
@@ -402,6 +407,9 @@ function iniciarPolling(message, estadoUsuario) {
 
                 await logNuevaMatricula(message.client, message.author, datosGuardar.Riot_ID, numMatricula);
                 await actualizarGaleria(message.client);
+                
+                // 👇 NUEVO LOG: FIN CON ÉXITO 👇
+                console.log(`${c.v}·${c.b} [Matricula] El usuario ${message.author.username} finalizó un proceso de matrícula. Razón: ${c.v}Completado con éxito${c.b}.`);
             }
         } catch {}
     }, INTERVALO_VERIFICACION);
@@ -434,6 +442,9 @@ async function cancelarMatricula(message) {
     deleteEstadoUsuario(userId);
     await registrarFalloIntento(userId);
     await message.channel.send(mensajeCancelacion);
+    
+    // 👇 NUEVO LOG: FIN POR CANCELACIÓN 👇
+    console.log(`${c.a}·${c.b} [Matricula] El usuario ${message.author.username} finalizó un proceso de matrícula. Razón: Cancelado manualmente.`);
 }
 
 async function ejecutarMatricula(message) {
@@ -467,6 +478,10 @@ async function ejecutarMatricula(message) {
     
     try {
         const dmChannel = esEnDM ? message.channel : await message.author.createDM();
+        
+        // 👇 NUEVO LOG: INICIO DE PROCESO 👇
+        console.log(`${c.a}·${c.b} [Matricula] El usuario ${message.author.username} comenzó un proceso de matrícula.`);
+        
         await dmChannel.send(getMensajes().ArranqueMatricula);
         
         const timeoutInicial = setTimeout(async () => {
@@ -475,6 +490,9 @@ async function ejecutarMatricula(message) {
                 deleteEstadoUsuario(userId);
                 await registrarFalloIntento(userId);
                 try { await dmChannel.send(getMensajes().TiempoAgotadoInicial); } catch {}
+                
+                // 👇 NUEVO LOG: FIN POR INACTIVIDAD INICIAL 👇
+                console.log(`${c.r}·${c.b} [Matricula] El usuario ${message.author.username} finalizó un proceso de matrícula. Razón: ${c.r}Tiempo inicial agotado${c.b}.`);
             }
         }, TIEMPO_INICIAL);
 
@@ -500,7 +518,6 @@ async function procesarRespuestaDM(message) {
     }
 }
 
-// 🛟 FUNCIÓN DE RESCATE 
 async function restaurarMatriculas(client) {
     try {
         if (!fs.existsSync(CACHE_FILE)) return;
@@ -508,19 +525,18 @@ async function restaurarMatriculas(client) {
         const userIds = Object.keys(data);
 
         if (userIds.length === 0) return;
-        console.log(`🔄 [MATRÍCULA] Rescatando ${userIds.length} procesos interrumpidos por el reinicio...`);
+        console.log(`${c.v}·${c.b} [Matricula] Rescatando ${userIds.length} procesos interrumpidos por el reinicio...`);
 
         for (const userId of userIds) {
-            await IntentoMatricula.deleteOne({ Discord_ID: userId }).catch(()=>{}); // Les quitamos el castigo
+            await IntentoMatricula.deleteOne({ Discord_ID: userId }).catch(()=>{}); 
             try {
                 const user = await client.users.fetch(userId);
-                // 👇 AHORA SÍ: LLAMAMOS AL ARCHIVO DE MENSAJES 👇
                 await user.send(getMensajes().MatriculaCanceladaReinicio);
             } catch (e) {}
         }
 
         await fsPromises.writeFile(CACHE_FILE, JSON.stringify({}), 'utf8');
-        console.log("✅ [MATRÍCULA] Rescate completado.");
+        console.log(`${c.v}·${c.b} [Matricula] Misión de rescate completada ${c.v}correctamente${c.b}.`);
     } catch (err) {}
 }
 
@@ -529,7 +545,7 @@ module.exports = {
     execute: ejecutarMatricula,
     ejecutarCancelar: cancelarMatricula,
     procesarRespuestaDM,
-    restaurarMatriculas, // 👈 Exportamos el rescatista
+    restaurarMatriculas,
     usuariosEnMatricula,
     ESTADO_VERIFICACION,
     CANVAS_VERIFICACION

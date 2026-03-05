@@ -5,12 +5,18 @@ const Usuario = require('../../../Base_Datos/MongoDB/Usuario');
 const { extraerHistorial2026 } = require('./extractor');
 const { formatearPartidas } = require('./procesador');
 
+// 🎨 Paleta de colores ANSI
+const c = { v: '\x1b[32m', r: '\x1b[31m', a: '\x1b[33m', b: '\x1b[0m' };
+
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
 module.exports = {
     name: 'sincronizar_todos',
     async execute(message, args) {
         const msgCarga = await message.reply("🚀 \`Iniciando sincronización masiva en MODO TURBO...\`\n⚠️ *Aprovechando límites extendidos de la API de Producción.*");
+        
+        // 👇 NUEVO LOG: INICIO DE COMANDO 👇
+        console.log(`${c.a}·${c.b} [Sincronizacion] El administrador ${message.author.username} inició una sincronización manual masiva.`);
 
         try {
             const todosLosUsuarios = await Usuario.find().sort({ Numero_Matricula: 1 });
@@ -58,15 +64,17 @@ module.exports = {
                     await delay(1000); 
 
                 } catch (errUser) {
-                    console.error(`Error sincronizando a ${user.Discord_Nick}:`, errUser);
+                    console.error(`${c.r}·${c.b} [Sincronizacion] Sincronización de ${user.Discord_Nick}: ${c.r}Fallo${c.b}.`, errUser);
                     fallidos++;
                 }
             }
-
+            
+            // 👇 NUEVO LOG: FIN DE COMANDO 👇
+            console.log(`${c.v}·${c.b} [Sincronizacion] Sincronización masiva finalizada ${c.v}correctamente${c.b}.`);
             await msgCarga.edit(`✅ **Sincronización masiva TURBO finalizada.**\n📊 **Resumen:**\n- Completados: \`${completados}\`\n- Fallidos: \`${fallidos}\`\n- Total procesados: \`${total}\``).catch(()=>{});
 
         } catch (error) {
-            console.error("Error en sincronización masiva:", error);
+            console.error(`${c.r}·${c.b} [Sincronizacion] Sincronización masiva: ${c.r}Fallo crítico${c.b}.`, error);
             await message.channel.send("💥 \`Ocurrió un error crítico durante la inicialización de la sincronización masiva.\`");
         }
     }

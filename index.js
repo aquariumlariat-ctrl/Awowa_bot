@@ -5,6 +5,9 @@ const path = require('path');
 const mongoose = require('mongoose');
 const { iniciarSincronizador } = require('./API\'s/Riot/sincronizador');
 
+// 🎨 Paleta de colores ANSI
+const c = { v: '\x1b[32m', r: '\x1b[31m', a: '\x1b[33m', b: '\x1b[0m' };
+
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -66,12 +69,28 @@ categorias.forEach(categoria => {
 // EVENTOS DE INICIO (Ready)
 // ==========================================
 client.once('clientReady', async () => {
-    console.log(`✅ Aurora conectada como ${client.user.tag}`);
+    console.log(`${c.v}·${c.b} [Core] Aurora se ha encendido ${c.v}correctamente${c.b} como ${client.user.tag}`);
+
+    // 👇 VALIDACIÓN DE APIS DE RIOT 👇
+    const { verificarConexionLoL } = require('./API\'s/Riot/lol_api');
+    const { verificarConexionTFT } = require('./API\'s/Riot/tft_api');
+    
+    const lolOk = await verificarConexionLoL();
+    const tftOk = await verificarConexionTFT();
+
+    if (lolOk && tftOk) {
+        console.log(`${c.v}·${c.b} [Riot API] APIs conectadas ${c.v}correctamente${c.b}.`);
+    } else if (lolOk || tftOk) {
+        console.log(`${c.a}·${c.b} [Riot API] APIs conectadas ${c.a}parcialmente${c.b} (LoL: ${lolOk ? 'Ok' : 'Fallo'}, TFT: ${tftOk ? 'Ok' : 'Fallo'}).`);
+    } else {
+        console.log(`${c.r}·${c.b} [Riot API] Error al conectar con las APIs de Riot: ${c.r}Fallo${c.b}.`);
+    }
+    // 👆 FIN VALIDACIÓN 👆
 
     // 👇 IMPORTAMOS LAS FUNCIONES DE BITÁCORA 👇
     const { initGaleria, reconstruirLogMatriculas } = require('./Modulos/Principales/Matricula/bitacora');
     initGaleria(client);
-
+    
     // 👇 DISPARAMOS LA RECONSTRUCCIÓN DEL LOG 5 SEGUNDOS DESPUÉS 👇
     setTimeout(() => {
         reconstruirLogMatriculas(client);
@@ -81,8 +100,8 @@ client.once('clientReady', async () => {
     const { restaurarMatriculas } = require('./Modulos/Principales/Matricula/matricula');
     restaurarMatriculas(client);
 
-const { iniciarCronSincronizacion } = require('./Modulos/Principales/Sincronizacion/actualizador_bg');
-iniciarCronSincronizacion(client);
+    const { iniciarCronSincronizacion } = require('./Modulos/Principales/Sincronizacion/actualizador_bg');
+    iniciarCronSincronizacion(client);
 
     const { estaHabilitado, obtenerChannelId } = require('./Modulos/Utilidades/Sincronizador/handler');
     const { sincronizarMensajes } = require('./Modulos/Utilidades/Sincronizador/parser');
@@ -162,7 +181,7 @@ client.on('messageCreate', async (message) => {
 // ==========================================
 mongoose.connect(process.env.MONGODB_URI)
     .then(async () => {
-        console.log('🍃 Conectado a la base de datos MongoDB con éxito');
+        console.log(`${c.v}·${c.b} [Nube] Conexión a la base de datos establecida ${c.v}correctamente${c.b}.`);
 
         // 👇 INICIALIZACIÓN DE CARPETAS Y ARCHIVOS DE USUARIOS 👇
         const Usuario = require('./Base_Datos/MongoDB/Usuario.js');
@@ -226,7 +245,7 @@ mongoose.connect(process.env.MONGODB_URI)
                 }
             }
         } catch (e) {
-            console.error("Error al inicializar carpetas de usuarios:", e);
+            console.error(`${c.r}·${c.b} [Core] Inicialización de carpetas de usuarios: ${c.r}Fallo${c.b}.`, e);
         }
     })
     .catch(() => {});

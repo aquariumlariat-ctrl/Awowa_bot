@@ -2,18 +2,20 @@
 const cron = require('node-cron');
 const Usuario = require('../../Base_Datos/MongoDB/Usuario.js');
 
-// Como ya estamos dentro de la carpeta Riot, las rutas de las APIs son súper cortitas:
 const { regionAPlatforma, obtenerSummoner, obtenerRangos } = require('./lol_api');
 const { obtenerRangoTFT } = require('./tft_api');
+
+// 🎨 Paleta de colores ANSI
+const c = { v: '\x1b[32m', r: '\x1b[31m', a: '\x1b[33m', b: '\x1b[0m' };
 
 function iniciarSincronizador(client) {
     // El string '0 12 * * *' significa: "A las 12:00 PM, todos los días"
     cron.schedule('0 12 * * *', async () => {
-        console.log('🔄 [Sincronizador] Iniciando actualización diaria de cuentas a las 12:00 PM...');
+        console.log(`${c.v}·${c.b} [Sincronizacion] Actualización diaria de cuentas a las 12:00 PM ${c.v}iniciada${c.b}.`);
         
         try {
             const usuarios = await Usuario.find();
-            console.log(`📊 [Sincronizador] ${usuarios.length} cuentas encontradas. Evaluando...`);
+            console.log(`${c.v}·${c.b} [Sincronizacion] Evaluación de ${usuarios.length} cuentas procesada ${c.v}correctamente${c.b}.`);
 
             for (let i = 0; i < usuarios.length; i++) {
                 const usuario = usuarios[i];
@@ -40,18 +42,18 @@ function iniciarSincronizador(client) {
                     await new Promise(r => setTimeout(r, 1500)); 
                     
                 } catch (err) {
-                    console.log(`❌ [Sincronizador] No se pudo actualizar a: ${usuario.Riot_ID}`);
+                    console.log(`${c.r}·${c.b} [Sincronizacion] Actualización de la cuenta ${usuario.Riot_ID}: ${c.r}Fallo${c.b}.`);
                 }
             }
             
-            console.log('🎉 [Sincronizador] ¡Actualización fantasma completada con éxito!');
+            console.log(`${c.v}·${c.b} [Sincronizacion] Actualización fantasma completada ${c.v}correctamente${c.b}.`);
             
             // Ruta ajustada para volver a la bitácora y refrescar la tarjeta
             const { actualizarGaleria } = require('../../Modulos/Principales/Matricula/bitacora');
             await actualizarGaleria(client);
             
         } catch (error) {
-            console.error('❌ [Sincronizador] Error fatal:', error);
+            console.error(`${c.r}·${c.b} [Sincronizacion] Proceso de actualización masiva: ${c.r}Fallo crítico${c.b}.`, error);
         }
     });
 }

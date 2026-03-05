@@ -3,6 +3,9 @@ const fs = require('fs');
 const path = require('path');
 const { AttachmentBuilder } = require('discord.js');
 
+// 🎨 Paleta de colores ANSI
+const c = { v: '\x1b[32m', r: '\x1b[31m', a: '\x1b[33m', b: '\x1b[0m' };
+
 module.exports = [
     {
         name: 'boceto',
@@ -45,9 +48,11 @@ module.exports = [
                                 files: [nuevoAttachment]
                             });
                             
-                            console.log('🎨 [Canvas] Vista previa actualizada con éxito.');
+                            // 👇 AQUI APLICAMOS EL ESTÁNDAR 👇
+                            console.log(`${c.v}·${c.b} [Canvas] Vista previa de diseño actualizada ${c.v}correctamente${c.b}.`);
                         } catch (error) {
-                            console.error('❌ [Canvas] Error de sintaxis en el diseño:', error.message);
+                            // 👇 AQUI APLICAMOS EL ESTÁNDAR 👇
+                            console.error(`${c.r}·${c.b} [Canvas] Recarga del diseño en vivo: ${c.r}Fallo de sintaxis${c.b}.`, error.message);
                         }
                     }, 1000);
                 }

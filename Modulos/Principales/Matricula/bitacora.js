@@ -6,10 +6,13 @@ const { generarTarjetaMatricula } = require('./tarjeta_matricula');
 const { regionAPlatforma, obtenerSummoner, obtenerRangos } = require("../../../API's/Riot/lol_api");
 const { obtenerRangoTFT } = require("../../../API's/Riot/tft_api");
 
+// 🎨 Paleta de colores ANSI
+const c = { v: '\x1b[32m', r: '\x1b[31m', a: '\x1b[33m', b: '\x1b[0m' };
+
 const CANAL_LOGS_ID = '1475684884629426318';
 const CANAL_GALERIA_ID = '1475684653967872013';
-const SERVIDOR_EMOJIS_ID = '1469588794599800895'; // Tu servidor de emojis
-const EMOJI_DOT = '<:a:1475892023134523472>'; // Tu Dot personalizado
+const SERVIDOR_EMOJIS_ID = '1469588794599800895'; 
+const EMOJI_DOT = '<:a:1475892023134523472>'; 
 
 function crearBotones(currentPage, totalUsuarios) {
     return new ActionRowBuilder().addComponents(
@@ -20,7 +23,6 @@ function crearBotones(currentPage, totalUsuarios) {
     );
 }
 
-// ✂️ FUNCIÓN PARA RECORTAR EL AVATAR EN CÍRCULO ✂️
 async function obtenerAvatarCircular(url) {
     const canvas = createCanvas(128, 128);
     const ctx = canvas.getContext('2d');
@@ -35,7 +37,6 @@ async function obtenerAvatarCircular(url) {
     return canvas.toBuffer();
 }
 
-// 🆕 SISTEMA DE LOGS (NUEVOS REGISTROS) 🆕
 async function logNuevaMatricula(client, user, riotID, numeroMatricula) {
     try {
         const canalLogs = await client.channels.fetch(CANAL_LOGS_ID);
@@ -52,16 +53,15 @@ async function logNuevaMatricula(client, user, riotID, numeroMatricula) {
                 const nuevoEmoji = await servidorEmojis.emojis.create({ attachment: bufferCircular, name: emojiName });
                 emojiAsignado = `<:${nuevoEmoji.name}:${nuevoEmoji.id}>`;
             } catch (e) {
-                console.error("⚠️ Fallo al crear el emoji personalizado, usando el default:", e.message);
+                console.error(`${c.a}·${c.b} [Bitacora] Creación de emoji personalizado para registro: ${c.a}Fallo (Usando default)${c.b}.`);
             }
         }
 
         const date = new Date();
         const fechaHora = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getFullYear()).slice(-2)} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
         
-        const nombreUsuario = user.username; // Usamos el global username
+        const nombreUsuario = user.username; 
 
-        // 👇 Nueva plantilla aplicada
         const bloqueTexto = `${emojiAsignado} **¡<@${user.id}> se ha matriculado!**\n${EMOJI_DOT} **Fecha:** ${fechaHora}\n${EMOJI_DOT} **Riot ID:** ${riotID}\n${EMOJI_DOT} **Usuario:** ${nombreUsuario}\n${EMOJI_DOT} **Número de Matrícula:** #${numeroMatricula}\n\n`;
 
         const messages = await canalLogs.messages.fetch({ limit: 5 });
@@ -78,13 +78,13 @@ async function logNuevaMatricula(client, user, riotID, numeroMatricula) {
                         await emoji.delete().catch(()=>{});
                     }
                 } catch (err) {
-                    console.error("Error limpiando emojis viejos:", err);
+                    console.error(`${c.r}·${c.b} [Bitacora] Limpieza de emojis viejos: ${c.r}Fallo${c.b}.`);
                 }
             }
             await canalLogs.send(`## Historial de Matriculados\n\n${bloqueTexto}`);
         }
     } catch (error) {
-        console.error("Error general en logNuevaMatricula:", error);
+        console.error(`${c.r}·${c.b} [Bitacora] Registro en el canal de logs: ${c.r}Fallo crítico${c.b}.`);
     }
 }
 
@@ -189,7 +189,7 @@ function initGaleria(client) {
 
             await interaction.editReply({ embeds: [embed], files: [attachment], components: [row] });
         } catch (error) {
-            console.error("Error en bitácora:", error);
+            console.error(`${c.r}·${c.b} [Bitacora] Interacción con botones de galería: ${c.r}Fallo${c.b}.`);
         }
     });
 
@@ -198,7 +198,6 @@ function initGaleria(client) {
 
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
-// 🆕 NUEVO MÉTODO: EDITAR EN LUGAR DE BORRAR 🆕
 async function reconstruirLogMatriculas(client) {
     try {
         const canalLogs = await client.channels.fetch(CANAL_LOGS_ID);
@@ -209,9 +208,8 @@ async function reconstruirLogMatriculas(client) {
         const todosLosUsuarios = await Usuario.find().sort({ Numero_Matricula: 1 });
         if (todosLosUsuarios.length === 0) return;
 
-        console.log("🔄 [BITÁCORA] Reconstruyendo/Actualizando el historial de matriculados...");
+        console.log(`${c.v}·${c.b} [Bitacora] Reconstrucción del historial visual de matriculados ${c.v}iniciada${c.b}.`);
 
-        // Traemos los mensajes existentes y los ordenamos del más viejo al más nuevo
         const messages = await canalLogs.messages.fetch({ limit: 50 });
         const botMessages = Array.from(messages.filter(m => m.author.id === client.user.id && m.content.includes('Historial de Matriculados')).values())
                                  .sort((a, b) => a.createdTimestamp - b.createdTimestamp);
@@ -232,7 +230,7 @@ async function reconstruirLogMatriculas(client) {
                     try {
                         const discordUser = await client.users.fetch(user.Discord_ID).catch(() => null);
                         if (discordUser) {
-                            console.log(`⏳ Creando emoji circular para ${user.Discord_Nick}...`);
+                            console.log(`${c.a}·${c.b} [Bitacora] Creando emoji circular para ${user.Discord_Nick}...`);
                             const avatarURL = discordUser.displayAvatarURL({ extension: 'png', size: 128, forceStatic: true });
                             const bufferCircular = await obtenerAvatarCircular(avatarURL); 
                             
@@ -242,17 +240,15 @@ async function reconstruirLogMatriculas(client) {
                             await delay(2500); 
                         }
                     } catch (e) {
-                        console.error(`⚠️ Error creando emoji para ${user.Discord_Nick}:`, e.message);
+                        console.error(`${c.r}·${c.b} [Bitacora] Creación de emoji para ${user.Discord_Nick}: ${c.r}Fallo${c.b}.`);
                     }
                 }
             }
 
-            const nombreUsuario = user.Discord_Nick; // Guardado en BD
+            const nombreUsuario = user.Discord_Nick; 
 
-            // 👇 Nueva plantilla aplicada
             const lineaUsuario = `${emojiAsignado} **¡<@${user.Discord_ID}> se ha matriculado!**\n${EMOJI_DOT} **Fecha:** ${user.Fecha}\n${EMOJI_DOT} **Riot ID:** ${user.Riot_ID}\n${EMOJI_DOT} **Usuario:** ${nombreUsuario}\n${EMOJI_DOT} **Número de Matrícula:** #${user.Numero_Matricula}\n\n`;
 
-            // Límite de ~1950 caracteres para guardar espacio para el título
             if (bloqueTextoActual.length + lineaUsuario.length > 1900) {
                 bloquesDeTexto.push(bloqueTextoActual);
                 bloqueTextoActual = lineaUsuario; 
@@ -265,26 +261,22 @@ async function reconstruirLogMatriculas(client) {
             bloquesDeTexto.push(bloqueTextoActual);
         }
 
-        // 🔄 LÓGICA DE EDICIÓN
         for (let i = 0; i < bloquesDeTexto.length; i++) {
             const contenido = `## Historial de Matriculados\n\n${bloquesDeTexto[i]}`;
             if (i < botMessages.length) {
-                // Si el mensaje ya existe en esa posición, lo editamos
                 await botMessages[i].edit(contenido).catch(() => {});
             } else {
-                // Si faltan mensajes (porque creció la lista), mandamos uno nuevo
                 await canalLogs.send(contenido).catch(() => {});
             }
         }
 
-        // 🧹 Borramos mensajes sobrantes (por si el historial se redujo)
         for (let i = bloquesDeTexto.length; i < botMessages.length; i++) {
             await botMessages[i].delete().catch(() => {});
         }
 
-        console.log("✅ [BITÁCORA] Historial de matriculados actualizado con éxito.");
+        console.log(`${c.v}·${c.b} [Bitacora] Historial de matriculados actualizado ${c.v}correctamente${c.b}.`);
     } catch (error) {
-        console.error("❌ Error actualizando el log de matrículas:", error);
+        console.error(`${c.r}·${c.b} [Bitacora] Reconstrucción masiva del historial: ${c.r}Fallo crítico${c.b}.`);
     }
 }
 
