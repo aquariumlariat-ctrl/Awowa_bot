@@ -11,6 +11,7 @@ async function ejecutarMotorSilencioso() {
     console.log("🔄 [CRON] Iniciando revisión silenciosa de partidas nuevas...");
     try {
         const todosLosUsuarios = await Usuario.find().sort({ Numero_Matricula: 1 });
+        let totalNuevasPartidas = 0; 
 
         for (const user of todosLosUsuarios) {
             const numMatricula = user.Numero_Matricula;
@@ -18,28 +19,19 @@ async function ejecutarMotorSilencioso() {
             const carpetaPath = path.join(__dirname, '../../../Base_Datos/Usuarios', `#${numMatricula}_${nickSeguro}`);
 
             if (!fs.existsSync(carpetaPath)) continue;
-
-            // Leer archivo total para ver cuándo fue su última partida
             const totalPath = path.join(carpetaPath, 'datos_lol_total.json');
             if (!fs.existsSync(totalPath)) continue;
             
             let jsonTotal = JSON.parse(fs.readFileSync(totalPath, 'utf8'));
 
-            // Buscar el timestamp de la partida más reciente
-            let startTime = Math.floor(new Date('2026-01-08T12:00:00Z').getTime() / 1000); // Base season 2026
-            if (jsonTotal.Historial && jsonTotal.Historial.length > 0) {
-                // Buscamos el número mayor en "fecha"
-                const lastMatch = jsonTotal.Historial.reduce((prev, current) => (prev.fecha > current.fecha) ? prev : current);
-                // Lo pasamos a segundos y sumamos 1 seg para no repetir la partida
-                startTime = Math.floor(lastMatch.fecha / 1000) + 1;
-            }
+            // 🛡️ Creamos una "lista negra" (Set) con los IDs de las partidas que ya tienes
+            const conocidos = new Set(jsonTotal.Historial ? jsonTotal.Historial.map(h => h.matchId) : []);
 
-            // Preguntarle a Riot: "¿Hay algo después de este startTime?"
-            const nuevasPartidas = await extraerNuevasPartidas(user.PUUID, user.Region, startTime);
+            const nuevasPartidas = await extraerNuevasPartidas(user.PUUID, user.Region, conocidos);
 
-            // Si encontró partidas, las inyectamos. Si no, pasamos de largo instantáneamente.
             if (nuevasPartidas.total.length > 0) {
-                console.log(`✨ [CRON] Encontradas ${nuevasPartidas.total.length} partidas nuevas para ${user.Discord_Nick}`);
+                totalNuevasPartidas += nuevasPartidas.total.length;
+                console.log(`✨ [CRON] ${nuevasPartidas.total.length} partidas nuevas procesadas para ${user.Discord_Nick}`);
                 
                 const tipos = [
                     { id: 'soloq', file: 'datos_lol_soloq.json' },
@@ -52,26 +44,32 @@ async function ejecutarMotorSilencioso() {
                     if (nuevasPartidas[tipo.id].length > 0) {
                         const rutaArchivo = path.join(carpetaPath, tipo.file);
                         let jsonActual = JSON.parse(fs.readFileSync(rutaArchivo, 'utf8'));
-                        
                         jsonActual = inyectarNuevasPartidas(jsonActual, nuevasPartidas[tipo.id], user.PUUID);
                         fs.writeFileSync(rutaArchivo, JSON.stringify(jsonActual, null, 4), 'utf8');
                     }
                 }
-                await delay(1000); // Pausa solo si extrajimos algo pesado
+                await delay(1000); 
             } else {
-                await delay(200); // Pausa minúscula si no hubo nada para no saturar internet
+                await delay(200); 
             }
         }
+
+        if (totalNuevasPartidas === 0) {
+            console.log("✅ [CRON] Revisión terminada, sin nuevas partidas...");
+        } else {
+            console.log(`✅ [CRON] Revisión terminada. Se sincronizaron un total de ${totalNuevasPartidas} partidas nuevas.`);
+        }
+
     } catch (error) {
-        console.error("❌ [CRON] Error en la ejecución del actualizador silencioso:", error);
+        console.error("❌ [CRON] Error:", error);
     }
 }
 
 function iniciarCronSincronizacion(client) {
-    // Se ejecuta 1 minuto después de encender el bot (por primera vez)
+    // Se ejecuta 1 minuto después de encender el bot 
     setTimeout(() => {
         ejecutarMotorSilencioso();
-        // Luego, se repite en un bucle cada 10 minutos
+        // Se repite cada 10 minutos
         setInterval(ejecutarMotorSilencioso, 10 * 60 * 1000);
     }, 60 * 1000);
 }

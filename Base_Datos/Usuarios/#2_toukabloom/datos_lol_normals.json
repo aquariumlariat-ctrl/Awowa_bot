@@ -138,7 +138,8 @@
             "deaths": 6,
             "assists": 18,
             "victoria": true,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1684325801",
@@ -149,7 +150,8 @@
             "deaths": 5,
             "assists": 2,
             "victoria": false,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1683392820",
@@ -160,7 +162,8 @@
             "deaths": 4,
             "assists": 6,
             "victoria": true,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         }
     ]
 }

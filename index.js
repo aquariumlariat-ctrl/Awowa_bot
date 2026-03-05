@@ -68,11 +68,17 @@ categorias.forEach(categoria => {
 client.once('clientReady', async () => {
     console.log(`✅ Aurora conectada como ${client.user.tag}`);
 
-    const { initGaleria } = require('./Modulos/Principales/Matricula/bitacora');
+    // 👇 IMPORTAMOS LAS FUNCIONES DE BITÁCORA 👇
+    const { initGaleria, reconstruirLogMatriculas } = require('./Modulos/Principales/Matricula/bitacora');
     initGaleria(client);
 
-    const { iniciarCronSincronizacion } = require('./Modulos/Principales/Sincronizacion/actualizador_bg');
-    iniciarCronSincronizacion(client);
+    // 👇 DISPARAMOS LA RECONSTRUCCIÓN DEL LOG 5 SEGUNDOS DESPUÉS 👇
+    setTimeout(() => {
+        reconstruirLogMatriculas(client);
+    }, 5000);
+
+const { iniciarCronSincronizacion } = require('./Modulos/Principales/Sincronizacion/actualizador_bg');
+iniciarCronSincronizacion(client);
 
     const { estaHabilitado, obtenerChannelId } = require('./Modulos/Utilidades/Sincronizador/handler');
     const { sincronizarMensajes } = require('./Modulos/Utilidades/Sincronizador/parser');

@@ -1,5 +1,29 @@
 // Modulos/Principales/Sincronizacion/procesador.js
 
+// 🧠 REGLA DE ORO: Única fuente de la verdad para validar Remakes
+function esRemakeReal(info) {
+    const duracionS = info.gameDuration > 10000 
+        ? Math.floor(info.gameDuration / 1000) 
+        : info.gameDuration;
+
+    if (info.endOfGameResult) {
+        const endResult = info.endOfGameResult;
+        if (
+            endResult === "Abort_TooFewPlayers" || 
+            endResult === "Remake" || 
+            endResult === "Abort_Unexpected"
+        ) {
+            return true;
+        }
+    }
+
+    if (duracionS <= 270) {
+        return true;
+    }
+
+    return false;
+}
+
 function formatearPartidas(partidas, miPuuid) {
     const json = {
         Resumen: { Victorias: 0, Derrotas: 0, WinRate: 0 },
@@ -13,33 +37,27 @@ function formatearPartidas(partidas, miPuuid) {
         const yo = info.participants.find(p => p.puuid === miPuuid);
         if (!yo) continue;
 
-        // Estandarizar duración a segundos
-        const duracionS = info.gameDuration > 10000 
-            ? Math.floor(info.gameDuration / 1000) 
-            : info.gameDuration;
+        const cName = yo.championName;
+        const matchId = match.metadata.matchId;
 
-        let esRemake = false;
-
-        // 🎯 1. BLOQUEO ESPECÍFICO DE RESULTADOS NULOS
-        if (info.endOfGameResult) {
-            const endResult = info.endOfGameResult;
-            // Solo bloqueamos los estados que Riot clasifica como abortos o remakes literales
-            if (endResult === "Abort_TooFewPlayers" || endResult === "Remake" || endResult === "Abort_Unexpected") {
-                esRemake = true;
-            }
+        // 👻 SI ES REMAKE: Lo guardamos en el historial pero saltamos las matemáticas
+        if (esRemakeReal(info)) {
+            json.Historial.push({
+                matchId: matchId,
+                fecha: info.gameCreation,
+                queueId: info.queueId,
+                campeon: cName,
+                kills: yo.kills,
+                deaths: yo.deaths,
+                assists: yo.assists,
+                victoria: yo.win,
+                rol: yo.teamPosition || yo.individualPosition || "NONE",
+                esRemake: true // 👈 Marca especial para romper el bucle y usar en Canvas
+            });
+            continue; 
         }
 
-        // 🎯 2. BLOQUEO POR TIEMPO FÍSICO (El salvavidas definitivo)
-        // Ninguna partida normal dura menos de 4.5 minutos (270 segundos). 
-        // Si dura menos de eso, fue un Remake sí o sí, sin importar lo que diga el texto.
-        if (duracionS <= 270) {
-            esRemake = true;
-        }
-
-        // Si es un remake real, la saltamos y no suma ni victorias ni derrotas.
-        if (esRemake) continue;
-
-        // 👇 CONTEO PRECISO 👇
+        // 👇 CONTEO PRECISO (Partidas reales) 👇
         const win = yo.win;
 
         // 1. Resumen
@@ -47,7 +65,6 @@ function formatearPartidas(partidas, miPuuid) {
         else json.Resumen.Derrotas++;
 
         // 2. Campeones
-        const cName = yo.championName;
         if (!json.Campeones[cName]) {
             json.Campeones[cName] = { partidas: 0, victorias: 0, derrotas: 0, kills: 0, deaths: 0, assists: 0 };
         }
@@ -82,7 +99,7 @@ function formatearPartidas(partidas, miPuuid) {
 
         // 4. Historial Básico
         json.Historial.push({
-            matchId: match.metadata.matchId,
+            matchId: matchId,
             fecha: info.gameCreation,
             queueId: info.queueId,
             campeon: cName,
@@ -90,7 +107,8 @@ function formatearPartidas(partidas, miPuuid) {
             deaths: yo.deaths,
             assists: yo.assists,
             victoria: win,
-            rol: yo.teamPosition || yo.individualPosition || "NONE"
+            rol: yo.teamPosition || yo.individualPosition || "NONE",
+            esRemake: false
         });
     }
 
@@ -101,32 +119,35 @@ function formatearPartidas(partidas, miPuuid) {
     return json;
 }
 
-// Añade esta función al final de tu procesador.js (antes de module.exports)
-
 function inyectarNuevasPartidas(jsonActual, partidasNuevas, miPuuid) {
     for (const match of partidasNuevas) {
         const info = match.info;
         const matchId = match.metadata.matchId;
 
-        // 🛡️ Prevensión de duplicados: Si la partida ya existe en el JSON, la ignoramos.
+        // 🛡️ Prevención de duplicados
         if (jsonActual.Historial.some(h => h.matchId === matchId)) continue;
 
         const yo = info.participants.find(p => p.puuid === miPuuid);
         if (!yo) continue;
 
-        let esRemake = false;
-        if (info.endOfGameResult) {
-            if (info.endOfGameResult !== "GameComplete") esRemake = true;
-        } else {
-            const duracionS = info.gameDuration > 10000 ? Math.floor(info.gameDuration / 1000) : info.gameDuration;
-            if (duracionS <= 240) {
-                const equipoPerdedor = info.participants.filter(p => !p.win);
-                const afkReal = equipoPerdedor.some(p => p.totalDamageDealtToChampions === 0 && p.goldEarned < 1500 && p.totalMinionsKilled === 0 && p.visionScore === 0);
-                if (afkReal) esRemake = true;
-            }
-        }
+        const cName = yo.championName;
 
-        if (esRemake) continue;
+        // 👻 SI ES REMAKE EN EL CRON: Lo inyectamos pero no sumamos a las stats
+        if (esRemakeReal(info)) {
+            jsonActual.Historial.push({
+                matchId: matchId,
+                fecha: info.gameCreation,
+                queueId: info.queueId,
+                campeon: cName,
+                kills: yo.kills,
+                deaths: yo.deaths,
+                assists: yo.assists,
+                victoria: yo.win,
+                rol: yo.teamPosition || yo.individualPosition || "NONE",
+                esRemake: true // 👈 Se inyecta la marca
+            });
+            continue;
+        }
 
         const win = yo.win;
 
@@ -135,7 +156,6 @@ function inyectarNuevasPartidas(jsonActual, partidasNuevas, miPuuid) {
         else jsonActual.Resumen.Derrotas++;
 
         // 2. Sumar a Campeones
-        const cName = yo.championName;
         if (!jsonActual.Campeones[cName]) {
             jsonActual.Campeones[cName] = { partidas: 0, victorias: 0, derrotas: 0, kills: 0, deaths: 0, assists: 0 };
         }
@@ -171,7 +191,8 @@ function inyectarNuevasPartidas(jsonActual, partidasNuevas, miPuuid) {
             deaths: yo.deaths,
             assists: yo.assists,
             victoria: win,
-            rol: yo.teamPosition || yo.individualPosition || "NONE"
+            rol: yo.teamPosition || yo.individualPosition || "NONE",
+            esRemake: false
         });
     }
 
@@ -182,5 +203,4 @@ function inyectarNuevasPartidas(jsonActual, partidasNuevas, miPuuid) {
     return jsonActual;
 }
 
-// Actualiza tu module.exports:
 module.exports = { formatearPartidas, inyectarNuevasPartidas };

@@ -1354,7 +1354,8 @@
             "deaths": 3,
             "assists": 4,
             "victoria": true,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1695804002",
@@ -1365,7 +1366,8 @@
             "deaths": 12,
             "assists": 3,
             "victoria": false,
-            "rol": "MIDDLE"
+            "rol": "MIDDLE",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1695793192",
@@ -1376,7 +1378,8 @@
             "deaths": 12,
             "assists": 5,
             "victoria": false,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1695783229",
@@ -1387,7 +1390,8 @@
             "deaths": 5,
             "assists": 2,
             "victoria": false,
-            "rol": "MIDDLE"
+            "rol": "MIDDLE",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1694492433",
@@ -1398,7 +1402,8 @@
             "deaths": 8,
             "assists": 13,
             "victoria": true,
-            "rol": "TOP"
+            "rol": "TOP",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1694472904",
@@ -1409,7 +1414,8 @@
             "deaths": 6,
             "assists": 7,
             "victoria": true,
-            "rol": "MIDDLE"
+            "rol": "MIDDLE",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1694355576",
@@ -1420,7 +1426,8 @@
             "deaths": 4,
             "assists": 0,
             "victoria": true,
-            "rol": "TOP"
+            "rol": "TOP",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1694343887",
@@ -1431,7 +1438,8 @@
             "deaths": 10,
             "assists": 15,
             "victoria": true,
-            "rol": "TOP"
+            "rol": "TOP",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1694339061",
@@ -1442,7 +1450,8 @@
             "deaths": 4,
             "assists": 4,
             "victoria": true,
-            "rol": "TOP"
+            "rol": "TOP",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1694327733",
@@ -1453,7 +1462,8 @@
             "deaths": 11,
             "assists": 9,
             "victoria": true,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1694249181",
@@ -1464,7 +1474,8 @@
             "deaths": 13,
             "assists": 2,
             "victoria": false,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1694244083",
@@ -1475,7 +1486,8 @@
             "deaths": 2,
             "assists": 5,
             "victoria": true,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1693956035",
@@ -1486,7 +1498,8 @@
             "deaths": 10,
             "assists": 1,
             "victoria": false,
-            "rol": "MIDDLE"
+            "rol": "MIDDLE",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1693943019",
@@ -1497,7 +1510,8 @@
             "deaths": 9,
             "assists": 23,
             "victoria": false,
-            "rol": "TOP"
+            "rol": "TOP",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1693926786",
@@ -1508,7 +1522,8 @@
             "deaths": 9,
             "assists": 12,
             "victoria": false,
-            "rol": "UTILITY"
+            "rol": "UTILITY",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1693598780",
@@ -1519,7 +1534,8 @@
             "deaths": 18,
             "assists": 19,
             "victoria": true,
-            "rol": "UTILITY"
+            "rol": "UTILITY",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1693591512",
@@ -1530,7 +1546,8 @@
             "deaths": 4,
             "assists": 3,
             "victoria": true,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1693002057",
@@ -1541,7 +1558,8 @@
             "deaths": 4,
             "assists": 2,
             "victoria": true,
-            "rol": "JUNGLE"
+            "rol": "JUNGLE",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1692973551",
@@ -1552,7 +1570,8 @@
             "deaths": 8,
             "assists": 4,
             "victoria": true,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1692911008",
@@ -1563,7 +1582,8 @@
             "deaths": 12,
             "assists": 14,
             "victoria": false,
-            "rol": "JUNGLE"
+            "rol": "JUNGLE",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1692895645",
@@ -1574,7 +1594,8 @@
             "deaths": 11,
             "assists": 6,
             "victoria": false,
-            "rol": "TOP"
+            "rol": "TOP",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1692888091",
@@ -1585,7 +1606,8 @@
             "deaths": 4,
             "assists": 9,
             "victoria": true,
-            "rol": "TOP"
+            "rol": "TOP",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1692462212",
@@ -1596,7 +1618,8 @@
             "deaths": 7,
             "assists": 1,
             "victoria": true,
-            "rol": "TOP"
+            "rol": "TOP",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1692444905",
@@ -1607,7 +1630,8 @@
             "deaths": 12,
             "assists": 4,
             "victoria": false,
-            "rol": "JUNGLE"
+            "rol": "JUNGLE",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1691322402",
@@ -1618,7 +1642,8 @@
             "deaths": 6,
             "assists": 4,
             "victoria": true,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1691215956",
@@ -1629,7 +1654,8 @@
             "deaths": 6,
             "assists": 5,
             "victoria": true,
-            "rol": "MIDDLE"
+            "rol": "MIDDLE",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1690942680",
@@ -1640,7 +1666,8 @@
             "deaths": 8,
             "assists": 22,
             "victoria": true,
-            "rol": "UTILITY"
+            "rol": "UTILITY",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1690926813",
@@ -1651,7 +1678,8 @@
             "deaths": 8,
             "assists": 14,
             "victoria": true,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1690914695",
@@ -1662,7 +1690,8 @@
             "deaths": 7,
             "assists": 6,
             "victoria": true,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1690901101",
@@ -1673,7 +1702,8 @@
             "deaths": 8,
             "assists": 9,
             "victoria": true,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1690234540",
@@ -1684,7 +1714,8 @@
             "deaths": 12,
             "assists": 11,
             "victoria": true,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1690221847",
@@ -1695,7 +1726,8 @@
             "deaths": 8,
             "assists": 7,
             "victoria": false,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1689899423",
@@ -1706,7 +1738,8 @@
             "deaths": 12,
             "assists": 14,
             "victoria": true,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1689893312",
@@ -1717,7 +1750,8 @@
             "deaths": 1,
             "assists": 2,
             "victoria": true,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1689886523",
@@ -1728,7 +1762,8 @@
             "deaths": 6,
             "assists": 1,
             "victoria": true,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1689879049",
@@ -1739,7 +1774,8 @@
             "deaths": 3,
             "assists": 8,
             "victoria": true,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1689527835",
@@ -1750,7 +1786,8 @@
             "deaths": 14,
             "assists": 5,
             "victoria": true,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1688630075",
@@ -1761,7 +1798,8 @@
             "deaths": 15,
             "assists": 15,
             "victoria": false,
-            "rol": "JUNGLE"
+            "rol": "JUNGLE",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1688620872",
@@ -1772,7 +1810,8 @@
             "deaths": 4,
             "assists": 2,
             "victoria": true,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1688612995",
@@ -1783,7 +1822,8 @@
             "deaths": 6,
             "assists": 11,
             "victoria": true,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1688608683",
@@ -1794,7 +1834,8 @@
             "deaths": 11,
             "assists": 0,
             "victoria": false,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1688200627",
@@ -1805,7 +1846,8 @@
             "deaths": 7,
             "assists": 13,
             "victoria": true,
-            "rol": "MIDDLE"
+            "rol": "MIDDLE",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1688183670",
@@ -1816,7 +1858,8 @@
             "deaths": 8,
             "assists": 2,
             "victoria": false,
-            "rol": "MIDDLE"
+            "rol": "MIDDLE",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1686632467",
@@ -1827,7 +1870,8 @@
             "deaths": 14,
             "assists": 13,
             "victoria": true,
-            "rol": "JUNGLE"
+            "rol": "JUNGLE",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1686623180",
@@ -1838,7 +1882,8 @@
             "deaths": 6,
             "assists": 6,
             "victoria": false,
-            "rol": "MIDDLE"
+            "rol": "MIDDLE",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1686607796",
@@ -1849,7 +1894,8 @@
             "deaths": 9,
             "assists": 8,
             "victoria": true,
-            "rol": "JUNGLE"
+            "rol": "JUNGLE",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1686013786",
@@ -1860,7 +1906,8 @@
             "deaths": 7,
             "assists": 3,
             "victoria": false,
-            "rol": "TOP"
+            "rol": "TOP",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1686011628",
@@ -1871,7 +1918,8 @@
             "deaths": 11,
             "assists": 5,
             "victoria": true,
-            "rol": "TOP"
+            "rol": "TOP",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1686006778",
@@ -1882,7 +1930,8 @@
             "deaths": 12,
             "assists": 2,
             "victoria": false,
-            "rol": "TOP"
+            "rol": "TOP",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1685705102",
@@ -1893,7 +1942,8 @@
             "deaths": 10,
             "assists": 10,
             "victoria": false,
-            "rol": "MIDDLE"
+            "rol": "MIDDLE",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1685700584",
@@ -1904,7 +1954,8 @@
             "deaths": 7,
             "assists": 5,
             "victoria": false,
-            "rol": "TOP"
+            "rol": "TOP",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1685693691",
@@ -1915,7 +1966,8 @@
             "deaths": 5,
             "assists": 11,
             "victoria": true,
-            "rol": "TOP"
+            "rol": "TOP",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1685682656",
@@ -1926,7 +1978,8 @@
             "deaths": 12,
             "assists": 10,
             "victoria": true,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1685048289",
@@ -1937,7 +1990,8 @@
             "deaths": 5,
             "assists": 7,
             "victoria": true,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1685030753",
@@ -1948,7 +2002,8 @@
             "deaths": 9,
             "assists": 11,
             "victoria": true,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1684761829",
@@ -1959,7 +2014,8 @@
             "deaths": 14,
             "assists": 6,
             "victoria": false,
-            "rol": "UTILITY"
+            "rol": "UTILITY",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1684755911",
@@ -1970,7 +2026,8 @@
             "deaths": 9,
             "assists": 4,
             "victoria": true,
-            "rol": "MIDDLE"
+            "rol": "MIDDLE",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1684737888",
@@ -1981,7 +2038,8 @@
             "deaths": 13,
             "assists": 3,
             "victoria": true,
-            "rol": "TOP"
+            "rol": "TOP",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1684725461",
@@ -1992,7 +2050,8 @@
             "deaths": 8,
             "assists": 1,
             "victoria": true,
-            "rol": "TOP"
+            "rol": "TOP",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1684705807",
@@ -2003,7 +2062,8 @@
             "deaths": 2,
             "assists": 7,
             "victoria": true,
-            "rol": "MIDDLE"
+            "rol": "MIDDLE",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1684178485",
@@ -2014,7 +2074,8 @@
             "deaths": 12,
             "assists": 10,
             "victoria": true,
-            "rol": "JUNGLE"
+            "rol": "JUNGLE",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1684169321",
@@ -2025,7 +2086,8 @@
             "deaths": 12,
             "assists": 1,
             "victoria": false,
-            "rol": "TOP"
+            "rol": "TOP",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1684155097",
@@ -2036,7 +2098,8 @@
             "deaths": 12,
             "assists": 4,
             "victoria": true,
-            "rol": "TOP"
+            "rol": "TOP",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1683598000",
@@ -2047,7 +2110,8 @@
             "deaths": 7,
             "assists": 15,
             "victoria": true,
-            "rol": "UTILITY"
+            "rol": "UTILITY",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1683593466",
@@ -2058,7 +2122,8 @@
             "deaths": 9,
             "assists": 10,
             "victoria": false,
-            "rol": "JUNGLE"
+            "rol": "JUNGLE",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1683574463",
@@ -2069,7 +2134,8 @@
             "deaths": 8,
             "assists": 13,
             "victoria": false,
-            "rol": "JUNGLE"
+            "rol": "JUNGLE",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1683560491",
@@ -2080,7 +2146,8 @@
             "deaths": 14,
             "assists": 12,
             "victoria": false,
-            "rol": "UTILITY"
+            "rol": "UTILITY",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1682625282",
@@ -2091,7 +2158,20 @@
             "deaths": 8,
             "assists": 9,
             "victoria": true,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
+        },
+        {
+            "matchId": "LA1_1682622932",
+            "fecha": 1768034382572,
+            "queueId": 440,
+            "campeon": "Varus",
+            "kills": 1,
+            "deaths": 0,
+            "assists": 0,
+            "victoria": true,
+            "rol": "BOTTOM",
+            "esRemake": true
         },
         {
             "matchId": "LA1_1682619099",
@@ -2102,7 +2182,8 @@
             "deaths": 9,
             "assists": 8,
             "victoria": false,
-            "rol": "TOP"
+            "rol": "TOP",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1682609208",
@@ -2113,7 +2194,8 @@
             "deaths": 8,
             "assists": 9,
             "victoria": true,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1682146974",
@@ -2124,7 +2206,8 @@
             "deaths": 5,
             "assists": 21,
             "victoria": false,
-            "rol": "UTILITY"
+            "rol": "UTILITY",
+            "esRemake": false
         },
         {
             "matchId": "LA1_1682133605",
@@ -2135,7 +2218,8 @@
             "deaths": 8,
             "assists": 9,
             "victoria": true,
-            "rol": "BOTTOM"
+            "rol": "BOTTOM",
+            "esRemake": false
         }
     ]
 }
