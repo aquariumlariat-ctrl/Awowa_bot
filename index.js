@@ -77,6 +77,10 @@ client.once('clientReady', async () => {
         reconstruirLogMatriculas(client);
     }, 5000);
 
+    // 👇 AÑADE ESTO PARA EL CACHÉ PERSISTENTE 👇
+    const { restaurarMatriculas } = require('./Modulos/Principales/Matricula/matricula');
+    restaurarMatriculas(client);
+
 const { iniciarCronSincronizacion } = require('./Modulos/Principales/Sincronizacion/actualizador_bg');
 iniciarCronSincronizacion(client);
 

@@ -1,7 +1,7 @@
 {
     "Resumen": {
         "Victorias": 100,
-        "Derrotas": 108,
+        "Derrotas": 109,
         "WinRate": 48
     },
     "Campeones": {
@@ -214,12 +214,12 @@
             "assists": 11
         },
         "Vayne": {
-            "partidas": 2,
+            "partidas": 3,
             "victorias": 0,
-            "derrotas": 2,
-            "kills": 9,
-            "deaths": 9,
-            "assists": 7
+            "derrotas": 3,
+            "kills": 11,
+            "deaths": 16,
+            "assists": 9
         },
         "Vi": {
             "partidas": 1,
@@ -4246,6 +4246,38 @@
             "partidas": 1,
             "victorias": 1,
             "derrotas": 0
+        },
+        "CRr7eeWCNTqZz9kxmpHlAAUQz9RfSsNEcYM_-b8eJyFkygNfheJPrh5XtGbSnxlryXBHbiGPrwOK6Q": {
+            "nick": "Locomaniako",
+            "tag": "4199",
+            "icono": 7070,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "dyWhznKZZy0rWpI139vzIOxyprYMUgBWGZ5grxawiZhpCCOdfuAk_UlH5Hjq5kC2aYe0Pk4Bxowavg": {
+            "nick": "Shirogane",
+            "tag": "ZERI",
+            "icono": 6666,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "fUBMW8GOg066Q-OJ_lEmPm0uDtLGBrfbdmckYvMu5AKZA9zV6ahzMH4TCVPZ4KuvMeEZvLL4oI7fGQ": {
+            "nick": "LF JuniØr",
+            "tag": "MIDGP",
+            "icono": 6935,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "02ndCMAFgLyCQLbGjbupy4ydiziiTtnENWxV98HTCjGqBUCVOBO6MUYxyrCZK0GLbFG7NDHYj-wH9A": {
+            "nick": "지엘레",
+            "tag": "DMT",
+            "icono": 7035,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
         }
     },
     "Historial": [
@@ -6802,6 +6834,18 @@
             "deaths": 3,
             "assists": 12,
             "victoria": true,
+            "rol": "BOTTOM",
+            "esRemake": false
+        },
+        {
+            "matchId": "LA1_1698907378",
+            "fecha": 1772688838302,
+            "queueId": 440,
+            "campeon": "Vayne",
+            "kills": 2,
+            "deaths": 7,
+            "assists": 2,
+            "victoria": false,
             "rol": "BOTTOM",
             "esRemake": false
         }

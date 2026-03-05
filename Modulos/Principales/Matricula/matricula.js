@@ -1,6 +1,7 @@
 // Modulos/Principales/Matricula/matricula.js
 const { AttachmentBuilder, EmbedBuilder } = require('discord.js');
 const fs = require('fs');
+const fsPromises = require('fs').promises; 
 const path = require('path');
 const { generarTarjetaMatricula } = require('./tarjeta_matricula');
 const { regionAPlatforma, verificarCuentaRiot, obtenerSummoner, obtenerRangos } = require("../../../API's/Riot/lol_api");
@@ -8,6 +9,7 @@ const { obtenerRangoTFT } = require("../../../API's/Riot/tft_api");
 
 const Usuario = require('../../../Base_Datos/MongoDB/Usuario.js');
 const IntentoMatricula = require('../../../Base_Datos/MongoDB/IntentoMatricula.js'); 
+const Contador = require('../../../Base_Datos/MongoDB/contador.js'); 
 const { logNuevaMatricula, actualizarGaleria } = require('./bitacora');
 
 const ICONOS_VERIFICACION = [2, 5, 6, 11, 12];
@@ -33,7 +35,35 @@ const ESTADO_VERIFICACION = {
     ERROR: 'https://i.imgur.com/PhzYaUF.png'
 };
 
+// 💾 SISTEMA DE CACHÉ PERSISTENTE (MODO RESCATE) 💾
+const CACHE_FILE = path.join(__dirname, '../../../Base_Datos/Cache/matriculas_pendientes.json');
+try {
+    const dir = path.dirname(CACHE_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+} catch (e) {}
+
 const usuariosEnMatricula = new Map();
+
+async function actualizarCache() {
+    const data = {};
+    for (const [userId, estado] of usuariosEnMatricula.entries()) {
+        data[userId] = { etapa: estado.etapa, fechaInicio: Date.now() };
+    }
+    try {
+        await fsPromises.writeFile(CACHE_FILE, JSON.stringify(data, null, 4), 'utf8');
+    } catch (err) { }
+}
+
+function setEstadoUsuario(userId, estado) {
+    usuariosEnMatricula.set(userId, estado);
+    actualizarCache();
+}
+
+function deleteEstadoUsuario(userId) {
+    usuariosEnMatricula.delete(userId);
+    actualizarCache();
+}
+// --------------------------------------------------
 
 function getMensajes() {
     delete require.cache[require.resolve('./mensajes')];
@@ -73,17 +103,12 @@ async function registrarFalloIntento(userId) {
         if (!intento) {
             intento = new IntentoMatricula({ Discord_ID: userId, Fallos: 0 });
         }
-
         intento.Fallos += 1;
-
         if (intento.Fallos >= MAX_INTENTOS) {
             intento.CooldownHasta = new Date(Date.now() + TIEMPO_COOLDOWN);
         }
-
         await intento.save();
-    } catch (error) {
-        console.error("Error guardando intento en MongoDB:", error);
-    }
+    } catch (error) {}
 }
 
 async function preValidarCuenta(userId, gameName, tagLine) {
@@ -101,9 +126,7 @@ async function preValidarCuenta(userId, gameName, tagLine) {
                 region, puuid: resultado.data.puuid, plataforma, summoner,
                 gameName: resultado.data.gameName, tagLine: resultado.data.tagLine
             };
-        } catch {
-            return null;
-        }
+        } catch { return null; }
     });
 
     const resultados = await Promise.all(promesas);
@@ -112,11 +135,10 @@ async function preValidarCuenta(userId, gameName, tagLine) {
     const estadoActual = usuariosEnMatricula.get(userId);
     if (estadoActual) {
         estadoActual.preValidacion = cuentasEncontradas;
-        usuariosEnMatricula.set(userId, estadoActual);
+        setEstadoUsuario(userId, estadoActual);
     }
 }
 
-// 🔥 REPARADA: Usando PUUID directamente para buscar el rango
 async function generarYGuardarTarjeta(estadoUsuario) {
     const [rangos, rangoTFT] = await Promise.all([
         obtenerRangos(estadoUsuario.puuid, estadoUsuario.plataforma),
@@ -125,13 +147,15 @@ async function generarYGuardarTarjeta(estadoUsuario) {
 
     let numeroTotal = 1;
     try {
-        const ultimoUsuario = await Usuario.findOne().sort({ Numero_Matricula: -1 });
-        if (ultimoUsuario && ultimoUsuario.Numero_Matricula) {
-            numeroTotal = ultimoUsuario.Numero_Matricula + 1;
-        } else {
-            numeroTotal = (await Usuario.countDocuments()) + 1;
-        }
-    } catch {}
+        const docContador = await Contador.findOneAndUpdate(
+            { id: 'matriculas_globales' },
+            { $inc: { seq: 1 } },
+            { new: true, upsert: true } 
+        );
+        numeroTotal = docContador.seq;
+    } catch (err) {
+        numeroTotal = (await Usuario.countDocuments()) + 1; 
+    }
 
     const imageBuffer = await generarTarjetaMatricula({
         gameName: estadoUsuario.gameName, 
@@ -161,7 +185,7 @@ async function preGenerarTarjeta(userId, estadoUsuario) {
             estadoActual.tarjetaPreGenerada = datosGenerados.tarjeta;
             estadoActual.rangosPreCargados = datosGenerados.rangosGuardados;
             estadoActual.numeroMatricula = datosGenerados.numeroMatricula; 
-            usuariosEnMatricula.set(userId, estadoActual);
+            setEstadoUsuario(userId, estadoActual);
         }
     } catch {}
 }
@@ -178,7 +202,7 @@ async function validarRiotID(message, estadoUsuario) {
     estadoUsuario.gameName = nombre.trim();
     estadoUsuario.tagLine = tag.trim();
     estadoUsuario.etapa = 'region';
-    usuariosEnMatricula.set(message.author.id, estadoUsuario);
+    setEstadoUsuario(message.author.id, estadoUsuario);
 
     await message.channel.send(getMensajes().RegionMatricula(riotIDLimpio));
     preValidarCuenta(message.author.id, estadoUsuario.gameName, estadoUsuario.tagLine).catch(() => {});
@@ -218,7 +242,7 @@ async function validarRegion(message, estadoUsuario) {
         const cuentaExistente = await Usuario.findOne({ PUUID: puuid });
         if (cuentaExistente) {
             estadoUsuario.etapa = 'riotid'; 
-            usuariosEnMatricula.set(message.author.id, estadoUsuario);
+            setEstadoUsuario(message.author.id, estadoUsuario);
             const msgEnUso = getMensajes().CuentaYaEnUso || 'Esta cuenta ya pertenece a otro usuario.';
             return loadingMessage ? await loadingMessage.edit(msgEnUso) : await message.channel.send(msgEnUso);
         }
@@ -247,7 +271,7 @@ async function validarRegion(message, estadoUsuario) {
             ? await loadingMessage.edit(contenidoMensaje) 
             : await message.channel.send(contenidoMensaje);
 
-        usuariosEnMatricula.set(message.author.id, estadoUsuario);
+        setEstadoUsuario(message.author.id, estadoUsuario);
         iniciarPolling(message, estadoUsuario);
 
     } catch {
@@ -258,7 +282,7 @@ async function validarRegion(message, estadoUsuario) {
 
 async function fallarBusquedaCuenta(message, loadingMessage, estadoUsuario) {
     estadoUsuario.etapa = 'riotid';
-    usuariosEnMatricula.set(message.author.id, estadoUsuario);
+    setEstadoUsuario(message.author.id, estadoUsuario);
     const msg = getMensajes().CuentaNoEncontradaMatricula;
     return loadingMessage ? loadingMessage.edit(msg) : message.channel.send(msg);
 }
@@ -273,7 +297,7 @@ function iniciarPolling(message, estadoUsuario) {
 
         if (Date.now() >= estadoActual.tiempoExpiracion) {
             clearInterval(intervalo);
-            usuariosEnMatricula.delete(userId);
+            deleteEstadoUsuario(userId);
             await registrarFalloIntento(userId);
 
             if (estadoActual.verificacionMsg) {
@@ -327,7 +351,7 @@ function iniciarPolling(message, estadoUsuario) {
                 };
 
                 await guardarUsuario(datosGuardar);
-                usuariosEnMatricula.delete(userId);
+                deleteEstadoUsuario(userId);
                 await IntentoMatricula.deleteOne({ Discord_ID: userId });
 
                 try {
@@ -335,9 +359,8 @@ function iniciarPolling(message, estadoUsuario) {
                     const nombreCarpeta = `#${numMatricula}_${nickSeguro}`;
                     const rutaCarpeta = path.join(__dirname, '../../../Base_Datos/Usuarios', nombreCarpeta);
 
-                    if (!fs.existsSync(rutaCarpeta)) {
-                        fs.mkdirSync(rutaCarpeta, { recursive: true });
-                    }
+                    try { await fsPromises.access(rutaCarpeta); } 
+                    catch { await fsPromises.mkdir(rutaCarpeta, { recursive: true }); }
 
                     const plantillaJuegos = {
                         Resumen: { Victorias: 0, Derrotas: 0, WinRate: 0 },
@@ -364,12 +387,11 @@ function iniciarPolling(message, estadoUsuario) {
 
                     for (const [nombreArchivo, contenidoVacio] of Object.entries(archivosCrear)) {
                         const rutaArchivo = path.join(rutaCarpeta, nombreArchivo);
-                        if (!fs.existsSync(rutaArchivo)) {
-                            fs.writeFileSync(rutaArchivo, JSON.stringify(contenidoVacio, null, 4), 'utf8');
-                        }
+                        try { await fsPromises.access(rutaArchivo); } 
+                        catch { await fsPromises.writeFile(rutaArchivo, JSON.stringify(contenidoVacio, null, 4), 'utf8'); }
                     }
                 } catch (e) {
-                    console.error('Error creando carpeta/archivos físicos del usuario nuevo:', e);
+                    console.error('Error asíncrono creando archivos:', e);
                 }
 
                 await message.channel.send(getMensajes().MatriculaCompletada);
@@ -385,7 +407,7 @@ function iniciarPolling(message, estadoUsuario) {
     }, INTERVALO_VERIFICACION);
 
     estadoUsuario.intervalo = intervalo;
-    usuariosEnMatricula.set(userId, estadoUsuario);
+    setEstadoUsuario(userId, estadoUsuario);
 }
 
 async function cancelarMatricula(message) {
@@ -409,7 +431,7 @@ async function cancelarMatricula(message) {
         }
     }
 
-    usuariosEnMatricula.delete(userId);
+    deleteEstadoUsuario(userId);
     await registrarFalloIntento(userId);
     await message.channel.send(mensajeCancelacion);
 }
@@ -433,9 +455,7 @@ async function ejecutarMatricula(message) {
                 await IntentoMatricula.deleteOne({ Discord_ID: userId });
             }
         }
-    } catch (error) {
-        console.error("Error validando cooldown:", error);
-    }
+    } catch (error) {}
 
     if (await usuarioYaRegistrado(userId)) {
         return responder(getMensajes().UsuarioYaMatriculado(message.author));
@@ -452,16 +472,16 @@ async function ejecutarMatricula(message) {
         const timeoutInicial = setTimeout(async () => {
             const estado = usuariosEnMatricula.get(userId);
             if (estado && (estado.etapa === 'riotid' || estado.etapa === 'region')) {
-                usuariosEnMatricula.delete(userId);
+                deleteEstadoUsuario(userId);
                 await registrarFalloIntento(userId);
                 try { await dmChannel.send(getMensajes().TiempoAgotadoInicial); } catch {}
             }
         }, TIEMPO_INICIAL);
 
-        usuariosEnMatricula.set(userId, { etapa: 'riotid', timeoutInicial: timeoutInicial });
+        setEstadoUsuario(userId, { etapa: 'riotid', timeoutInicial: timeoutInicial });
         if (!esEnDM) await responder(getMensajes().LlamadoMatricula(message.author));
     } catch (error) {
-        usuariosEnMatricula.delete(userId);
+        deleteEstadoUsuario(userId);
         if (!esEnDM) {
             const bloqueado = error.code === 50007 || error.message?.includes('Cannot send messages');
             await responder(bloqueado ? getMensajes().FalloLlamadoMatricula(message.author) : getMensajes().ErrorInicioMatricula);
@@ -480,11 +500,36 @@ async function procesarRespuestaDM(message) {
     }
 }
 
+// 🛟 FUNCIÓN DE RESCATE 
+async function restaurarMatriculas(client) {
+    try {
+        if (!fs.existsSync(CACHE_FILE)) return;
+        const data = JSON.parse(await fsPromises.readFile(CACHE_FILE, 'utf8'));
+        const userIds = Object.keys(data);
+
+        if (userIds.length === 0) return;
+        console.log(`🔄 [MATRÍCULA] Rescatando ${userIds.length} procesos interrumpidos por el reinicio...`);
+
+        for (const userId of userIds) {
+            await IntentoMatricula.deleteOne({ Discord_ID: userId }).catch(()=>{}); // Les quitamos el castigo
+            try {
+                const user = await client.users.fetch(userId);
+                // 👇 AHORA SÍ: LLAMAMOS AL ARCHIVO DE MENSAJES 👇
+                await user.send(getMensajes().MatriculaCanceladaReinicio);
+            } catch (e) {}
+        }
+
+        await fsPromises.writeFile(CACHE_FILE, JSON.stringify({}), 'utf8');
+        console.log("✅ [MATRÍCULA] Rescate completado.");
+    } catch (err) {}
+}
+
 module.exports = {
     name: 'matricula',
     execute: ejecutarMatricula,
     ejecutarCancelar: cancelarMatricula,
     procesarRespuestaDM,
+    restaurarMatriculas, // 👈 Exportamos el rescatista
     usuariosEnMatricula,
     ESTADO_VERIFICACION,
     CANVAS_VERIFICACION

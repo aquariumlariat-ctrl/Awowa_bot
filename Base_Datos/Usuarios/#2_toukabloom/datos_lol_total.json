@@ -1,17 +1,17 @@
 {
     "Resumen": {
-        "Victorias": 101,
+        "Victorias": 102,
         "Derrotas": 80,
         "WinRate": 56
     },
     "Campeones": {
         "Jinx": {
-            "partidas": 137,
-            "victorias": 78,
+            "partidas": 138,
+            "victorias": 79,
             "derrotas": 59,
-            "kills": 842,
-            "deaths": 767,
-            "assists": 1103
+            "kills": 850,
+            "deaths": 771,
+            "assists": 1109
         },
         "Caitlyn": {
             "partidas": 16,
@@ -2275,8 +2275,8 @@
             "nick": "Sawkpa",
             "tag": "Chan",
             "icono": 4532,
-            "partidas": 7,
-            "victorias": 3,
+            "partidas": 8,
+            "victorias": 4,
             "derrotas": 4
         },
         "wajYPN2L5lWJhEZ0gEeYB5K5rczoAni9eyAb8O0OcCSW66TZEFhBrAKA8YxUCjmhGhgTKZbt9qPHkQ": {
@@ -2422,6 +2422,30 @@
             "partidas": 2,
             "victorias": 1,
             "derrotas": 1
+        },
+        "Hhp6OV5hTG6gIMRxeQARZGsySB45foJvZh8si-pwNffI_6dspzyE6k3hSrOmYgS6m96DkWYtIzizqw": {
+            "nick": "JunkWalnut73",
+            "tag": "hola",
+            "icono": 5456,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "nPPGOoDVaIr0p1rSMTcN9YKpW5soYBmz9ujzxOtaJVXcqYHRThsriNnbpTWgnCvaCHFkGt0en15F8w": {
+            "nick": "Mamá Coco",
+            "tag": "FRiv",
+            "icono": 6490,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "XNjsaKOpWXiP9rQCoqmiID4IiKX0fotxPHrFjGhXtpZgdSX3HLd8toSh_HaAmqt16GCBEtk3sqgbvQ": {
+            "nick": " tim wuart",
+            "tag": "LAN",
+            "icono": 3836,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
         }
     },
     "Historial": [
@@ -4617,6 +4641,18 @@
             "kills": 5,
             "deaths": 4,
             "assists": 12,
+            "victoria": true,
+            "rol": "BOTTOM",
+            "esRemake": false
+        },
+        {
+            "matchId": "LA1_1698902750",
+            "fecha": 1772687842617,
+            "queueId": 420,
+            "campeon": "Jinx",
+            "kills": 8,
+            "deaths": 4,
+            "assists": 6,
             "victoria": true,
             "rol": "BOTTOM",
             "esRemake": false

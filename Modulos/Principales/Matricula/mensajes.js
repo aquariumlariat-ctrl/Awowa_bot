@@ -109,5 +109,9 @@ Por favor espera, ${tiempo} podrás volver a intentarlo.`,
     CuentaYaEnUso: `¡Esa cuenta ya se encuentra matriculada! <:Awowa_Stare:1472431115947216998>
 
 Esta cuenta de League of Legends ya ha sido vinculada a otro usuario de Discord.
-Si eres el dueño legítimo y crees que esto es un error, por favor contacta a soporte.`
+Si eres el dueño legítimo y crees que esto es un error, por favor contacta a soporte.`,
+    MatriculaCanceladaReinicio: `¡La matrícula se postergó por mantenimiento! <:Awowa_Stare:1472431115947216998>
+
+Lamentamos lo ocurrido, estamos agregando una pequeña actualización.
+Usa \`Aurora!matricula\` para volver a intentarlo en cuanto vuelva a estar disponible.`
 };
