@@ -68,8 +68,8 @@ categorias.forEach(categoria => {
 // ==========================================
 // EVENTOS DE INICIO (Ready)
 // ==========================================
-client.once('clientReady', async () => {
-    console.log(`${c.v}·${c.b} [Core] Aurora se ha encendido ${c.v}correctamente${c.b} como ${client.user.tag}`);
+client.once('clientReady', async () => { /// NO CAMBIAR EL CLIENT READY PARA EVITAR ERROR EN CONSOLA
+    console.log(`${c.v}·${c.b} [Core] Aurora se ha encendido ${c.v}correctamente${c.b} como ${client.user.tag}.`);
 
     // 👇 VALIDACIÓN DE APIS DE RIOT 👇
     const { verificarConexionLoL } = require('./API\'s/Riot/lol_api');
@@ -85,6 +85,10 @@ client.once('clientReady', async () => {
     } else {
         console.log(`${c.r}·${c.b} [Riot API] Error al conectar con las APIs de Riot: ${c.r}Fallo${c.b}.`);
     }
+
+    const { precargarPerfiles } = require('./Modulos/Principales/Perfil/perfil');
+    await precargarPerfiles();
+    
     // 👆 FIN VALIDACIÓN 👆
 
     // 👇 IMPORTAMOS LAS FUNCIONES DE BITÁCORA 👇
@@ -103,8 +107,8 @@ client.once('clientReady', async () => {
     const { iniciarCronSincronizacion } = require('./Modulos/Principales/Sincronizacion/actualizador_bg');
     iniciarCronSincronizacion(client);
 
-    const { estaHabilitado, obtenerChannelId } = require('./Modulos/Utilidades/Sincronizador/handler');
-    const { sincronizarMensajes } = require('./Modulos/Utilidades/Sincronizador/parser');
+    const { estaHabilitado, obtenerChannelId } = require('./Modulos/Utilidades/Editor_Mensajes/handler.js');
+    const { sincronizarMensajes } = require('./Modulos/Utilidades/Editor_Mensajes/parser.js');
 
     const habilitado = await estaHabilitado();
     if (habilitado) {
@@ -121,7 +125,7 @@ client.once('clientReady', async () => {
 // ==========================================
 // EVENTOS DE MENSAJE
 // ==========================================
-const { handleMessageUpdate } = require('./Modulos/Utilidades/Sincronizador/handler');
+const { handleMessageUpdate } = require('./Modulos/Utilidades/Editor_Mensajes/handler.js');
 
 client.on('messageUpdate', async (oldMessage, newMessage) => {
     if (newMessage.partial) {

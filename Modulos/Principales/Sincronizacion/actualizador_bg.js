@@ -5,6 +5,9 @@ const Usuario = require('../../../Base_Datos/MongoDB/Usuario');
 const { extraerNuevasPartidas } = require('./extractor');
 const { inyectarNuevasPartidas } = require('./procesador');
 
+// 👇 IMPORTAMOS EL MOTOR DE DIBUJO 👇
+const { renderizarYGuardarPerfil } = require('../Perfil/perfil'); 
+
 // 🎨 Paleta de colores ANSI
 const c = { v: '\x1b[32m', r: '\x1b[31m', a: '\x1b[33m', b: '\x1b[0m' };
 
@@ -49,6 +52,11 @@ async function ejecutarMotorSilencioso() {
                         fs.writeFileSync(rutaArchivo, JSON.stringify(jsonActual, null, 4), 'utf8');
                     }
                 }
+                
+                // 👇 MAGIA AUTOMÁTICA: REDIBUJAMOS LA FOTO EN CACHÉ 👇
+                await renderizarYGuardarPerfil(user);
+                console.log(`${c.a}·${c.b} [Sincronizacion] Caché visual de ${user.Discord_Nick} actualizada en segundo plano.`);
+
                 await delay(1000); 
             } else {
                 await delay(200); 
