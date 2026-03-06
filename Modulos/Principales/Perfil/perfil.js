@@ -4,8 +4,8 @@ const fsSync = require('fs');
 const path = require('path');
 const Usuario = require('../../../Base_Datos/MongoDB/Usuario');
 
-const { generarTarjetaMatricula } = require('../Matricula/tarjeta_matricula.js');
-const { generarBoceto } = require('../../Utilidades/Canvas/diseno_perfil.js');
+const { generarTarjetaMatricula } = require('../Matricula/canvas_matricula.js');
+const { generarBoceto } = require('./canvas_resumen.js');
 
 // 🎨 Paleta de colores ANSI
 const c = { v: '\x1b[32m', r: '\x1b[31m', a: '\x1b[33m', b: '\x1b[0m' };

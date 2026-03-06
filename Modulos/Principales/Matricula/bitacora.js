@@ -2,7 +2,7 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, AttachmentBuilder } = require('discord.js');
 const { createCanvas, loadImage } = require('canvas');
 const Usuario = require('../../../Base_Datos/MongoDB/Usuario.js');
-const { generarTarjetaMatricula } = require('./tarjeta_matricula');
+const { generarTarjetaMatricula } = require('./canvas_matricula.js');
 const { regionAPlatforma, obtenerSummoner, obtenerRangos } = require("../../../API's/Riot/lol_api");
 const { obtenerRangoTFT } = require("../../../API's/Riot/tft_api");
 

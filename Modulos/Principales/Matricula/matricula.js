@@ -3,7 +3,7 @@ const { AttachmentBuilder, EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const fsPromises = require('fs').promises; 
 const path = require('path');
-const { generarTarjetaMatricula } = require('./tarjeta_matricula');
+const { generarTarjetaMatricula } = require('./canvas_matricula.js');
 const { regionAPlatforma, verificarCuentaRiot, obtenerSummoner, obtenerRangos } = require("../../../API's/Riot/lol_api");
 const { obtenerRangoTFT } = require("../../../API's/Riot/tft_api");
 

@@ -15,7 +15,7 @@ module.exports = [
             
             // 1. Cargamos el diseño inicial
             delete require.cache[require.resolve('./diseno_perfil.js')];
-            let { generarBoceto } = require('./diseno_perfil.js');
+            let { generarBoceto } = require('../../Principales/Perfil/canvas_resumen.js');
             
             let buffer = await generarBoceto();
             let attachment = new AttachmentBuilder(buffer, { name: 'boceto.png' });
@@ -38,7 +38,7 @@ module.exports = [
                             // Borramos la versión vieja de la memoria
                             delete require.cache[require.resolve('./diseno_perfil.js')];
                             // Traemos la versión recién guardada
-                            const { generarBoceto: nuevoGenerar } = require('./diseno_perfil.js');
+                            const { generarBoceto: nuevoGenerar } = require('../../Principales/Perfil/canvas_resumen.js');
                             
                             const nuevoBuffer = await nuevoGenerar();
                             const nuevoAttachment = new AttachmentBuilder(nuevoBuffer, { name: 'boceto.png' });
