@@ -47,7 +47,6 @@ module.exports = [
 
             let msgCarga = null;
 
-            // 👇 AQUI ESTÁ LA MAGIA AUTOMÁTICA 👇
             // Si falta alguna imagen, la mandamos a dibujar en vivo
             if (!fs.existsSync(rutaTarjeta) || !fs.existsSync(rutaStats)) {
                 msgCarga = await message.reply('⏳ `El perfil visual de este usuario aún no existe. Dibujando por primera vez...`');
@@ -59,32 +58,32 @@ module.exports = [
                 }
             }
 
-            // 3. 🚀 ENVIAR RESULTADOS
+            // 3. 🚀 ENVIAR RESULTADOS (Secuencial para garantizar orden)
             const adjuntoTarjeta = new AttachmentBuilder(rutaTarjeta, { name: 'tarjeta.png' });
             const adjuntoStats = new AttachmentBuilder(rutaStats, { name: 'stats_soloq.png' });
 
-            // Si tuvimos que hacer tiempo dibujando, editamos el mensaje de carga
             if (msgCarga) {
-                await Promise.all([
-                    msgCarga.edit({ 
-                        content: `✨ Perfil competitivo de **${targetUser.Riot_ID}**:`, 
-                        files: [adjuntoTarjeta] 
-                    }),
-                    message.channel.send({ 
-                        files: [adjuntoStats] 
-                    })
-                ]).catch(()=>{});
+                // Primero editamos el mensaje con la tarjeta superior
+                await msgCarga.edit({ 
+                    content: `✨ Perfil competitivo de **${targetUser.Riot_ID}**:`, 
+                    files: [adjuntoTarjeta] 
+                }).catch(()=>{});
+                
+                // SOLO DESPUÉS de que se editó, enviamos el resumen estadístico abajo
+                await message.channel.send({ 
+                    files: [adjuntoStats] 
+                }).catch(()=>{});
             } else {
-                // Si las fotos ya existían, disparamos todo directo sin mensajes de carga
-                await Promise.all([
-                    message.channel.send({ 
-                        content: `✨ Perfil competitivo de **${targetUser.Riot_ID}**:`, 
-                        files: [adjuntoTarjeta] 
-                    }),
-                    message.channel.send({ 
-                        files: [adjuntoStats] 
-                    })
-                ]);
+                // Primero enviamos la tarjeta superior
+                await message.channel.send({ 
+                    content: `✨ Perfil competitivo de **${targetUser.Riot_ID}**:`, 
+                    files: [adjuntoTarjeta] 
+                });
+                
+                // SOLO DESPUÉS de que se envió, enviamos el resumen estadístico
+                await message.channel.send({ 
+                    files: [adjuntoStats] 
+                });
             }
         }
     }
