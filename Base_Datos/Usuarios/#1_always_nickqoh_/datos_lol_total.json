@@ -1,17 +1,17 @@
 {
     "Resumen": {
-        "Victorias": 122,
+        "Victorias": 125,
         "Derrotas": 125,
-        "WinRate": 49
+        "WinRate": 50
     },
     "Campeones": {
         "Lucian": {
-            "partidas": 20,
-            "victorias": 9,
+            "partidas": 22,
+            "victorias": 11,
             "derrotas": 11,
-            "kills": 148,
-            "deaths": 142,
-            "assists": 138
+            "kills": 161,
+            "deaths": 155,
+            "assists": 163
         },
         "Ezreal": {
             "partidas": 41,
@@ -254,12 +254,12 @@
             "assists": 11
         },
         "Vayne": {
-            "partidas": 3,
-            "victorias": 0,
+            "partidas": 4,
+            "victorias": 1,
             "derrotas": 3,
-            "kills": 11,
-            "deaths": 16,
-            "assists": 9
+            "kills": 17,
+            "deaths": 21,
+            "assists": 15
         },
         "Vi": {
             "partidas": 1,
@@ -5294,6 +5294,102 @@
             "partidas": 1,
             "victorias": 1,
             "derrotas": 0
+        },
+        "KMajEDk0nEP6UFaNWFPajw_G1RcgGVT7Ly2jhZaEQYMjckvGuSZFceJhEcsVgAZ5219F5C4UGrpw8A": {
+            "nick": "Soy Gil UwU",
+            "tag": "BL1",
+            "icono": 6380,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "yZkO1OwORFX6CuTrMri-LbTNL0qDnTQD02-RTEtimQri1MKa3ZDf8UFb9sZe7JmZ4mf41vCojvfWiQ": {
+            "nick": "VallesT Rap",
+            "tag": "LAN",
+            "icono": 2093,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "Px7IK3dN7s9l_ZHXnkkltQe14nPHEIq4b7ORIq63gdadvpf2PQFdP9mPIeJCRXg6X_FgO8Sd6K_GtA": {
+            "nick": "Nimrod",
+            "tag": "LAN",
+            "icono": 6923,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "itBb-5DF2in1aO3nuUifkw5LAvCIbtWT620KLrgy5YVPmYG9hppGAkATKnROlbTsdt62WKYKmvCVmw": {
+            "nick": "Payasin",
+            "tag": "yop",
+            "icono": 1391,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "G7Jizxjlo8zFEuz8f4nF2tgZZvZA8XWeWTjw-snbY12p1qs-qvy_CDzHszP-Nmv-exsCZoQuVBq6TA": {
+            "nick": "andysimp",
+            "tag": "KIRIN",
+            "icono": 3795,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "1816jMHwqzOfK76zm2Q6oIux1xLkwNjTbxyZzSE9plbv2sN1JKnNpLh3xBc1fZjn-XWksKUYvUEZpA": {
+            "nick": "Zeak",
+            "tag": "NST",
+            "icono": 6923,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "bMTNIyNw6TO4B43DVd2Hn1GBZMWt4jXL0aqOAcUQw7gc5MVaevYbjCxzR7GYiGsCnHUeCIJuO_WZ1g": {
+            "nick": "not bad friend",
+            "tag": "LAN",
+            "icono": 6040,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "onX-c5P7KAHQofBiJN3caHgBtlVMY_sb1OtFYUphCJjxDb50FgFKFBto3lYnsETWhIJfnBuG4UyNIA": {
+            "nick": "Andycita",
+            "tag": "2108",
+            "icono": 744,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "0uTij8rscTETspx0Dj5lEVyXOzXysnokwVvn1dI-QItWew4RdgoRr-UPUTos-3-2MOWp39btNF1XVw": {
+            "nick": "Rafael Correa ",
+            "tag": "LAN",
+            "icono": 5910,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "tLeQHpokXiQiEmrXZz9wFHw4gHY5fcOFBceoh8_asszI7U9bNVGIDk3I-zccGp60a8ewySato7oFXw": {
+            "nick": "Huevitö derechö",
+            "tag": "gab",
+            "icono": 5976,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "vsKtK9q7rwY2QO69kFo4KCsenKOKGJ0FDsCm5KMZZtl4IAbvXfU8mT1sIb00kKAw8lJok7Rc3mZKnQ": {
+            "nick": "Alvarito Noboa",
+            "tag": "12345",
+            "icono": 783,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "--2_S-D-4pfK96Nbnbat8qpEA9R954jRIzTPYOV8QKNWM67EQ4a_sOhgYP_C7eKVnQyvqSp6xkF9tg": {
+            "nick": "Mar10",
+            "tag": "LAN",
+            "icono": 5333,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
         }
     },
     "Historial": [
@@ -8353,6 +8449,42 @@
             "kills": 6,
             "deaths": 6,
             "assists": 10,
+            "victoria": true,
+            "rol": "BOTTOM",
+            "esRemake": false
+        },
+        {
+            "matchId": "LA1_1699905223",
+            "fecha": 1773000120469,
+            "queueId": 440,
+            "campeon": "Vayne",
+            "kills": 6,
+            "deaths": 5,
+            "assists": 6,
+            "victoria": true,
+            "rol": "BOTTOM",
+            "esRemake": false
+        },
+        {
+            "matchId": "LA1_1699920881",
+            "fecha": 1773003635128,
+            "queueId": 440,
+            "campeon": "Lucian",
+            "kills": 7,
+            "deaths": 6,
+            "assists": 14,
+            "victoria": true,
+            "rol": "BOTTOM",
+            "esRemake": false
+        },
+        {
+            "matchId": "LA1_1700102119",
+            "fecha": 1773030732302,
+            "queueId": 440,
+            "campeon": "Lucian",
+            "kills": 6,
+            "deaths": 7,
+            "assists": 11,
             "victoria": true,
             "rol": "BOTTOM",
             "esRemake": false
