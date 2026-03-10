@@ -6,8 +6,8 @@ const Usuario = require('../../../Base_Datos/MongoDB/Usuario');
 
 const { generarTarjetaMatricula } = require('../Matricula/canvas_matricula.js');
 const { generarBoceto } = require('./canvas_resumen.js');
+const { generarBocetoSocial } = require('./canvas_social.js'); // 👇 Añadido
 
-// 🎨 Paleta de colores ANSI
 const c = { v: '\x1b[32m', r: '\x1b[31m', a: '\x1b[33m', b: '\x1b[0m' };
 
 const ICONOS_ROLES = {
@@ -69,10 +69,7 @@ async function procesarDatosStats(jsonObj, gameName) {
         .filter(c => c.partidas > 1) 
         .slice(0, 4)
         .map(c => ({
-            icono: c.icono, 
-            nick: c.nick, 
-            tag: c.tag, 
-            partidas: `${c.partidas} Partidas`
+            icono: c.icono, nick: c.nick, tag: c.tag, partidas: `${c.partidas} Partidas`
         })) : [];
 
     return {
@@ -96,7 +93,6 @@ async function renderizarYGuardarPerfil(targetUser) {
         });
         await fs.writeFile(path.join(carpetaPath, 'tarjeta.png'), tarjetaBuffer);
 
-        // 👇 NUEVO: Generamos y guardamos los 4 modos
         const archivosStats = [
             { nombre: 'datos_lol_soloq.json', img: 'stats_soloq.png', tab: 0 },
             { nombre: 'datos_lol_flex.json', img: 'stats_flex.png', tab: 1 },
@@ -107,17 +103,18 @@ async function renderizarYGuardarPerfil(targetUser) {
         for (const arch of archivosStats) {
             const jsonRuta = path.join(carpetaPath, arch.nombre);
             let jsonObj = { Campeones: {}, Historial: [], Companeros: {}, Resumen: { Victorias: 0, Derrotas: 0 } };
-            
             if (fsSync.existsSync(jsonRuta)) {
                 const dataCruda = await fs.readFile(jsonRuta, 'utf8');
                 try { jsonObj = JSON.parse(dataCruda); } catch(e) {}
             }
-            
             const paqueteFinal = await procesarDatosStats(jsonObj, gameName);
-            // Mandamos a dibujar diciéndole qué pestaña (tab) iluminar
             const bocetoBuffer = await generarBoceto(paqueteFinal, arch.tab);
             await fs.writeFile(path.join(carpetaPath, arch.img), bocetoBuffer);
         }
+
+        // 👇 Renderizamos el perfil Social en caché
+        const bocetoSocialBuffer = await generarBocetoSocial();
+        await fs.writeFile(path.join(carpetaPath, 'stats_social.png'), bocetoSocialBuffer);
 
         return true;
     } catch (error) {
@@ -136,10 +133,9 @@ async function precargarPerfiles() {
             const numMatricula = user.Numero_Matricula;
             const nickSeguro = user.Discord_Nick.replace(/[<>:"/\\|?*\x00-\x1F]/g, '').trim() || 'Jugador';
             const carpetaPath = path.join(__dirname, '../../../Base_Datos/Usuarios', `#${numMatricula}_${nickSeguro}`);
-            
             const rutaTarjeta = path.join(carpetaPath, 'tarjeta.png');
             
-            const statsFiles = ['stats_soloq.png', 'stats_flex.png', 'stats_normals.png', 'stats_total.png'];
+            const statsFiles = ['stats_soloq.png', 'stats_flex.png', 'stats_normals.png', 'stats_total.png', 'stats_social.png'];
             let needsRender = !fsSync.existsSync(rutaTarjeta);
             for (const s of statsFiles) {
                 if (!fsSync.existsSync(path.join(carpetaPath, s))) needsRender = true;
@@ -150,20 +146,16 @@ async function precargarPerfiles() {
                     console.log(`${c.a}·${c.b} [Perfil] Dibujando perfiles faltantes en caché...`);
                     avisoMostrado = true;
                 }
-
                 const exito = await renderizarYGuardarPerfil(user);
-                
                 if (exito) {
                     console.log(`${c.v}·${c.b} [Perfil] Perfil de ${user.Discord_Nick} dibujado correctamente.`);
                     dibujados++;
                 }
             }
         }
-
         if (dibujados > 0) {
             console.log(`${c.v}·${c.b} [Perfil] Proceso finalizado. Total de perfiles generados: ${c.v}${dibujados}${c.b}.`);
         }
-
     } catch (error) {
         console.error(`${c.r}·${c.b} [Perfil] Precarga de perfiles en el arranque: ${c.r}Fallo${c.b}.`, error);
     }

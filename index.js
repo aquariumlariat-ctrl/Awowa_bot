@@ -14,6 +14,7 @@ const client = new Client({
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent,
         GatewayIntentBits.DirectMessages,
+        GatewayIntentBits.GuildVoiceStates // 👇 Añadido: ¡Obligatorio para dar XP en voz!
     ],
     partials: [
         Partials.Channel,
@@ -106,6 +107,9 @@ client.once('clientReady', async () => { /// NO CAMBIAR EL CLIENT READY PARA EVI
 
     const { iniciarCronSincronizacion } = require('./Modulos/Principales/Sincronizacion/actualizador_bg');
     iniciarCronSincronizacion(client);
+    
+    const { iniciarMotorXP } = require('./Modulos/Principales/Nivel/motor_xp.js');
+    iniciarMotorXP();
 
     const { estaHabilitado, obtenerChannelId } = require('./Modulos/Utilidades/Editor_Mensajes/handler.js');
     const { sincronizarMensajes } = require('./Modulos/Utilidades/Editor_Mensajes/parser.js');
@@ -123,9 +127,10 @@ client.once('clientReady', async () => { /// NO CAMBIAR EL CLIENT READY PARA EVI
 });
 
 // ==========================================
-// EVENTOS DE MENSAJE
+// EVENTOS DE MENSAJE Y NIVELES
 // ==========================================
 const { handleMessageUpdate } = require('./Modulos/Utilidades/Editor_Mensajes/handler.js');
+const { otorgarXPMensaje, rastrearVoz } = require('./Modulos/Principales/Nivel/motor_xp.js');
 
 client.on('messageUpdate', async (oldMessage, newMessage) => {
     if (newMessage.partial) {
@@ -138,8 +143,24 @@ client.on('messageUpdate', async (oldMessage, newMessage) => {
     await handleMessageUpdate(oldMessage, newMessage);
 });
 
+// Evento para Rastrear Voz
+client.on('voiceStateUpdate', async (oldState, newState) => {
+    try {
+        await rastrearVoz(client, oldState, newState);
+    } catch (error) {
+        // Silenciado
+    }
+});
+
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
+
+    // Le pasamos el mensaje a nuestro motor de XP
+    try {
+        await otorgarXPMensaje(client, message);
+    } catch (e) {
+        // Silenciado
+    }
 
     const prefijo = 'aurora!';
     const empiezaConPrefijo = message.content.toLowerCase().startsWith(prefijo);
@@ -216,7 +237,7 @@ mongoose.connect(process.env.MONGODB_URI)
                     fs.mkdirSync(carpetaUsuario, { recursive: true });
                 }
 
-                // 📁 PLANTILLAS DE ARCHIVOS PARA EL USUARIO
+                // 👇 LA CORRECCIÓN ESTÁ AQUÍ 👇
                 const plantillaJuegos = {
                     Resumen: { Victorias: 0, Derrotas: 0, WinRate: 0 },
                     Campeones: {},
@@ -232,7 +253,14 @@ mongoose.connect(process.env.MONGODB_URI)
                         Riot_ID: user.Riot_ID,
                         PUUID: user.PUUID,
                         Region: user.Region,
-                        Fecha_Matricula: user.Fecha
+                        Fecha_Matricula: user.Fecha,
+                        Social: {
+                            Nivel: 1,
+                            XP: 0,
+                            Mensajes: 0,
+                            Minutos_Voz: 0,
+                            Partidas_Registradas: 0
+                        }
                     },
                     'datos_lol_soloq.json': plantillaJuegos,
                     'datos_lol_flex.json': plantillaJuegos,

@@ -1,7 +1,7 @@
 {
     "Resumen": {
-        "Victorias": 46,
-        "Derrotas": 26,
+        "Victorias": 47,
+        "Derrotas": 27,
         "WinRate": 64
     },
     "Campeones": {
@@ -70,12 +70,12 @@
             "assists": 19
         },
         "Draven": {
-            "partidas": 11,
-            "victorias": 11,
+            "partidas": 12,
+            "victorias": 12,
             "derrotas": 0,
-            "kills": 124,
-            "deaths": 82,
-            "assists": 67
+            "kills": 131,
+            "deaths": 87,
+            "assists": 70
         },
         "Vladimir": {
             "partidas": 2,
@@ -316,6 +316,14 @@
             "kills": 15,
             "deaths": 8,
             "assists": 9
+        },
+        "Naafiri": {
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1,
+            "kills": 25,
+            "deaths": 14,
+            "assists": 4
         }
     },
     "Companeros": {
@@ -323,9 +331,9 @@
             "nick": "Shiirahats",
             "tag": "LAN",
             "icono": 6064,
-            "partidas": 69,
-            "victorias": 43,
-            "derrotas": 26
+            "partidas": 71,
+            "victorias": 44,
+            "derrotas": 27
         },
         "hpouCoMS_NgyRHyJTWisvNmbnheDU0M2wNnuI1wzbWkhS56U3Rq64EXuk_gzwKmsrKby5axrFXCpyg": {
             "nick": "espacioslocos",
@@ -859,9 +867,9 @@
             "nick": "Neriihats",
             "tag": "MAGIC",
             "icono": 7011,
-            "partidas": 2,
-            "victorias": 1,
-            "derrotas": 1
+            "partidas": 4,
+            "victorias": 2,
+            "derrotas": 2
         },
         "J8EsfBVb6KG3mPnCiPidtw-PqPYFZ-RvLjAot3N8HsOeuh02SwPy_BcZdtGhoSkX4u9iwMwuXdaqJw": {
             "nick": "mawel312",
@@ -1339,6 +1347,38 @@
             "nick": "Xavi725",
             "tag": "9388",
             "icono": 6489,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "H_XUAPYyru7FhDrFkFtQB6qTrooZFxpH-2d6bjVtM8GFXv7X6GqRqfaFgfb9lG7hO4j9NCHNctoCfw": {
+            "nick": "HiImObito",
+            "tag": "Obito",
+            "icono": 5331,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "P-yQffHZC5OmsVW6w40YpeZrXFBz_35h9keS_F3ozQsHXT0NzUDITNh_xG3UDdtaF_d0tj1835MZTw": {
+            "nick": "Gatita Copa C",
+            "tag": "Miau",
+            "icono": 6864,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "TEYRwMR6y-LBs5NYGkxfD7NBNo_fFd7_uKSdLEo8fTO_M5_F1RvS1Hx13LZ8n_6hTB1Eo4RDU8TbHQ": {
+            "nick": "Pirulinpinpan",
+            "tag": "PAN",
+            "icono": 29,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "9Vacac1NoluJ7NU6F-sApV_azpCSYeTTj_BbwQ3YBTfUkYT6cnod-hJef_fTK9V2dVHwSPNql6GMEg": {
+            "nick": "Marlon Brando",
+            "tag": "2409",
+            "icono": 980,
             "partidas": 1,
             "victorias": 1,
             "derrotas": 0
@@ -2217,6 +2257,30 @@
             "kills": 15,
             "deaths": 8,
             "assists": 9,
+            "victoria": true,
+            "rol": "BOTTOM",
+            "esRemake": false
+        },
+        {
+            "matchId": "LA1_1700349293",
+            "fecha": 1773113777834,
+            "queueId": 440,
+            "campeon": "Naafiri",
+            "kills": 25,
+            "deaths": 14,
+            "assists": 4,
+            "victoria": false,
+            "rol": "MIDDLE",
+            "esRemake": false
+        },
+        {
+            "matchId": "LA1_1700368697",
+            "fecha": 1773116802829,
+            "queueId": 440,
+            "campeon": "Draven",
+            "kills": 7,
+            "deaths": 5,
+            "assists": 3,
             "victoria": true,
             "rol": "BOTTOM",
             "esRemake": false

@@ -9,16 +9,14 @@ const c = { v: '\x1b[32m', r: '\x1b[31m', a: '\x1b[33m', b: '\x1b[0m' };
 try {
     const plusJakarta = path.join(__dirname, '../../../Fonts/PlusJakartaSans-Regular.ttf');
     GlobalFonts.registerFromPath(plusJakarta, 'Plus Jakarta Sans');
-} catch (e) { /* Ignorar si no carga la fuente */ }
+} catch (e) {}
 
 const COLOR_BG_CAJA = 'rgba(23, 27, 35, 0.5)'; 
 const COLOR_TEXTO_BASE = '#CDCECF'; 
 const COLOR_SEPARADOR_FADED = 'rgba(205, 206, 207, 0.4)';
 
-// 👇 PARCHE ACTUALIZADO: Para campeones nuevos
 let PARCHE_ACTUAL = '15.4.1'; 
 
-// Auto-actualizador silencioso del parche de Riot
 fetch('https://ddragon.leagueoflegends.com/api/versions.json')
     .then(res => res.json())
     .then(data => { 
@@ -26,15 +24,10 @@ fetch('https://ddragon.leagueoflegends.com/api/versions.json')
     })
     .catch(() => {});
 
-// ==========================================
-// 🚀 SISTEMA DE CACHÉ X15 (MEMORIA RAM)
-// ==========================================
 const imageCache = new Map();
 
 async function obtenerImagenSegura(urlOrPath) {
-    if (imageCache.has(urlOrPath)) {
-        return await imageCache.get(urlOrPath);
-    }
+    if (imageCache.has(urlOrPath)) return await imageCache.get(urlOrPath);
     const promise = loadImage(urlOrPath).catch(err => {
         imageCache.delete(urlOrPath);
         throw err;
@@ -43,7 +36,6 @@ async function obtenerImagenSegura(urlOrPath) {
     return await promise;
 }
 
-// 🥇 FUNCIÓN DEFINITIVA: Limpiar halo blanco (Matte Removal)
 async function limpiarHaloBlanco(img) {
     const canvas = createCanvas(img.width, img.height);
     const ctx = canvas.getContext("2d");
@@ -87,10 +79,8 @@ function obtenerColorWR(wrTexto) {
     return '#ffb3ba';                  
 }
 
-// ⭐ Pixel Snapping Helper
 const px = (n) => Math.round(n);
 
-// ⭐ Micro-stroke para UI Profesional
 function fillTextPro(ctx, text, x, y) {
     ctx.lineWidth = 1.5;
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
@@ -134,85 +124,28 @@ const datosPerfilPorDefecto = {
 
 async function generarBoceto(datos = datosPerfilPorDefecto, modoActivo = 0) {
     const baseWidth = 800;
-    const baseHeight = 350; 
+    // 👇 ALTURA RECORTADA (-23px del título superior)
+    const baseHeight = 327; 
     
-    // ⭐ Render en 2x (Look Retina)
     const scale = 2;
     const canvas = createCanvas(baseWidth * scale, baseHeight * scale);
     const ctx = canvas.getContext('2d');
-    
     ctx.scale(scale, scale);
 
-    // ⭐ High Quality Text Rendering global
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
     ctx.textRendering = 'optimizeLegibility';
 
-    const margenLateral = 5, inicioX = margenLateral, tituloY = 0; 
+    const margenLateral = 5, inicioX = margenLateral; 
+    const tabsY = 5; // 👇 Nuevo Y de inicio
+    
     const cajaSize = 50, gapGral = 10, anchoBloqueKDA = 110, anchoBloqueWR = 110;  
     
     const subtituloFontSize = 17; 
     const fontBold = `bold ${subtituloFontSize}px "Plus Jakarta Sans"`;
     const fontPequena = 'bold 14px "Plus Jakarta Sans"';
 
-    // ==========================================
-    // 🎨 ENCABEZADO CON LOGO OPTIMIZADO (128x128)
-    // ==========================================
-    const fontSizeTituloVal = 26;
-    const fontSizeSeparador = fontSizeTituloVal / 2;
     ctx.textBaseline = 'top';
-    ctx.textAlign = 'left';
-
-    try {
-        // 👇 Nuevo Logo Squoosh a 128x128px y en Blanco
-        const imgLogo = await obtenerImagenSegura('https://i.imgur.com/ujdm5EE.png');
-        const aspectRatioLogo = imgLogo.width / imgLogo.height;
-        
-        // Mantenemos la proporción áurea (0.92) para que baje a ~24px en pantalla
-        const finalLogoHeight = fontSizeTituloVal * 0.92; 
-        const finalLogoWidth = finalLogoHeight * aspectRatioLogo;
-        const logoGap = 10;
-
-        const safeWidth = px(finalLogoWidth);
-        const safeHeight = px(finalLogoHeight);
-
-        const logoY = tituloY + (fontSizeTituloVal - safeHeight) / 2;
-
-        ctx.save();
-        // Aseguramos interpolación de alta calidad al imprimir la imagen directa
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = "high";
-        
-        // Sombra UI sutil
-        ctx.shadowColor = 'rgba(0,0,0,0.35)';
-        ctx.shadowBlur = 6;
-        ctx.shadowOffsetY = 1;
-
-        ctx.drawImage(imgLogo, px(inicioX), px(logoY), safeWidth, safeHeight);
-        ctx.restore();
-
-        const xSeparador = inicioX + safeWidth + logoGap;
-        ctx.font = `bold ${fontSizeSeparador}px "Plus Jakarta Sans"`;
-        ctx.fillStyle = COLOR_SEPARADOR_FADED; 
-        const centroVerticalY = tituloY + ((fontSizeTituloVal - fontSizeSeparador) / 2) + 2;
-        ctx.fillText(' I ', px(xSeparador), px(centroVerticalY));
-        
-        const wSeparador = ctx.measureText(' I ').width;
-        const xTitulo = xSeparador + wSeparador + logoGap;
-        ctx.font = `bold ${fontSizeTituloVal}px "Plus Jakarta Sans"`;
-        ctx.fillStyle = '#ffffff'; 
-        
-        ctx.shadowColor = 'rgba(0,0,0,0.35)';
-        ctx.shadowBlur = 6;
-        ctx.shadowOffsetY = 1;
-        ctx.fillText(`Panel de Invocador`, px(xTitulo), px(tituloY));
-        ctx.shadowColor = 'transparent';
-
-    } catch (e) {
-        ctx.font = `bold ${fontSizeTituloVal}px "Plus Jakarta Sans"`;
-        ctx.fillStyle = '#ffffff';
-        ctx.fillText(`Panel de Invocador`, px(inicioX), px(tituloY));
-    }
 
     // ==========================================
     // 🎨 SUBTÍTULOS (TABS DE MODOS DE JUEGO)
@@ -241,11 +174,11 @@ async function generarBoceto(datos = datosPerfilPorDefecto, modoActivo = 0) {
             ctx.fillStyle = COLOR_TEXTO_BASE;
             ctx.globalAlpha = 0.5;
         }
-        ctx.fillText(tab.text, px(tab.x), px(tituloY + 33));
+        ctx.fillText(tab.text, px(tab.x), px(tabsY));
     });
     ctx.globalAlpha = 1.0;
 
-    const radioCajitas = 5, espacioEntreCajas = gapGral, inicioCajasY = tituloY + 60; 
+    const radioCajitas = 5, espacioEntreCajas = gapGral, inicioCajasY = 32; 
     const numNotablesReal = datos.notables.length;
 
     // =========================================================
@@ -325,7 +258,7 @@ async function generarBoceto(datos = datosPerfilPorDefecto, modoActivo = 0) {
     // ==========================================
     const margenDerecho = 5, sizeAbajo = 44, gapAbajo = 8; 
     const rectGrandeX = baseWidth - margenDerecho - ((9 * sizeAbajo) + (8 * gapAbajo)); 
-    const rectGrandeY = tituloY + 33, rectGrandeAncho = 102, rectGrandeAlto = 102; 
+    const rectGrandeY = tabsY, rectGrandeAncho = 102, rectGrandeAlto = 102; 
     
     ctx.fillStyle = COLOR_BG_CAJA;
     ctx.beginPath();
@@ -338,7 +271,7 @@ async function generarBoceto(datos = datosPerfilPorDefecto, modoActivo = 0) {
     ctx.font = fontBold; 
     ctx.textAlign = 'left'; 
     ctx.textBaseline = 'top';
-    ctx.fillText('Roles Principales', px(cajitasX), px(tituloY + 33));
+    ctx.fillText('Roles Principales', px(cajitasX), px(tabsY));
 
     const cajitaSize = 38; 
     const gapRoles = (rectGrandeAlto - subtituloFontSize - (cajitaSize * 2)) / 2; 
@@ -498,7 +431,7 @@ async function generarBoceto(datos = datosPerfilPorDefecto, modoActivo = 0) {
     // =========================================================
     // 🎨 MINI HISTORIAL
     // =========================================================
-    const historialTituloY = tituloY + 145; 
+    const historialTituloY = 117; 
     ctx.fillStyle = COLOR_TEXTO_BASE; 
     ctx.font = fontBold; 
     ctx.textAlign = 'left';

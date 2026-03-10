@@ -43,8 +43,8 @@ module.exports = [
             const carpetaPath = path.join(__dirname, '../../../Base_Datos/Usuarios', `#${numMatricula}_${nickSeguro}`);
             
             const rutaTarjeta = path.join(carpetaPath, 'tarjeta.png');
+            const statsFiles = ['stats_soloq.png', 'stats_flex.png', 'stats_normals.png', 'stats_total.png', 'stats_social.png'];
             
-            const statsFiles = ['stats_soloq.png', 'stats_flex.png', 'stats_normals.png', 'stats_total.png'];
             let needsRender = !fs.existsSync(rutaTarjeta);
             for (const s of statsFiles) {
                 if (!fs.existsSync(path.join(carpetaPath, s))) needsRender = true;
@@ -53,7 +53,7 @@ module.exports = [
             let msgCarga = null;
 
             if (needsRender) {
-                msgCarga = await message.reply('⏳ `El perfil visual de este usuario está incompleto. Dibujando el ecosistema... (Tardará unos segundos la primera vez)`');
+                msgCarga = await message.reply('⏳ `El perfil visual de este usuario está incompleto. Renderizando tableros...`');
                 
                 const exito = await renderizarYGuardarPerfil(targetUser);
                 
@@ -62,88 +62,145 @@ module.exports = [
                 }
             }
 
-            // 3. 🚀 ENVIAR RESULTADOS INICIALES (SOLOQ POR DEFECTO)
             const adjuntoTarjeta = new AttachmentBuilder(rutaTarjeta, { name: 'tarjeta.png' });
             const adjuntoStatsInicial = new AttachmentBuilder(path.join(carpetaPath, 'stats_soloq.png'), { name: 'stats.png' });
 
-            // Función creadora de Botones Interactivos
-            const getRow = (activeMode) => {
+            // ==========================================
+            // 🎨 CONSTRUCTORES DE BOTONES (MINIMALISTAS)
+            // ==========================================
+            
+            // Botones Principales
+            const getRowMain = (activeMain) => {
                 return new ActionRowBuilder().addComponents(
                     new ButtonBuilder()
-                        .setCustomId('stats_soloq')
-                        .setEmoji('⚔️')
-                        .setLabel('Solo/Dúo')
-                        .setStyle(activeMode === 'stats_soloq' ? ButtonStyle.Primary : ButtonStyle.Secondary),
+                        .setCustomId('btn_social')
+                        // .setEmoji('123456789012345678') // Usa el ID numérico si decides usar un Custom Emoji
+                        .setLabel('Comunidad')
+                        .setStyle(activeMain === 'social' ? ButtonStyle.Primary : ButtonStyle.Secondary),
                     new ButtonBuilder()
-                        .setCustomId('stats_flex')
-                        .setEmoji('🛡️')
-                        .setLabel('Flexible')
-                        .setStyle(activeMode === 'stats_flex' ? ButtonStyle.Primary : ButtonStyle.Secondary),
-                    new ButtonBuilder()
-                        .setCustomId('stats_normals')
-                        .setEmoji('🎲')
-                        .setLabel('Casuales')
-                        .setStyle(activeMode === 'stats_normals' ? ButtonStyle.Primary : ButtonStyle.Secondary),
-                    new ButtonBuilder()
-                        .setCustomId('stats_total')
-                        .setEmoji('📊')
-                        .setLabel('Total')
-                        .setStyle(activeMode === 'stats_total' ? ButtonStyle.Primary : ButtonStyle.Secondary)
+                        .setCustomId('btn_invocador')
+                        .setLabel('Competitivo LoL')
+                        .setStyle(activeMain === 'invocador' ? ButtonStyle.Primary : ButtonStyle.Secondary)
                 );
             };
 
-            let perfilMsg;
+            // Botones Secundarios (LoL)
+            const getRowSub = (activeSub) => {
+                return new ActionRowBuilder().addComponents(
+                    new ButtonBuilder()
+                        .setCustomId('stats_soloq')
+                        .setLabel('Solo/Dúo')
+                        .setStyle(activeSub === 'stats_soloq' ? ButtonStyle.Primary : ButtonStyle.Secondary),
+                    new ButtonBuilder()
+                        .setCustomId('stats_flex')
+                        .setLabel('Flexible')
+                        .setStyle(activeSub === 'stats_flex' ? ButtonStyle.Primary : ButtonStyle.Secondary),
+                    new ButtonBuilder()
+                        .setCustomId('stats_normals')
+                        .setLabel('Casuales')
+                        .setStyle(activeSub === 'stats_normals' ? ButtonStyle.Primary : ButtonStyle.Secondary),
+                    new ButtonBuilder()
+                        .setCustomId('stats_total')
+                        .setLabel('Total')
+                        .setStyle(activeSub === 'stats_total' ? ButtonStyle.Primary : ButtonStyle.Secondary)
+                );
+            };
+
+            // ==========================================
+            // 🚀 ENVIAR LOS DOS MENSAJES VINCULADOS
+            // ==========================================
+            let msgTarjeta;
 
             if (msgCarga) {
-                await msgCarga.edit({ 
-                    content: `✨ Perfil competitivo de **${targetUser.Riot_ID}**:`, 
-                    files: [adjuntoTarjeta] 
-                }).catch(()=>{});
-                
-                perfilMsg = await message.channel.send({ 
-                    files: [adjuntoStatsInicial],
-                    components: [getRow('stats_soloq')]
+                msgTarjeta = await msgCarga.edit({ 
+                    content: `✨ Perfil completo de **${targetUser.Riot_ID}**:`, 
+                    files: [adjuntoTarjeta],
+                    components: [getRowMain('invocador')]
                 }).catch(()=>{});
             } else {
-                await message.channel.send({ 
-                    content: `✨ Perfil competitivo de **${targetUser.Riot_ID}**:`, 
-                    files: [adjuntoTarjeta] 
-                });
-                
-                perfilMsg = await message.channel.send({ 
-                    files: [adjuntoStatsInicial],
-                    components: [getRow('stats_soloq')]
+                msgTarjeta = await message.channel.send({ 
+                    content: `✨ Perfil completo de **${targetUser.Riot_ID}**:`, 
+                    files: [adjuntoTarjeta],
+                    components: [getRowMain('invocador')]
                 });
             }
 
-            if (!perfilMsg) return;
-
-            // 4. 🎮 RECOLECTOR DE BOTONES PARA CAMBIAR STATS
-            const collector = perfilMsg.createMessageComponentCollector({ 
-                componentType: ComponentType.Button, 
-                time: 300000 // Los botones durarán vivos 5 minutos
+            let msgPanel = await message.channel.send({ 
+                files: [adjuntoStatsInicial],
+                components: [getRowSub('stats_soloq')]
             });
 
-            collector.on('collect', async (i) => {
-                const mode = i.customId; // ej: 'stats_flex'
-                const statPath = path.join(carpetaPath, `${mode}.png`);
-                
+            if (!msgTarjeta || !msgPanel) return;
+
+            // ==========================================
+            // 🎮 RECOLECTORES Y NAVEGACIÓN (1 HORA DE VIDA)
+            // ==========================================
+            
+            const tiempoInactividad = 3600000; 
+
+            // 1. Escuchamos los botones de la TARJETA
+            const colMain = msgTarjeta.createMessageComponentCollector({ componentType: ComponentType.Button, time: tiempoInactividad });
+            
+            colMain.on('collect', async (i) => {
+                const mode = i.customId; 
+                let mainState = mode === 'btn_social' ? 'social' : 'invocador';
+                let targetImg = mode === 'btn_social' ? 'stats_social.png' : 'stats_soloq.png';
+
+                const statPath = path.join(carpetaPath, targetImg);
                 if (!fs.existsSync(statPath)) {
-                    return i.reply({ content: '⚠️ Ocurrió un error cargando estas estadísticas o están corruptas.', ephemeral: true });
+                    return i.reply({ content: '⚠️ Ocurrió un error cargando esta pestaña.', ephemeral: true });
                 }
 
-                const newAttachment = new AttachmentBuilder(statPath, { name: 'stats.png' });
+                await i.update({ components: [getRowMain(mainState)] });
 
-                // Esto actualiza la imagen sin mandar un mensaje nuevo! Es bellísimo.
-                await i.update({
+                const newAttachment = new AttachmentBuilder(statPath, { name: 'stats.png' });
+                await msgPanel.edit({
                     files: [newAttachment],
-                    components: [getRow(mode)]
+                    components: mainState === 'social' ? [] : [getRowSub('stats_soloq')] 
                 }).catch(()=>{});
             });
 
-            collector.on('end', () => {
-                // Al terminar los 5 minutos, quitamos los botones para no llenar el chat de cosas muertas
-                perfilMsg.edit({ components: [] }).catch(()=>{});
+            // 2. Escuchamos los botones del PANEL
+            const colSub = msgPanel.createMessageComponentCollector({ componentType: ComponentType.Button, time: tiempoInactividad });
+            
+            colSub.on('collect', async (i) => {
+                const subMode = i.customId;
+                const statPath = path.join(carpetaPath, `${subMode}.png`);
+                
+                if (!fs.existsSync(statPath)) {
+                    return i.reply({ content: '⚠️ Ocurrió un error cargando esta pestaña.', ephemeral: true });
+                }
+
+                const newAttachment = new AttachmentBuilder(statPath, { name: 'stats.png' });
+                await i.update({
+                    files: [newAttachment],
+                    components: [getRowSub(subMode)]
+                }).catch(()=>{});
+            });
+
+            // ==========================================
+            // 🛑 APAGADO SEGURO (CONGELACIÓN DE BOTONES)
+            // ==========================================
+            colMain.on('end', () => {
+                if (msgTarjeta.editable) {
+                    const disabledComponents = msgTarjeta.components.map(row => {
+                        return ActionRowBuilder.from(row).setComponents(
+                            row.components.map(btn => ButtonBuilder.from(btn).setDisabled(true))
+                        );
+                    });
+                    msgTarjeta.edit({ components: disabledComponents }).catch(()=>{});
+                }
+            });
+
+            colSub.on('end', () => {
+                if (msgPanel.editable && msgPanel.components.length > 0) {
+                    const disabledComponents = msgPanel.components.map(row => {
+                        return ActionRowBuilder.from(row).setComponents(
+                            row.components.map(btn => ButtonBuilder.from(btn).setDisabled(true))
+                        );
+                    });
+                    msgPanel.edit({ components: disabledComponents }).catch(()=>{});
+                }
             });
         }
     }

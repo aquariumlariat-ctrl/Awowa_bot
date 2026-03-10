@@ -11,7 +11,7 @@ const c = { v: '\x1b[32m', r: '\x1b[31m', a: '\x1b[33m', b: '\x1b[0m' };
 
 const CANAL_LOGS_ID = '1475684884629426318';
 const CANAL_GALERIA_ID = '1475684653967872013';
-const SERVIDOR_EMOJIS_ID = '1469588794599800895'; 
+// Ya no usamos un servidor para emojis, así que eliminamos SERVIDOR_EMOJIS_ID
 const EMOJI_DOT = '<:a:1475892023134523472>'; 
 
 function crearBotones(currentPage, totalUsuarios) {
@@ -43,18 +43,17 @@ async function logNuevaMatricula(client, user, riotID, numeroMatricula) {
         if (!canalLogs) return;
 
         let emojiAsignado = "👤"; 
-        const servidorEmojis = await client.guilds.fetch(SERVIDOR_EMOJIS_ID).catch(() => null);
         
-        if (servidorEmojis) {
-            try {
-                const avatarURL = user.displayAvatarURL({ extension: 'png', size: 128, forceStatic: true });
-                const bufferCircular = await obtenerAvatarCircular(avatarURL); 
-                const emojiName = `mat_${user.id}`.substring(0, 32); 
-                const nuevoEmoji = await servidorEmojis.emojis.create({ attachment: bufferCircular, name: emojiName });
-                emojiAsignado = `<:${nuevoEmoji.name}:${nuevoEmoji.id}>`;
-            } catch (e) {
-                console.error(`${c.a}·${c.b} [Bitacora] Creación de emoji personalizado para registro: ${c.a}Fallo (Usando default)${c.b}.`);
-            }
+        // 👇 Ahora los emojis se suben a la App del Bot (Dev Portal)
+        try {
+            const avatarURL = user.displayAvatarURL({ extension: 'png', size: 128, forceStatic: true });
+            const bufferCircular = await obtenerAvatarCircular(avatarURL); 
+            const emojiName = `mat_${user.id}`.substring(0, 32); 
+            
+            const nuevoEmoji = await client.application.emojis.create({ attachment: bufferCircular, name: emojiName });
+            emojiAsignado = `<:${nuevoEmoji.name}:${nuevoEmoji.id}>`;
+        } catch (e) {
+            console.error(`${c.a}·${c.b} [Bitacora] Creación de Application Emoji para registro: ${c.a}Fallo (Usando default)${c.b}.`, e.message);
         }
 
         const date = new Date();
@@ -70,17 +69,7 @@ async function logNuevaMatricula(client, user, riotID, numeroMatricula) {
         if (ultimoMensaje && (ultimoMensaje.content.length + bloqueTexto.length) < 1950) {
             await ultimoMensaje.edit(ultimoMensaje.content + bloqueTexto);
         } else {
-            if (servidorEmojis) {
-                try {
-                    const emojisMatricula = servidorEmojis.emojis.cache.filter(e => e.name.startsWith('mat_'));
-                    for (const [id, emoji] of emojisMatricula) {
-                        if (emojiAsignado.includes(id)) continue; 
-                        await emoji.delete().catch(()=>{});
-                    }
-                } catch (err) {
-                    console.error(`${c.r}·${c.b} [Bitacora] Limpieza de emojis viejos: ${c.r}Fallo${c.b}.`);
-                }
-            }
+            // 👇 Eliminamos la función de borrar emojis viejos. Ahora simplemente mandamos otro bloque.
             await canalLogs.send(`## Historial de Matriculados\n\n${bloqueTexto}`);
         }
     } catch (error) {
@@ -203,12 +192,13 @@ async function reconstruirLogMatriculas(client) {
         const canalLogs = await client.channels.fetch(CANAL_LOGS_ID);
         if (!canalLogs) return;
 
-        const servidorEmojis = await client.guilds.fetch(SERVIDOR_EMOJIS_ID).catch(() => null);
-
         const todosLosUsuarios = await Usuario.find().sort({ Numero_Matricula: 1 });
         if (todosLosUsuarios.length === 0) return;
 
         console.log(`${c.v}·${c.b} [Bitacora] Reconstrucción del historial visual de matriculados ${c.v}iniciada${c.b}.`);
+
+        // 👇 Bajamos todos los Application Emojis una sola vez al inicio para no saturar la API
+        const appEmojis = await client.application.emojis.fetch().catch(() => new Map());
 
         const messages = await canalLogs.messages.fetch({ limit: 50 });
         const botMessages = Array.from(messages.filter(m => m.author.id === client.user.id && m.content.includes('Historial de Matriculados')).values())
@@ -219,29 +209,32 @@ async function reconstruirLogMatriculas(client) {
 
         for (const user of todosLosUsuarios) {
             let emojiAsignado = "👤";
-
-            if (servidorEmojis) {
-                const nombreEsperado = `mat_${user.Discord_ID}`.substring(0, 32);
-                const emojiExistente = servidorEmojis.emojis.cache.find(e => e.name === nombreEsperado);
-                
-                if (emojiExistente) {
-                    emojiAsignado = `<:${emojiExistente.name}:${emojiExistente.id}>`;
-                } else {
-                    try {
-                        const discordUser = await client.users.fetch(user.Discord_ID).catch(() => null);
-                        if (discordUser) {
-                            console.log(`${c.a}·${c.b} [Bitacora] Creando emoji circular para ${user.Discord_Nick}...`);
-                            const avatarURL = discordUser.displayAvatarURL({ extension: 'png', size: 128, forceStatic: true });
-                            const bufferCircular = await obtenerAvatarCircular(avatarURL); 
-                            
-                            const nuevoEmoji = await servidorEmojis.emojis.create({ attachment: bufferCircular, name: nombreEsperado });
-                            emojiAsignado = `<:${nuevoEmoji.name}:${nuevoEmoji.id}>`;
-                            
-                            await delay(2500); 
-                        }
-                    } catch (e) {
-                        console.error(`${c.r}·${c.b} [Bitacora] Creación de emoji para ${user.Discord_Nick}: ${c.r}Fallo${c.b}.`);
+            
+            // 👇 Buscamos en el Developer Portal
+            const nombreEsperado = `mat_${user.Discord_ID}`.substring(0, 32);
+            const emojiExistente = appEmojis.find(e => e.name === nombreEsperado);
+            
+            if (emojiExistente) {
+                emojiAsignado = `<:${emojiExistente.name}:${emojiExistente.id}>`;
+            } else {
+                try {
+                    const discordUser = await client.users.fetch(user.Discord_ID).catch(() => null);
+                    if (discordUser) {
+                        console.log(`${c.a}·${c.b} [Bitacora] Creando emoji circular en la App para ${user.Discord_Nick}...`);
+                        const avatarURL = discordUser.displayAvatarURL({ extension: 'png', size: 128, forceStatic: true });
+                        const bufferCircular = await obtenerAvatarCircular(avatarURL); 
+                        
+                        // Crearlo en la Aplicación
+                        const nuevoEmoji = await client.application.emojis.create({ attachment: bufferCircular, name: nombreEsperado });
+                        emojiAsignado = `<:${nuevoEmoji.name}:${nuevoEmoji.id}>`;
+                        
+                        // Lo agregamos a nuestro mapa en memoria por si se repite
+                        appEmojis.set(nuevoEmoji.id, nuevoEmoji);
+                        
+                        await delay(2500); 
                     }
+                } catch (e) {
+                    console.error(`${c.r}·${c.b} [Bitacora] Creación de Application Emoji para ${user.Discord_Nick}: ${c.r}Fallo${c.b}.`);
                 }
             }
 
@@ -276,7 +269,7 @@ async function reconstruirLogMatriculas(client) {
 
         console.log(`${c.v}·${c.b} [Bitacora] Historial de matriculados actualizado ${c.v}correctamente${c.b}.`);
     } catch (error) {
-        console.error(`${c.r}·${c.b} [Bitacora] Reconstrucción masiva del historial: ${c.r}Fallo crítico${c.b}.`);
+        console.error(`${c.r}·${c.b} [Bitacora] Reconstrucción masiva del historial: ${c.r}Fallo crítico${c.b}.`, error);
     }
 }
 

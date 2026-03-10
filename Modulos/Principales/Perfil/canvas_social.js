@@ -1,8 +1,7 @@
 // Modulos/Principales/Perfil/canvas_social.js
-const { createCanvas, GlobalFonts, loadImage } = require('@napi-rs/canvas');
+const { createCanvas, GlobalFonts } = require('@napi-rs/canvas');
 const path = require('path');
 
-// 🎨 Paleta de colores ANSI
 const c = { v: '\x1b[32m', r: '\x1b[31m', a: '\x1b[33m', b: '\x1b[0m' };
 
 try {
@@ -12,7 +11,6 @@ try {
 
 const COLOR_BG_CAJA = 'rgba(23, 27, 35, 0.5)'; 
 const COLOR_TEXTO_BASE = '#CDCECF'; 
-const COLOR_SEPARADOR_FADED = 'rgba(205, 206, 207, 0.4)';
 const COLOR_ACCENTO = '#a3b8ff'; 
 
 const px = (n) => Math.round(n);
@@ -24,7 +22,6 @@ function fillTextPro(ctx, text, x, y) {
     ctx.fillText(text, px(x), px(y));
 }
 
-// 📦 Datos Fake densos para el Hot Reload
 const fakeData = {
     nivel: 42,
     rangoSocial: "Guardián de la Academia",
@@ -36,19 +33,19 @@ const fakeData = {
     horasVoz: 450,
     reputacion: 342,
     club: { nombre: 'Skye Esports', tag: 'SKYE', rol: 'Capitán' },
-    soulmate: { nombre: 'Toukabloom', avatar: 'https://i.imgur.com/GRJPsSo.png', fecha: '12/05/2025' },
+    soulmate: { nombre: 'Toukabloom', fecha: '12/05/2025' },
     amigos: [
-        { nombre: 'Faker', avatar: 'https://i.imgur.com/GRJPsSo.png' },
-        { nombre: 'Deft', avatar: 'https://i.imgur.com/GRJPsSo.png' },
-        { nombre: 'Keria', avatar: 'https://i.imgur.com/GRJPsSo.png' }
+        { nombre: 'Faker' },
+        { nombre: 'Deft' },
+        { nombre: 'Keria' }
     ],
-    insignias: [true, true, true, true, false, false, false, false],
-    rolesMencion: ['Nitro Booster', 'Campeón S1', 'VIP']
+    insignias: [true, true, true, true, false, false, false, false]
 };
 
 async function generarBocetoSocial() {
     const baseWidth = 800;
-    const baseHeight = 350; 
+    // 👇 ALTURA RECORTADA (-50px)
+    const baseHeight = 300; 
     
     const scale = 2;
     const canvas = createCanvas(baseWidth * scale, baseHeight * scale);
@@ -59,49 +56,17 @@ async function generarBocetoSocial() {
     ctx.imageSmoothingQuality = 'high';
     ctx.textRendering = 'optimizeLegibility';
 
-    const inicioX = 5; 
-    const tituloY = 0; 
+    const margenLateral = 5, inicioX = margenLateral; 
     const radioCajas = 8;
     const fontBoldL = `bold 18px "Plus Jakarta Sans"`;
     const fontBold = `bold 16px "Plus Jakarta Sans"`;
     const fontPequena = 'bold 13px "Plus Jakarta Sans"';
 
-    // ==========================================
-    // 🎨 ENCABEZADO
-    // ==========================================
     ctx.textBaseline = 'top';
     ctx.textAlign = 'left';
 
-    try {
-        const imgLogo = await loadImage('https://i.imgur.com/ujdm5EE.png');
-        const logoSize = px(26 * 0.92);
-        const logoY = tituloY + (26 - logoSize) / 2;
-        ctx.save();
-        ctx.shadowColor = 'rgba(0,0,0,0.35)';
-        ctx.shadowBlur = 6; ctx.shadowOffsetY = 1;
-        ctx.drawImage(imgLogo, px(inicioX), px(logoY), logoSize, logoSize);
-        
-        ctx.font = `bold 13px "Plus Jakarta Sans"`;
-        ctx.fillStyle = COLOR_SEPARADOR_FADED; 
-        ctx.fillText(' I ', px(inicioX + logoSize + 10), px(tituloY + 6));
-        
-        ctx.font = `bold 26px "Plus Jakarta Sans"`;
-        ctx.fillStyle = '#ffffff'; 
-        ctx.fillText(`Expediente Social`, px(inicioX + logoSize + 25), px(tituloY));
-        ctx.restore();
-    } catch (e) {}
-
-    // TABS
-    ctx.font = fontBold;
-    ctx.fillStyle = COLOR_TEXTO_BASE;
-    ctx.globalAlpha = 0.5;
-    ctx.fillText("Competitivo", px(inicioX), px(tituloY + 33));
-    
-    ctx.fillStyle = '#dccaf9';
-    ctx.globalAlpha = 1.0;
-    ctx.fillText("Red Social", px(inicioX + 110), px(tituloY + 33));
-
-    const inicioCajasY = tituloY + 60;
+    // 👇 Inicia pegado arriba sin los títulos
+    const inicioCajasY = 5;
 
     // ==========================================
     // 🎨 COLUMNA IZQUIERDA (Nivel, Actividad, Roles)
@@ -110,7 +75,7 @@ async function generarBocetoSocial() {
     const col1W = 260; 
     const gap = 10;
 
-    // 1. CAJA DE NIVEL Y XP (Alto: 110)
+    // 1. CAJA DE NIVEL Y XP
     ctx.fillStyle = COLOR_BG_CAJA;
     ctx.beginPath();
     ctx.roundRect(col1X, inicioCajasY, col1W, 110, radioCajas);
@@ -128,7 +93,6 @@ async function generarBocetoSocial() {
     ctx.fillStyle = COLOR_TEXTO_BASE;
     ctx.fillText(fakeData.rangoSocial, px(col1X + 60), px(inicioCajasY + 55));
 
-    // Barra XP
     const barraX = col1X + 15;
     const barraY = inicioCajasY + 85;
     const barraW = col1W - 30;
@@ -139,7 +103,7 @@ async function generarBocetoSocial() {
     ctx.fillStyle = '#36d1dc';
     ctx.beginPath(); ctx.roundRect(px(barraX), px(barraY), barraW * progreso, 10, 5); ctx.fill();
 
-    // 2. CAJA DE ACTIVIDAD Y ECONOMÍA (Alto: 100)
+    // 2. CAJA DE ACTIVIDAD
     const actY = inicioCajasY + 110 + gap;
     ctx.fillStyle = COLOR_BG_CAJA;
     ctx.beginPath(); ctx.roundRect(col1X, actY, col1W, 100, radioCajas); ctx.fill();
@@ -154,7 +118,7 @@ async function generarBocetoSocial() {
     ctx.fillText(`💬 ${fakeData.mensajes} Msjs`, px(col1X + 15), px(actY + 65));
     ctx.fillText(`🎙️ ${fakeData.horasVoz}h Voz`, px(col1X + 130), px(actY + 65));
 
-    // 3. CAJA DE ROLES ESPECIALES (Alto: 60)
+    // 3. ROLES ESPECIALES
     const rolesY = actY + 100 + gap;
     ctx.fillStyle = COLOR_BG_CAJA;
     ctx.beginPath(); ctx.roundRect(col1X, rolesY, col1W, 60, radioCajas); ctx.fill();
@@ -163,17 +127,16 @@ async function generarBocetoSocial() {
     ctx.font = fontPequena;
     ctx.fillText('Roles Destacados:', px(col1X + 15), px(rolesY + 10));
     
-    // Simular etiquetas de roles
     ctx.fillStyle = 'rgba(255, 179, 186, 0.3)';
     ctx.beginPath(); ctx.roundRect(col1X + 15, rolesY + 30, 90, 20, 4); ctx.fill();
     ctx.fillStyle = '#ffb3ba'; ctx.fillText('Nitro Booster', px(col1X + 22), px(rolesY + 33));
 
     // ==========================================
-    // 🎨 COLUMNA CENTRAL (Matrimonio y Amigos)
+    // 🎨 COLUMNA CENTRAL
     // ==========================================
     const col2X = col1X + col1W + gap;
 
-    // 4. CAJA DE SOULMATE (Alto: 130)
+    // 4. SOULMATE
     ctx.fillStyle = COLOR_BG_CAJA;
     ctx.beginPath(); ctx.roundRect(col2X, inicioCajasY, col1W, 130, radioCajas); ctx.fill();
 
@@ -182,14 +145,13 @@ async function generarBocetoSocial() {
     ctx.textAlign = 'center';
     ctx.fillText('Vínculo del Alma', px(col2X + col1W/2), px(inicioCajasY + 15));
 
-    // Avatar gigante simulado
     ctx.fillStyle = 'rgba(255, 179, 186, 0.2)';
     ctx.beginPath(); ctx.arc(px(col2X + col1W/2), px(inicioCajasY + 70), 30, 0, Math.PI*2); ctx.fill();
 
     ctx.fillStyle = '#ffffff'; ctx.font = fontPequena;
     ctx.fillText(`Unido a ${fakeData.soulmate.nombre}`, px(col2X + col1W/2), px(inicioCajasY + 110));
 
-    // 5. CAJA DE MEJORES AMIGOS (Alto: 140)
+    // 5. CÍRCULO ÍNTIMO
     const amigosY = inicioCajasY + 130 + gap;
     ctx.fillStyle = COLOR_BG_CAJA;
     ctx.beginPath(); ctx.roundRect(col2X, amigosY, col1W, 140, radioCajas); ctx.fill();
@@ -210,12 +172,12 @@ async function generarBocetoSocial() {
     }
 
     // ==========================================
-    // 🎨 COLUMNA DERECHA (Club, Reputación, Insignias)
+    // 🎨 COLUMNA DERECHA
     // ==========================================
     const col3X = col2X + col1W + gap;
     const col3W = baseWidth - margenLateral - col3X;
 
-    // 6. CAJA DEL CLUB (Alto: 100)
+    // 6. CLUB
     ctx.fillStyle = COLOR_BG_CAJA;
     ctx.beginPath(); ctx.roundRect(col3X, inicioCajasY, col3W, 100, radioCajas); ctx.fill();
 
@@ -231,7 +193,7 @@ async function generarBocetoSocial() {
     ctx.fillStyle = COLOR_TEXTO_BASE; ctx.font = fontPequena;
     ctx.fillText(`Rango: ${fakeData.club.rol}`, px(col3X + 70), px(inicioCajasY + 68));
 
-    // 7. CAJA DE REPUTACIÓN (Alto: 70)
+    // 7. REPUTACIÓN
     const repY = inicioCajasY + 100 + gap;
     ctx.fillStyle = COLOR_BG_CAJA;
     ctx.beginPath(); ctx.roundRect(col3X, repY, col3W, 70, radioCajas); ctx.fill();
@@ -243,7 +205,7 @@ async function generarBocetoSocial() {
     ctx.fillStyle = '#ffffff'; ctx.font = `bold 24px "Plus Jakarta Sans"`;
     fillTextPro(ctx, `🌟 ${fakeData.reputacion} Elogios`, col3X + 15, repY + 35);
 
-    // 8. VITRINA DE INSIGNIAS (Alto: 100)
+    // 8. INSIGNIAS
     const insY = repY + 70 + gap;
     ctx.fillStyle = COLOR_BG_CAJA;
     ctx.beginPath(); ctx.roundRect(col3X, insY, col3W, 100, radioCajas); ctx.fill();
@@ -252,7 +214,6 @@ async function generarBocetoSocial() {
     ctx.font = fontBold;
     ctx.fillText('Vitrina de Logros', px(col3X + 15), px(insY + 10));
 
-    // Cuadrícula 4x2
     const sizeIns = 36;
     for(let i=0; i<8; i++) {
         const fila = Math.floor(i / 4);

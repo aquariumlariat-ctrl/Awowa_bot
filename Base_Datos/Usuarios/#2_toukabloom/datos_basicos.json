@@ -5,5 +5,12 @@
     "Riot_ID": "Touka#JINX",
     "PUUID": "w1YWdWYeHmTq2BYeeYZr_8oUzbKZL5qM-Wa8i0CRAEjvyt7pQTTGBa2q0CWoFhe8cM_X6NblctU5YA",
     "Region": "LAN",
-    "Fecha_Matricula": "24/02/2026"
+    "Fecha_Matricula": "24/02/2026",
+    "Social": {
+        "Nivel": 1,
+        "XP": 0,
+        "Mensajes": 0,
+        "Minutos_Voz": 0,
+        "Partidas_Registradas": 0
+    }
 }

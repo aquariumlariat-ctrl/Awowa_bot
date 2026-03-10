@@ -5,5 +5,12 @@
     "Riot_ID": "Meriihats#LAN",
     "PUUID": "9CZGmZ5SWGHOGAmGzPq-afkShJTsVD73iEB8oS-xYBZlWR_OpcPym6O__MzkTEAw9lePusVRnvISXA",
     "Region": "LAN",
-    "Fecha_Matricula": "24/02/2026"
+    "Fecha_Matricula": "24/02/2026",
+    "Social": {
+        "Nivel": 1,
+        "XP": 0,
+        "Mensajes": 0,
+        "Minutos_Voz": 0,
+        "Partidas_Registradas": 0
+    }
 }

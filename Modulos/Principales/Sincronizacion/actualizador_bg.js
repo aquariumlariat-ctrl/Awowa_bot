@@ -4,8 +4,7 @@ const path = require('path');
 const Usuario = require('../../../Base_Datos/MongoDB/Usuario');
 const { extraerNuevasPartidas } = require('./extractor');
 const { inyectarNuevasPartidas } = require('./procesador');
-
-// 👇 IMPORTAMOS EL MOTOR DE DIBUJO 👇
+const { otorgarXPPartidas } = require('../Nivel/motor_xp');
 const { renderizarYGuardarPerfil } = require('../Perfil/perfil'); 
 
 // 🎨 Paleta de colores ANSI
@@ -13,7 +12,7 @@ const c = { v: '\x1b[32m', r: '\x1b[31m', a: '\x1b[33m', b: '\x1b[0m' };
 
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
-async function ejecutarMotorSilencioso() {
+async function ejecutarMotorSilencioso(client) {  // <-- Añade (client) aquí
     console.log(`${c.v}·${c.b} [Sincronizacion] Iniciando escaneo de partidas de League of Legends...`);
     try {
         const todosLosUsuarios = await Usuario.find().sort({ Numero_Matricula: 1 });
@@ -37,6 +36,11 @@ async function ejecutarMotorSilencioso() {
                 totalNuevasPartidas += nuevasPartidas.total.length;
                 console.log(`${c.v}·${c.b} [Sincronizacion] +${nuevasPartidas.total.length} partidas sincronizadas para ${user.Riot_ID} (${user.Discord_Nick}).`);
                 
+                // 👇 MAGIA DE XP 👇
+                if (client) {
+                    await otorgarXPPartidas(client, user, nuevasPartidas.total);
+                }
+
                 const tipos = [
                     { id: 'soloq', file: 'datos_lol_soloq.json' },
                     { id: 'flex', file: 'datos_lol_flex.json' },
@@ -75,10 +79,12 @@ async function ejecutarMotorSilencioso() {
 }
 
 function iniciarCronSincronizacion(client) {
-    setTimeout(() => {
-        ejecutarMotorSilencioso();
-        setInterval(ejecutarMotorSilencioso, 10 * 60 * 1000);
-    }, 60 * 1000);
+    const minMilisegundos = 20 * 60 * 1000;
+    
+    // Le pasamos el client a ejecutarMotorSilencioso
+    setInterval(() => ejecutarMotorSilencioso(client), minMilisegundos);
+    
+    setTimeout(() => ejecutarMotorSilencioso(client), 10000);
 }
 
 module.exports = { iniciarCronSincronizacion };
