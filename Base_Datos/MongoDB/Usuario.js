@@ -11,12 +11,12 @@ const usuarioSchema = new mongoose.Schema({
     Fecha: { type: String, required: true },
     Icono_ID: { type: Number, default: 29 }, 
     Nivel: { type: Number, default: 1 },     
+    // 👇 SOLUCIÓN: Usamos Mixed para aceptar Objetos o Strings libremente
     Rangos: {
-        SoloQ: { type: String, default: 'UNRANKED' },
-        Flex: { type: String, default: 'UNRANKED' },
-        TFT: { type: String, default: 'UNRANKED' }
+        SoloQ: { type: mongoose.Schema.Types.Mixed, default: 'UNRANKED' },
+        Flex: { type: mongoose.Schema.Types.Mixed, default: 'UNRANKED' },
+        TFT: { type: mongoose.Schema.Types.Mixed, default: 'UNRANKED' }
     },
-    // 👇 NUEVO BLOQUE SOCIAL 👇
     Social: {
         Nivel: { type: Number, default: 1 },
         XP: { type: Number, default: 0 },
