@@ -12,9 +12,11 @@ try {
     console.error(`${c.r}·${c.b} [Canvas Nivel] Error registrando fuentes.`, e.message);
 }
 
-// 🧠 Caché para imágenes estáticas
+// 🧠 Caché para imágenes estáticas y Emotes de Rango
 let avatarFijoCache = null;
-let top3IconCache = null;
+let iconRank1Cache = null;
+let iconRank2Cache = null;
+let iconRank3Cache = null;
 
 async function loadAvatarFijo() {
     if (avatarFijoCache) return avatarFijoCache;
@@ -22,10 +24,21 @@ async function loadAvatarFijo() {
     return avatarFijoCache;
 }
 
-async function loadTop3Icon() {
-    if (top3IconCache) return top3IconCache;
-    top3IconCache = await loadImage('https://i.imgur.com/D7dTn6l.png');
-    return top3IconCache;
+// 🏆 Carga dinámica de iconos de Top 3
+async function loadRankIcon(rank) {
+    if (rank === 1) {
+        if (!iconRank1Cache) iconRank1Cache = await loadImage('https://i.imgur.com/cOmyYfQ.png');
+        return iconRank1Cache;
+    }
+    if (rank === 2) {
+        if (!iconRank2Cache) iconRank2Cache = await loadImage('https://i.imgur.com/AsvLb0x.png');
+        return iconRank2Cache;
+    }
+    if (rank === 3) {
+        if (!iconRank3Cache) iconRank3Cache = await loadImage('https://i.imgur.com/rGdiBn1.png');
+        return iconRank3Cache;
+    }
+    return null;
 }
 
 // 🛠️ Función mágica para oscurecer/aclarar colores HEX
@@ -79,8 +92,8 @@ function obtenerDatosRango(nivel) {
 
 const px = (n) => Math.round(n);
 
-async function generarCanvasNivel(socialData, discordNick, avatarBuffer) {
-    // 💡 AJUSTE DE MEDIDAS: Lienzo de 750x225 para tener márgenes perfectos
+// Recibe discordUsername en vez de avatarBuffer
+async function generarCanvasNivel(socialData, discordNick, discordUsername) {
     const baseW = 750, baseH = 225, scale = 2; 
     const canvas = createCanvas(baseW * scale, baseH * scale);
     const ctx = canvas.getContext('2d');
@@ -90,45 +103,52 @@ async function generarCanvasNivel(socialData, discordNick, avatarBuffer) {
     ctx.imageSmoothingQuality = 'high';
     ctx.textRendering = 'optimizeLegibility';
 
-    // 🎨 DATOS
-    const nivel = socialData?.Nivel || 1;
-    const xpActual = socialData?.XP || 2350; 
-    const rankPos = socialData?.Posicion || 1; 
+    // ==========================================
+    // 🎨 EXTRACCIÓN Y LIMPIEZA DE DATOS
+    // ==========================================
+    const nivel = socialData?.Nivel !== undefined ? socialData.Nivel : 1;
+    const xpActual = socialData?.XP !== undefined ? socialData.XP : 0; 
+    const rankPos = socialData?.Posicion !== undefined ? socialData.Posicion : 1; 
     
-    const nombreUsuario = discordNick || "Desarrollador";
+    let nickFiltrado = (discordNick || "").replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '').replace(/\s+/g, ' ').trim();
+    
+    if (nickFiltrado.length === 0) {
+        nickFiltrado = (discordUsername || "jugador").toLowerCase().replace(/\s+/g, '');
+    }
+
+    const nombreUsuario = nickFiltrado.charAt(0).toUpperCase() + nickFiltrado.slice(1);
     
     const { titulo, colorActual } = obtenerDatosRango(nivel);
     
-    const xpMeta = Math.floor(100 * Math.pow(nivel, 1.5));
-    const progreso = Math.min(Math.max(xpActual / xpMeta, 0), 1); 
+    const nivelCalculo = nivel < 1 ? 1 : nivel;
+    const xpMeta = Math.floor(100 * Math.pow(nivelCalculo, 1.5));
+    const progreso = Math.min(Math.max(xpActual / xpMeta, 0), 1) || 0; 
 
     // ==========================================
     // 🎨 CAJA DE CRISTAL DE FONDO
     // ==========================================
     ctx.fillStyle = 'rgba(23, 27, 35, 0.5)';
     ctx.beginPath();
-    // 💡 Caja fija: empieza a 5px del lienzo, mide 740x215
     ctx.roundRect(5, 5, 740, 215, 8);
     ctx.fill();
 
     // ==========================================
-    // 🎨 AVATAR (Borde Perfecto Anti-Sangrado)
+    // 🎨 AVATAR (FIJO PARA TODOS)
     // ==========================================
     const avSize = 130;
-    // 💡 Avatar ubicado a exactamente 30px del borde interior de la caja (X=5+30, Y=5+30)
     const avX = 35; 
     const avY = 35; 
     const rAv = 12; 
     const avatarFondoY = avY + avSize; 
 
     try {
-        const avatarFijo = await loadAvatarFijo(); 
+        const imgAvatarToDraw = await loadAvatarFijo(); 
         
         ctx.save();
         ctx.beginPath();
         ctx.roundRect(px(avX), px(avY), avSize, avSize, rAv);
         ctx.clip(); 
-        ctx.drawImage(avatarFijo, px(avX), px(avY), avSize, avSize);
+        ctx.drawImage(imgAvatarToDraw, px(avX), px(avY), avSize, avSize);
         ctx.restore(); 
 
         ctx.save();
@@ -176,12 +196,12 @@ async function generarCanvasNivel(socialData, discordNick, avatarBuffer) {
     // ==========================================
     // 🎨 PANEL DE TEXTOS SUPERIOR DERECHO
     // ==========================================
-    const textX = avX + avSize + 30; // X = 195
+    const textX = avX + avSize + 30; 
     
     ctx.textBaseline = 'top';
     ctx.textAlign = 'left';
 
-    const textTopY = avY + 8; // Eje Y Primera línea
+    const textTopY = avY + 8;
 
     // 1. NIVEL 
     ctx.fillStyle = '#ffffff';
@@ -210,31 +230,32 @@ async function generarCanvasNivel(socialData, discordNick, avatarBuffer) {
     
     const rangoW = ctx.measureText(textoRango).width;
 
-    // 🏆 ICONO TOP 3
+    // 🏆 ICONOS DINÁMICOS DE TOP 3
     if (rankPos <= 3) {
         const iconSize = 34; 
         const iconX = divX + 20 + rangoW + 15; 
         const iconY = textTopY; 
 
         try {
-            const top3Icon = await loadTop3Icon();
-            ctx.drawImage(top3Icon, px(iconX), px(iconY), iconSize, iconSize);
+            const rankIcon = await loadRankIcon(rankPos);
+            if (rankIcon) {
+                ctx.drawImage(rankIcon, px(iconX), px(iconY), iconSize, iconSize);
+            }
         } catch (error) {}
     }
 
-    // 4. TÍTULO DE CLASE (COLOR PLANO)
+    // 4. TÍTULO DE CLASE
     const tituloY = textTopY + 42; 
     
     ctx.textAlign = 'left';
     ctx.font = 'bold 34px "JakartaBold"'; 
-    ctx.fillStyle = colorActual; 
+    ctx.fillStyle = '#ffffff'; 
     ctx.fillText(titulo, px(textX), px(tituloY)); 
 
     // ==========================================
     // 🎨 BARRA DE PROGRESO INFERIOR (Derecha)
     // ==========================================
     const barraX = textX; 
-    // 💡 La barra mide 520px para terminar exactamente a 30px del borde derecho
     const barraW = 520; 
     const barraH = 22;
     
@@ -250,9 +271,8 @@ async function generarCanvasNivel(socialData, discordNick, avatarBuffer) {
     // ==========================================
     // 🎨 DIBUJAR LA BARRA DE PROGRESO
     // ==========================================
-    
-    const colorBarraIzq = colorActual;
-    const colorBarraDer = ajustarColor(colorActual, 70); 
+    const colorBarraIzq = ajustarColor(colorActual, 50); 
+    const colorBarraDer = ajustarColor(colorActual, -30); 
 
     const numBloques = 16, gap = 6, rBloque = 3; 
     const bloqueW = (barraW - (gap * (numBloques - 1))) / numBloques;
