@@ -74,6 +74,7 @@ categorias.forEach(categoria => {
 client.once('clientReady', async () => { 
     console.log(`${c.v}·${c.b} [Core] Aurora se ha encendido ${c.v}correctamente${c.b} como ${client.user.tag}.`);
 
+    // 1. Verificar APIs de Riot
     const { verificarConexionLoL } = require('./API\'s/Riot/lol_api');
     const { verificarConexionTFT } = require('./API\'s/Riot/tft_api');
     
@@ -88,6 +89,7 @@ client.once('clientReady', async () => {
         console.log(`${c.r}·${c.b} [Riot API] Error al conectar con las APIs de Riot: ${c.r}Fallo${c.b}.`);
     }
 
+    // 2. Precargar Perfiles y Bitácora
     const { precargarPerfiles } = require('./Modulos/Principales/Perfil/perfil');
     await precargarPerfiles();
     
@@ -104,20 +106,30 @@ client.once('clientReady', async () => {
     const { iniciarCronSincronizacion } = require('./Modulos/Principales/Sincronizacion/actualizador_bg');
     iniciarCronSincronizacion(client);
     
-    const { iniciarMotorXP } = require('./Modulos/Principales/Nivel/motor_xp.js');
+    const { iniciarMotorXP } = require('./Modulos/Principales/Nivel/nivel.js');
     iniciarMotorXP(client);
 
-    const { estaHabilitado, obtenerChannelId } = require('./Modulos/Utilidades/Editor_Mensajes/handler.js');
+    // ==========================================
+    // 🌍 EDITOR DE MENSAJES GLOBAL (MULTICANAL)
+    // ==========================================
+    const { estaHabilitado, getSistemas } = require('./Modulos/Utilidades/Editor_Mensajes/handler.js');
     const { sincronizarMensajes } = require('./Modulos/Utilidades/Editor_Mensajes/parser.js');
 
     const habilitado = await estaHabilitado();
     if (habilitado) {
-        const channelId = await obtenerChannelId();
-        try {
-            const channel = await client.channels.fetch(channelId);
-            if (channel) await sincronizarMensajes(channel);
-        } catch {
-            // Silenciado
+        const sistemas = await getSistemas();
+        
+        // Sincroniza cada sistema de la lista (Matrícula, Nivel, etc.)
+        for (const sistema of sistemas) {
+            try {
+                const channel = await client.channels.fetch(sistema.channelId);
+                if (channel) {
+                    const outPath = path.join(__dirname, 'Modulos', 'Utilidades', 'Editor_Mensajes', sistema.outputPath);
+                    await sincronizarMensajes(channel, outPath, sistema.nombre, 'startup');
+                }
+            } catch (error) {
+                // Falla silenciosa si no encuentra el canal en Discord
+            }
         }
     }
 
@@ -140,10 +152,10 @@ client.once('clientReady', async () => {
 });
 
 // ==========================================
-// EVENTOS DE MENSAJE Y NIVELES
+// EVENTOS DE MENSAJE Y EDICIÓN EN VIVO
 // ==========================================
 const { handleMessageUpdate } = require('./Modulos/Utilidades/Editor_Mensajes/handler.js');
-const { otorgarXPMensaje, rastrearVoz } = require('./Modulos/Principales/Nivel/motor_xp.js');
+const { otorgarXPMensaje, rastrearVoz } = require('./Modulos/Principales/Nivel/nivel.js');
 
 client.on('messageUpdate', async (oldMessage, newMessage) => {
     if (newMessage.partial) {
@@ -184,9 +196,13 @@ client.on('interactionCreate', async interaction => {
     }
 });
 
+// ==========================================
+// 💬 EVENTO: MENSAJES DE TEXTO TRADICIONALES
+// ==========================================
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
 
+    // 1. Otorgar XP pasiva por chatear
     try {
         await otorgarXPMensaje(client, message);
     } catch (e) {}
@@ -204,6 +220,7 @@ client.on('messageCreate', async (message) => {
 
     const enDM = message.channel.isDMBased();
 
+    // 2. Interceptar mensajes en Mensajes Directos para el Sistema de Matrícula
     if (enDM) {
         const { usuariosEnMatricula, procesarRespuestaDM } = require('./Modulos/Principales/Matricula/matricula');
         const estaMatriculandose = usuariosEnMatricula.has(message.author.id);

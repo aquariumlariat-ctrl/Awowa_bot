@@ -1,4 +1,20 @@
 {
-  "channelId": "1474808065105596446",
-  "enabled": true
+  "enabled": true,
+  "sistemas": [
+    {
+      "nombre": "Matricula",
+      "channelId": "1474808065105596446",
+      "outputPath": "../../Principales/Matricula/mensajes.js"
+    },
+    {
+      "nombre": "SlashDescripciones",
+      "channelId": "1481587329478164563",
+      "outputPath": "../../Principales/Nivel/slash_descripciones.js"
+    },
+    {
+      "nombre": "NivelMensajes",
+      "channelId": "1481587280991883315",
+      "outputPath": "../../Principales/Nivel/mensajes.js"
+    }
+  ]
 }

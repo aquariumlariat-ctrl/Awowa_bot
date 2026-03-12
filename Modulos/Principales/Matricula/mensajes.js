@@ -1,4 +1,4 @@
-// Modulos/Principales/Matricula/mensajes.js
+// Archivo Autogenerado por el Editor de Mensajes
 
 module.exports = {
     Mensajes: ``,

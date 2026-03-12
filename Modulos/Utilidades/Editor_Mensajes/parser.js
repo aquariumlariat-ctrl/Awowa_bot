@@ -1,11 +1,9 @@
-// Modulos/Utilidades/Sincronizador/parser.js
+// Modulos/Utilidades/Editor_Mensajes/parser.js
 const fs = require('fs').promises;
 const path = require('path');
 
 // 🎨 Paleta de colores ANSI
 const c = { v: '\x1b[32m', r: '\x1b[31m', a: '\x1b[33m', b: '\x1b[0m' };
-
-const MENSAJES_PATH = path.join(__dirname, '../../Principales/Matricula/mensajes.js');
 
 function parsearMensaje(contenido) {
     const variables = [];
@@ -59,7 +57,7 @@ function parsearMensaje(contenido) {
 }
 
 function generarCodigoMensajes(todasLasVariables) {
-    let codigo = '// Modulos/Principales/Matricula/mensajes.js\n\n';
+    let codigo = '// Archivo Autogenerado por el Editor de Mensajes\n\n';
     codigo += 'module.exports = {\n';
 
     todasLasVariables.forEach((variable, index) => {
@@ -88,11 +86,11 @@ function generarCodigoMensajes(todasLasVariables) {
     return codigo;
 }
 
-// 👇 MODIFICACIÓN: Agregamos "contexto" por defecto 👇
-async function sincronizarMensajes(channel, contexto = 'startup') {
+// Recibe la ruta de salida y el nombre del sistema dinámicamente
+async function sincronizarMensajes(channel, outputPath, nombreSistema, contexto = 'startup') {
     try {
         if (contexto === 'startup') {
-            console.log(`${c.v}·${c.b} [Editor de Mensajes] Módulo de escucha de variables iniciado ${c.v}correctamente${c.b}.`);
+            console.log(`${c.v}·${c.b} [Editor de Mensajes] Escuchando variables de [${nombreSistema}] ${c.v}correctamente${c.b}.`);
         }
 
         const mensajes = await channel.messages.fetch({ limit: 100 });
@@ -110,16 +108,20 @@ async function sincronizarMensajes(channel, contexto = 'startup') {
 
         if (todasLasVariables.length > 0) {
             const codigo = generarCodigoMensajes(todasLasVariables);
-            await fs.writeFile(MENSAJES_PATH, codigo, 'utf8');
-            delete require.cache[require.resolve(MENSAJES_PATH)];
+            
+            // Guarda el archivo en la ruta específica de este sistema
+            await fs.writeFile(outputPath, codigo, 'utf8');
+            
+            // Limpia el caché para que los cambios se vean al instante sin reiniciar
+            delete require.cache[require.resolve(outputPath)];
             
             if (contexto === 'edit') {
-                console.log(`${c.a}·${c.b} [Editor de Mensajes] Textos recargados en memoria por edición de variable.`);
+                console.log(`${c.a}·${c.b} [Editor de Mensajes] Textos de [${nombreSistema}] recargados por edición en vivo.`);
             }
         }
         return true;
     } catch (err) {
-        console.error(`${c.r}·${c.b} [Editor de Mensajes] Extracción de variables de Discord: ${c.r}Fallo${c.b}.`, err);
+        console.error(`${c.r}·${c.b} [Editor de Mensajes] Fallo al extraer variables de [${nombreSistema}].`, err);
         return false;
     }
 }

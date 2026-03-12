@@ -1,5 +1,5 @@
 // Modulos/Principales/Nivel/motor_xp.js
-const Usuario = require('../../../Base_Datos/MongoDB/Usuario');
+const Usuario = require('../../../Base_Datos/MongoDB/Usuario.js');
 
 // ⏱️ Mapa para controlar el Anti-Spam de mensajes en texto
 const cooldownsMensajes = new Map();
@@ -52,7 +52,7 @@ function calcularXPMeta(nivel) {
 }
 
 // 🎉 Lógica compartida para revisar si alguien subió de nivel y avisarle
-async function procesarSubidaNivel(client, userDB, userId, username) {
+async function procesarSubidaNivel(client, userDB, userId, username, channel = null) {
     let nivelAnterior = userDB.Social.Nivel || 1;
     let subioNivel = false;
     let xpMeta = calcularXPMeta(userDB.Social.Nivel);
@@ -73,18 +73,30 @@ async function procesarSubidaNivel(client, userDB, userId, username) {
         // Si el título es diferente (cruzó un umbral múltiplo de 5)
         if (tituloAnterior !== tituloNuevo) {
             try {
-                const userDiscord = await client.users.fetch(userId);
-                if (userDiscord) {
-                    await userDiscord.send(
-                        `🎉 ¡Felicidades **${username}**! Has evolucionado en la Academia.\n\n` +
-                        `✨ Has alcanzado el **Nivel ${userDB.Social.Nivel}** y se te ha otorgado un nuevo rango:\n` +
-                        `🏅 **${tituloNuevo}**\n\n` +
-                        `¡Sigue participando en el servidor para descubrir qué otros secretos aguardan!`
-                    );
+                // Cargamos los mensajes en vivo desde Discord
+                let msg = {};
+                try { 
+                    delete require.cache[require.resolve('./mensajes.js')];
+                    msg = require('./mensajes.js'); 
+                } catch(e) {
+                    msg = { AlertaNivel: (u, n, r) => `🎉 ¡Felicidades ${u}! Has alcanzado el **Nivel ${n}** y te conviertes en **${r}**.` };
+                }
+
+                const mencion = `<@${userId}>`;
+                const textoAlerta = typeof msg.AlertaNivel === 'function' ? msg.AlertaNivel(mencion, userDB.Social.Nivel, tituloNuevo) : msg.AlertaNivel;
+
+                if (channel) {
+                    // Si subió de nivel por chatear, lo anunciamos en el mismo canal
+                    await channel.send(textoAlerta);
+                } else {
+                    // Si subió por estar en llamada de voz, le enviamos un Mensaje Directo
+                    const userDiscord = await client.users.fetch(userId);
+                    if (userDiscord) {
+                        await userDiscord.send(textoAlerta);
+                    }
                 }
             } catch (error) {
-                // Falla silenciosamente si el usuario tiene los Mensajes Directos cerrados
-                console.log(`[Motor XP] MD bloqueado para ${username}. No se le pudo avisar de su nuevo rango.`);
+                console.log(`[Motor XP] No se pudo enviar alerta de nivel para ${username}.`);
             }
         }
     }
@@ -119,8 +131,8 @@ async function otorgarXPMensaje(client, message) {
     userDB.Social.XP += xpGanada;
     userDB.Social.Mensajes += 1; 
 
-    // 6. Comprobar si subió de nivel y rango
-    await procesarSubidaNivel(client, userDB, userId, message.author.username);
+    // 6. Comprobar si subió de nivel y rango (Pasamos message.channel para avisar ahí mismo)
+    await procesarSubidaNivel(client, userDB, userId, message.author.username, message.channel);
 
     // 7. Guardar en MongoDB
     await userDB.save().catch(() => {});
@@ -173,7 +185,8 @@ function iniciarMotorXP(client) {
             userDB.Social.XP += XP_VOZ_POR_MINUTO;
             userDB.Social.Minutos_Voz += 1; 
 
-            await procesarSubidaNivel(client, userDB, userDB.Discord_ID, userDB.Discord_Nick);
+            // Le pasamos `null` al canal, así le mandará el mensaje por Privado si subió por voz
+            await procesarSubidaNivel(client, userDB, userDB.Discord_ID, userDB.Discord_Nick, null);
             await userDB.save().catch(() => {});
         }
 

@@ -4,7 +4,7 @@ const path = require('path');
 const Usuario = require('../../../Base_Datos/MongoDB/Usuario');
 const { extraerNuevasPartidas } = require('./extractor');
 const { inyectarNuevasPartidas } = require('./procesador');
-const { otorgarXPPartidas } = require('../Nivel/motor_xp');
+const { otorgarXPPartidas } = require('../Nivel/nivel');
 const { renderizarYGuardarPerfil } = require('../Perfil/perfil'); 
 
 // 🎨 Paleta de colores ANSI
