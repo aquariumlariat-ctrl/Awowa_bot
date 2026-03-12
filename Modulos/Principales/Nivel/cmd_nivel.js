@@ -1,90 +1,133 @@
 // Modulos/Principales/Nivel/cmd_nivel.js
-const { AttachmentBuilder } = require('discord.js');
+const { SlashCommandBuilder, AttachmentBuilder } = require('discord.js');
 const Usuario = require('../../../Base_Datos/MongoDB/Usuario');
 const { generarCanvasNivel } = require('./canvas_nivel');
 
 module.exports = {
-    name: 'nivel',
-    description: 'Muestra la tarjeta de nivel social de un usuario (Mención, ID o #Matrícula).',
-    async execute(message, args) {
-        
-        let targetUser = message.author;
+    name: 'nivel', 
+    // 🏗️ CONSTRUCTOR DEL COMANDO SLASH
+    data: new SlashCommandBuilder()
+        .setName('nivel')
+        .setDescription('Muestra la tarjeta de nivel social.')
+        .addUserOption(option => 
+            option.setName('usuario')
+            .setDescription('Menciona a un usuario para ver su nivel.')
+            .setRequired(false))
+        .addIntegerOption(option => 
+            option.setName('matricula')
+            .setDescription('Busca usando un número de matrícula.')
+            .setRequired(false))
+        .addIntegerOption(option => 
+            option.setName('rango')
+            .setDescription('Busca quién ocupa un puesto específico en el Top.')
+            .setRequired(false)),
+
+    async execute(interaction) {
+        // ⏳ Los comandos Slash tienen 3 segundos para responder.
+        await interaction.deferReply();
+
+        const optUser = interaction.options.getUser('usuario');
+        const optMatricula = interaction.options.getInteger('matricula');
+        const optRango = interaction.options.getInteger('rango');
+
+        let targetUser = interaction.user;
         let userDB = null;
 
         // ==========================================
-        // 🔍 BÚSQUEDA INTELIGENTE DE USUARIOS
+        // 🚀 OPTIMIZACIÓN DEL CACHÉ (ANTI RATE-LIMIT)
         // ==========================================
-        if (args.length > 0) {
-            const query = args[0];
+        // 1. Usamos la memoria Caché del bot en lugar de pedirle la lista a Discord
+        let memberIds = interaction.guild.members.cache.filter(m => !m.user.bot).map(m => m.id);
 
-            if (message.mentions.users.size > 0) {
-                targetUser = message.mentions.users.first();
-                userDB = await Usuario.findOne({ Discord_ID: targetUser.id });
-            } 
-            else if (query.length >= 17 && !isNaN(query)) {
-                userDB = await Usuario.findOne({ Discord_ID: query });
-                if (userDB) {
-                    try { targetUser = await message.client.users.fetch(query); } catch (e) {}
-                }
-            } 
-            else {
-                const numMatricula = parseInt(query.replace('#', ''));
-                if (!isNaN(numMatricula)) {
-                    userDB = await Usuario.findOne({ Numero_Matricula: numMatricula });
-                    if (userDB) {
-                        try { targetUser = await message.client.users.fetch(userDB.Discord_ID); } catch (e) {}
-                    }
-                }
+        // 2. Si el caché está vacío (bot recién prendido), hacemos una sola petición cuidadosa
+        if (memberIds.length < 2) {
+            try {
+                await interaction.guild.members.fetch();
+                memberIds = interaction.guild.members.cache.filter(m => !m.user.bot).map(m => m.id);
+            } catch (e) {
+                // Si Discord nos bloquea (Opcode 8), ignoramos el error para no crashear
             }
-        } else {
-            userDB = await Usuario.findOne({ Discord_ID: message.author.id });
         }
 
-        if (!userDB) return message.reply('❌ No pude encontrar a ese usuario en la base de datos de la Academia. ¿Seguro que está matriculado?');
-        if (targetUser.bot) return message.reply('❌ Los bots no tienen alma, nivel, ni estadísticas sociales.');
-        if (!userDB.Social) return message.reply('❌ Este usuario tiene un perfil antiguo y no tiene habilitado el sistema social.');
-
-        const msjCarga = await message.reply('⏳ **Calculando estadísticas...**');
-
         // ==========================================
-        // 🚀 NUEVO: RANKING LOCAL POR SERVIDOR
+        // 🔍 LÓGICA DE BÚSQUEDA
         // ==========================================
-        // 1. Obtenemos TODOS los IDs de los miembros actuales del servidor (evitando bots)
-        const guildMembers = await message.guild.members.fetch();
-        const memberIds = guildMembers.filter(m => !m.user.bot).map(m => m.id);
+        if (optUser) {
+            targetUser = optUser;
+            userDB = await Usuario.findOne({ Discord_ID: targetUser.id });
+        } 
+        else if (optMatricula) {
+            userDB = await Usuario.findOne({ Numero_Matricula: optMatricula });
+            if (userDB) {
+                try { targetUser = await interaction.client.users.fetch(userDB.Discord_ID); } catch(e){}
+            }
+        } 
+        else if (optRango) {
+            // Buscamos matemáticamente quién ocupa ese lugar en ESTE servidor
+            const topUsers = await Usuario.find({ Discord_ID: { $in: memberIds } })
+                .sort({ 'Social.Nivel': -1, 'Social.XP': -1 })
+                .skip(optRango - 1)
+                .limit(1);
 
-        // 2. Ejecutamos la promesa con el filtro de 'memberIds' inyectado
-        const [posicionReal, memberFetch] = await Promise.all([
-            Usuario.countDocuments({
-                // La magia está aquí: Solo comparamos con los que están en 'memberIds'
-                Discord_ID: { $in: memberIds }, 
-                $or: [
-                    { 'Social.Nivel': { $gt: userDB.Social.Nivel } },
-                    { 'Social.Nivel': userDB.Social.Nivel, 'Social.XP': { $gt: userDB.Social.XP } }
-                ]
-            }).then(count => count + 1), // Sigue sumando 1 para que el primero sea #1, no #0
-            message.guild.members.fetch(targetUser.id).catch(() => null)
-        ]);
-
-        let apodoReal = userDB.Discord_Nick || targetUser.username;
-        if (memberFetch && memberFetch.displayName) {
-            apodoReal = memberFetch.displayName;
+            if (topUsers.length > 0) {
+                userDB = topUsers[0];
+                try { targetUser = await interaction.client.users.fetch(userDB.Discord_ID); } catch(e){}
+            } else {
+                return interaction.editReply('❌ Nadie ocupa esa posición del ranking en este servidor aún.');
+            }
+        } 
+        else {
+            // Si no puso ninguna opción, se busca a sí mismo
+            userDB = await Usuario.findOne({ Discord_ID: interaction.user.id });
         }
 
-        const socialData = {
-            Nivel: userDB.Social.Nivel || 1,
-            XP: userDB.Social.XP || 0,
-            Posicion: posicionReal
-        };
+        // ==========================================
+        // 🛑 VALIDACIONES
+        // ==========================================
+        if (!userDB) return interaction.editReply('❌ No pude encontrar a ese usuario en la base de datos de la Academia.');
+        if (targetUser.bot) return interaction.editReply('❌ Los bots no tienen estadísticas sociales.');
+        if (!userDB.Social) return interaction.editReply('❌ Este usuario no tiene habilitado el sistema social.');
+
+        const miembroEnServidor = await interaction.guild.members.fetch(targetUser.id).catch(() => null);
+        if (!miembroEnServidor) {
+            return interaction.editReply('❌ Ese usuario no se encuentra en este servidor, por lo que no participa en la clasificación local.');
+        }
 
         try {
+            // ==========================================
+            // 🚀 CÁLCULO DE RANKING (Si no buscó por rango)
+            // ==========================================
+            const uNivel = userDB.Social.Nivel || 1;
+            const uXP = userDB.Social.XP || 0;
+            let posicionReal = optRango; // Si buscó por rango, ya sabemos la posición
+
+            if (!optRango) {
+                posicionReal = await Usuario.countDocuments({
+                    Discord_ID: { $in: memberIds }, 
+                    $or: [
+                        { 'Social.Nivel': { $gt: uNivel } },
+                        { 'Social.Nivel': uNivel, 'Social.XP': { $gt: uXP } }
+                    ]
+                }).then(count => count + 1);
+            }
+
+            let apodoReal = userDB.Discord_Nick || targetUser.username;
+            if (miembroEnServidor.displayName) {
+                apodoReal = miembroEnServidor.displayName;
+            }
+
+            const socialData = { Nivel: uNivel, XP: uXP, Posicion: posicionReal };
+
+            // Dibujamos la tarjeta
             const bufferImagen = await generarCanvasNivel(socialData, apodoReal, targetUser.username);
             const adjunto = new AttachmentBuilder(bufferImagen, { name: `nivel_${userDB.Numero_Matricula}.png` });
             
-            await msjCarga.edit({ content: null, files: [adjunto] });
+            // Reemplazamos el "Pensando..." por la tarjeta final
+            await interaction.editReply({ content: null, files: [adjunto] });
+
         } catch (error) {
-            console.error('[Error Cmd Nivel]', error);
-            await msjCarga.edit('❌ Ocurrió un error gráfico al intentar dibujar la tarjeta de nivel.');
+            console.error('\x1b[31m·\x1b[0m [Error Cmd Nivel]', error);
+            await interaction.editReply('❌ Ocurrió un error interno al intentar procesar las estadísticas.');
         }
     }
 };

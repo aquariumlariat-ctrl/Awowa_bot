@@ -12,31 +12,38 @@ try {
     console.error(`${c.r}·${c.b} [Canvas Nivel] Error registrando fuentes.`, e.message);
 }
 
-// 🧠 Caché para imágenes estáticas y Emotes de Rango
-let avatarFijoCache = null;
-let iconRank1Cache = null;
-let iconRank2Cache = null;
-let iconRank3Cache = null;
+// 🧠 NUEVO SISTEMA DE CACHÉ (A prueba de crasheos)
+// Guardamos los "Buffers" en lugar de los objetos Image para evitar que se destruyan en memoria
+let avatarFijoBuffer = null;
+let iconRank1Buffer = null;
+let iconRank2Buffer = null;
+let iconRank3Buffer = null;
 
-async function loadAvatarFijo() {
-    if (avatarFijoCache) return avatarFijoCache;
-    avatarFijoCache = await loadImage('https://i.imgur.com/48MynuQ.png');
-    return avatarFijoCache;
+// Función auxiliar para descargar la imagen como Buffer puro
+async function fetchBuffer(url) {
+    const response = await fetch(url);
+    const arrayBuffer = await response.arrayBuffer();
+    return Buffer.from(arrayBuffer);
 }
 
-// 🏆 Carga dinámica de iconos de Top 3
+async function loadAvatarFijo() {
+    if (!avatarFijoBuffer) avatarFijoBuffer = await fetchBuffer('https://i.imgur.com/48MynuQ.png');
+    return await loadImage(avatarFijoBuffer); // Crea una instancia fresca de imagen rapidísimo
+}
+
+// 🏆 Carga dinámica de iconos de Top 3 (Protegida)
 async function loadRankIcon(rank) {
     if (rank === 1) {
-        if (!iconRank1Cache) iconRank1Cache = await loadImage('https://i.imgur.com/cOmyYfQ.png');
-        return iconRank1Cache;
+        if (!iconRank1Buffer) iconRank1Buffer = await fetchBuffer('https://i.imgur.com/cOmyYfQ.png');
+        return await loadImage(iconRank1Buffer);
     }
     if (rank === 2) {
-        if (!iconRank2Cache) iconRank2Cache = await loadImage('https://i.imgur.com/AsvLb0x.png');
-        return iconRank2Cache;
+        if (!iconRank2Buffer) iconRank2Buffer = await fetchBuffer('https://i.imgur.com/AsvLb0x.png');
+        return await loadImage(iconRank2Buffer);
     }
     if (rank === 3) {
-        if (!iconRank3Cache) iconRank3Cache = await loadImage('https://i.imgur.com/rGdiBn1.png');
-        return iconRank3Cache;
+        if (!iconRank3Buffer) iconRank3Buffer = await fetchBuffer('https://i.imgur.com/rGdiBn1.png');
+        return await loadImage(iconRank3Buffer);
     }
     return null;
 }
@@ -92,7 +99,6 @@ function obtenerDatosRango(nivel) {
 
 const px = (n) => Math.round(n);
 
-// Recibe discordUsername en vez de avatarBuffer
 async function generarCanvasNivel(socialData, discordNick, discordUsername) {
     const baseW = 750, baseH = 225, scale = 2; 
     const canvas = createCanvas(baseW * scale, baseH * scale);

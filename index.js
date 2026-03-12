@@ -1,3 +1,4 @@
+// index.js
 require('dotenv').config();
 const { Client, GatewayIntentBits, Collection, Partials } = require('discord.js');
 const fs = require('fs');
@@ -14,7 +15,8 @@ const client = new Client({
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent,
         GatewayIntentBits.DirectMessages,
-        GatewayIntentBits.GuildVoiceStates // 👇 Añadido: ¡Obligatorio para dar XP en voz!
+        GatewayIntentBits.GuildVoiceStates,
+        GatewayIntentBits.GuildMembers 
     ],
     partials: [
         Partials.Channel,
@@ -47,7 +49,7 @@ categorias.forEach(categoria => {
                     const comandos = Array.isArray(comandoModule) ? comandoModule : [comandoModule];
                     
                     comandos.forEach(comando => {
-                        if (comando.name && comando.execute) {
+                        if (comando.name && (comando.execute || comando.data)) {
                             client.commands.set(comando.name, comando);
                         }
                     });
@@ -57,7 +59,7 @@ categorias.forEach(categoria => {
                 const comandos = Array.isArray(comandoModule) ? comandoModule : [comandoModule];
                 
                 comandos.forEach(comando => {
-                    if (comando.name && comando.execute) {
+                    if (comando.name && (comando.execute || comando.data)) {
                         client.commands.set(comando.name, comando);
                     }
                 });
@@ -69,10 +71,9 @@ categorias.forEach(categoria => {
 // ==========================================
 // EVENTOS DE INICIO (Ready)
 // ==========================================
-client.once('clientReady', async () => { /// NO CAMBIAR EL CLIENT READY PARA EVITAR ERROR EN CONSOLA
+client.once('clientReady', async () => { 
     console.log(`${c.v}·${c.b} [Core] Aurora se ha encendido ${c.v}correctamente${c.b} como ${client.user.tag}.`);
 
-    // 👇 VALIDACIÓN DE APIS DE RIOT 👇
     const { verificarConexionLoL } = require('./API\'s/Riot/lol_api');
     const { verificarConexionTFT } = require('./API\'s/Riot/tft_api');
     
@@ -90,18 +91,13 @@ client.once('clientReady', async () => { /// NO CAMBIAR EL CLIENT READY PARA EVI
     const { precargarPerfiles } = require('./Modulos/Principales/Perfil/perfil');
     await precargarPerfiles();
     
-    // 👆 FIN VALIDACIÓN 👆
-
-    // 👇 IMPORTAMOS LAS FUNCIONES DE BITÁCORA 👇
     const { initGaleria, reconstruirLogMatriculas } = require('./Modulos/Principales/Matricula/bitacora');
     initGaleria(client);
     
-    // 👇 DISPARAMOS LA RECONSTRUCCIÓN DEL LOG 5 SEGUNDOS DESPUÉS 👇
     setTimeout(() => {
         reconstruirLogMatriculas(client);
     }, 5000);
 
-    // 👇 AÑADE ESTO PARA EL CACHÉ PERSISTENTE 👇
     const { restaurarMatriculas } = require('./Modulos/Principales/Matricula/matricula');
     restaurarMatriculas(client);
 
@@ -109,7 +105,7 @@ client.once('clientReady', async () => { /// NO CAMBIAR EL CLIENT READY PARA EVI
     iniciarCronSincronizacion(client);
     
     const { iniciarMotorXP } = require('./Modulos/Principales/Nivel/motor_xp.js');
-    iniciarMotorXP();
+    iniciarMotorXP(client);
 
     const { estaHabilitado, obtenerChannelId } = require('./Modulos/Utilidades/Editor_Mensajes/handler.js');
     const { sincronizarMensajes } = require('./Modulos/Utilidades/Editor_Mensajes/parser.js');
@@ -123,6 +119,23 @@ client.once('clientReady', async () => { /// NO CAMBIAR EL CLIENT READY PARA EVI
         } catch {
             // Silenciado
         }
+    }
+
+    // ==========================================
+    // 🌍 REGISTRO DE COMANDOS SLASH (/)
+    // ==========================================
+    const slashCommands = [];
+    client.commands.forEach(comando => {
+        if (comando.data) { 
+            slashCommands.push(comando.data.toJSON());
+        }
+    });
+
+    try {
+        await client.application.commands.set(slashCommands);
+        console.log(`${c.v}·${c.b} [Core] Comandos Slash (/) sincronizados en Discord.`);
+    } catch (e) {
+        console.error(`${c.r}·${c.b} [Core] Error sincronizando comandos Slash:`, e);
     }
 });
 
@@ -143,24 +156,40 @@ client.on('messageUpdate', async (oldMessage, newMessage) => {
     await handleMessageUpdate(oldMessage, newMessage);
 });
 
-// Evento para Rastrear Voz
 client.on('voiceStateUpdate', async (oldState, newState) => {
     try {
         await rastrearVoz(client, oldState, newState);
+    } catch (error) {}
+});
+
+// ==========================================
+// 🖱️ EVENTO: MANEJADOR DE INTERACCIONES (COMANDOS SLASH)
+// ==========================================
+client.on('interactionCreate', async interaction => {
+    if (!interaction.isChatInputCommand()) return;
+
+    const command = client.commands.get(interaction.commandName);
+    if (!command) return;
+
+    try {
+        await command.execute(interaction);
     } catch (error) {
-        // Silenciado
+        console.error(`❌ Error ejecutando el comando (/) [${interaction.commandName}]:`, error);
+        
+        const replyMethod = interaction.deferred || interaction.replied ? 'editReply' : 'reply';
+        await interaction[replyMethod]({ 
+            content: '❌ Ocurrió un error mágico al intentar ejecutar este comando.', 
+            ephemeral: true 
+        });
     }
 });
 
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
 
-    // Le pasamos el mensaje a nuestro motor de XP
     try {
         await otorgarXPMensaje(client, message);
-    } catch (e) {
-        // Silenciado
-    }
+    } catch (e) {}
 
     const prefijo = 'aurora!';
     const empiezaConPrefijo = message.content.toLowerCase().startsWith(prefijo);
@@ -194,10 +223,11 @@ client.on('messageCreate', async (message) => {
     const command = client.commands.get(commandName);
     if (!command) return;
 
-    try {
-        await command.execute(message, args);
-    } catch {
-        // Ejecución silenciosa
+    // Si es un comando de texto tradicional (no slash), lo ejecutamos por este método
+    if (!command.data) {
+        try {
+            await command.execute(message, args);
+        } catch {}
     }
 });
 
@@ -208,7 +238,6 @@ mongoose.connect(process.env.MONGODB_URI)
     .then(async () => {
         console.log(`${c.v}·${c.b} [Nube] Conexión a la base de datos establecida ${c.v}correctamente${c.b}.`);
 
-        // 👇 INICIALIZACIÓN DE CARPETAS Y ARCHIVOS DE USUARIOS 👇
         const Usuario = require('./Base_Datos/MongoDB/Usuario.js');
         const usuariosPath = path.join(__dirname, 'Base_Datos', 'Usuarios');
         
@@ -237,7 +266,6 @@ mongoose.connect(process.env.MONGODB_URI)
                     fs.mkdirSync(carpetaUsuario, { recursive: true });
                 }
 
-                // 👇 LA CORRECCIÓN ESTÁ AQUÍ 👇
                 const plantillaJuegos = {
                     Resumen: { Victorias: 0, Derrotas: 0, WinRate: 0 },
                     Campeones: {},
@@ -268,7 +296,6 @@ mongoose.connect(process.env.MONGODB_URI)
                     'datos_lol_total.json': plantillaJuegos
                 };
 
-                // Crear los archivos si no existen
                 for (const [nombreArchivo, contenidoVacio] of Object.entries(archivosCrear)) {
                     const rutaArchivo = path.join(carpetaUsuario, nombreArchivo);
                     if (!fs.existsSync(rutaArchivo)) {
