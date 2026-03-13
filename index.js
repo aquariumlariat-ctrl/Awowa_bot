@@ -169,9 +169,9 @@ client.on('messageUpdate', async (oldMessage, newMessage) => {
 });
 
 client.on('voiceStateUpdate', async (oldState, newState) => {
-    try {
-        await rastrearVoz(client, oldState, newState);
-    } catch (error) {}
+    // Importamos el rastreador de voz dinámicamente
+    const { rastrearVoz } = require('./Modulos/Principales/Nivel/motor_xp.js');
+    await rastrearVoz(client, oldState, newState);
 });
 
 // ==========================================

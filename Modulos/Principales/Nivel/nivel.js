@@ -1,196 +1,248 @@
-// Modulos/Principales/Nivel/motor_xp.js
-const Usuario = require('../../../Base_Datos/MongoDB/Usuario.js');
+// Modulos/Principales/Nivel/nivel.js
+const Usuario = require('../../../Base_Datos/MongoDB/Usuario');
+const fs = require('fs');
+const path = require('path');
 
-// ⏱️ Mapa para controlar el Anti-Spam de mensajes en texto
+// ⏱️ Mapas de Memoria Cache
 const cooldownsMensajes = new Map();
+const sesionesVoz = new Map();
 
 // 🔧 CONFIGURACIÓN DEL SISTEMA
-const COOLDOWN_SEGUNDOS = 60; // 1 minuto entre mensajes válidos para XP
+const COOLDOWN_SEGUNDOS = 60;
 const XP_TEXTO_MIN = 15;
 const XP_TEXTO_MAX = 25;
 const XP_VOZ_POR_MINUTO = 10;
 
-// 📖 RANGOS (Solo necesitamos los títulos y niveles para saber cuándo avisar)
+// 🧹 BARREDOR DE MEMORIA
+setInterval(() => {
+    const ahora = Date.now();
+    for (const [userId, tiempo] of cooldownsMensajes.entries()) {
+        if (ahora > tiempo + (COOLDOWN_SEGUNDOS * 1000)) {
+            cooldownsMensajes.delete(userId);
+        }
+    }
+}, 300000);
+
+// 🚀 WATCHER ASÍNCRONO PARA LOS MENSAJES (Cero bloqueos del Event Loop)
+let msgCache = {};
+const rutaMensajes = path.join(__dirname, 'mensajes.js');
+try { msgCache = require('./mensajes.js'); } catch(e) {}
+
+fs.watch(rutaMensajes, (eventType) => {
+    if (eventType === 'change') {
+        try {
+            delete require.cache[require.resolve('./mensajes.js')];
+            msgCache = require('./mensajes.js');
+        } catch(e) {}
+    }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 🔒 SISTEMA DE CANDADOS POR USUARIO
+// Garantiza que el level-up de un mismo usuario nunca corra en paralelo.
+// No requiere ninguna librería externa, funciona con Promises nativas.
+// ─────────────────────────────────────────────────────────────────────────────
+const _candados = new Map();
+
+async function conCandado(userId, fn) {
+    // Tomamos la cola actual (o una promesa resuelta si no hay nada)
+    const anterior = _candados.get(userId) || Promise.resolve();
+
+    // Creamos nuestro propio "turno" en la cola
+    let liberar;
+    const miTurno = new Promise(r => liberar = r);
+
+    // Registramos que ahora nosotros somos el último en la cola
+    _candados.set(userId, miTurno);
+
+    // Esperamos a que termine el turno anterior
+    await anterior;
+
+    try {
+        return await fn();
+    } finally {
+        // Liberamos para que el siguiente en la cola pueda continuar
+        liberar();
+        // Limpieza: si nadie más está esperando, borramos la entrada
+        if (_candados.get(userId) === miTurno) {
+            _candados.delete(userId);
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 const RANGOS_DATA = [
-    { lvl: 100, titulo: "Entidad Entre Mundos" }, 
-    { lvl: 95, titulo: "Voz del Gran Carnero" },  
-    { lvl: 90, titulo: "Leyenda Vastaya" },       
-    { lvl: 85, titulo: "Maestro de los Dos Reinos" }, 
-    { lvl: 80, titulo: "Caminante del Hogar" },   
-    { lvl: 75, titulo: "Guía de lo Invisible" },  
-    { lvl: 70, titulo: "Sabio de la Escarcha" },  
-    { lvl: 65, titulo: "Purificador de Almas" },  
-    { lvl: 60, titulo: "Heraldo de la Forja" },   
-    { lvl: 55, titulo: "Protector del Rebaño" },  
-    { lvl: 50, titulo: "Guardián de los Recuerdos" }, 
-    { lvl: 45, titulo: "Saltador de Reinos" },    
-    { lvl: 40, titulo: "Tejedor de Vínculos" },   
-    { lvl: 35, titulo: "Viajero de la Nieve" },   
-    { lvl: 30, titulo: "Amigo de los Extraviados" }, 
-    { lvl: 25, titulo: "Investigador de Runas" }, 
-    { lvl: 20, titulo: "Vidente del Velo" },      
-    { lvl: 15, titulo: "Estudiante Bryni" },      
-    { lvl: 10, titulo: "Caminante de la Tundra" },
-    { lvl: 5, titulo: "Oyente de los Susurros" }, 
-    { lvl: 0, titulo: "Forastero de Aamu" }       
+    { lvl: 100, titulo: "Entidad Entre Mundos" },
+    { lvl: 95,  titulo: "Voz del Gran Carnero" },
+    { lvl: 90,  titulo: "Leyenda Vastaya" },
+    { lvl: 85,  titulo: "Maestro de los Dos Reinos" },
+    { lvl: 80,  titulo: "Caminante del Hogar" },
+    { lvl: 75,  titulo: "Guía de lo Invisible" },
+    { lvl: 70,  titulo: "Sabio de la Escarcha" },
+    { lvl: 65,  titulo: "Purificador de Almas" },
+    { lvl: 60,  titulo: "Heraldo de la Forja" },
+    { lvl: 55,  titulo: "Protector del Rebaño" },
+    { lvl: 50,  titulo: "Guardián de los Recuerdos" },
+    { lvl: 45,  titulo: "Saltador de Reinos" },
+    { lvl: 40,  titulo: "Tejedor de Vínculos" },
+    { lvl: 35,  titulo: "Viajero de la Nieve" },
+    { lvl: 30,  titulo: "Amigo de los Extraviados" },
+    { lvl: 25,  titulo: "Investigador de Runas" },
+    { lvl: 20,  titulo: "Vidente del Velo" },
+    { lvl: 15,  titulo: "Estudiante Bryni" },
+    { lvl: 10,  titulo: "Caminante de la Tundra" },
+    { lvl: 5,   titulo: "Oyente de los Susurros" },
+    { lvl: 0,   titulo: "Forastero de Aamu" }
 ];
 
-// Función para saber qué título tiene un nivel específico
 function obtenerTituloRango(nivel) {
     for (let i = 0; i < RANGOS_DATA.length; i++) {
-        if (nivel >= RANGOS_DATA[i].lvl) {
-            return RANGOS_DATA[i].titulo;
-        }
+        if (nivel >= RANGOS_DATA[i].lvl) return RANGOS_DATA[i].titulo;
     }
     return RANGOS_DATA[RANGOS_DATA.length - 1].titulo;
 }
 
-// 📈 Fórmula matemática para calcular cuánta XP requiere el nivel actual
 function calcularXPMeta(nivel) {
     const nivelSeguro = nivel < 1 ? 1 : nivel;
     return Math.floor(100 * Math.pow(nivelSeguro, 1.5));
 }
 
-// 🎉 Lógica compartida para revisar si alguien subió de nivel y avisarle
-async function procesarSubidaNivel(client, userDB, userId, username, channel = null) {
-    let nivelAnterior = userDB.Social.Nivel || 1;
-    let subioNivel = false;
-    let xpMeta = calcularXPMeta(userDB.Social.Nivel);
+// ─────────────────────────────────────────────────────────────────────────────
+// 🎉 LÓGICA DE SUBIDA DE NIVEL
+//
+// DOBLE PROTECCIÓN contra race conditions:
+//   1. conCandado(): un solo hilo por usuario a la vez.
+//   2. findOneAndUpdate con condición de nivel: si otro proceso ya subió
+//      el nivel antes que nosotros, el update devuelve null y abortamos.
+//      Esto es "optimistic locking" y elimina el problema de forma definitiva.
+// ─────────────────────────────────────────────────────────────────────────────
+async function procesarSubidaNivel(client, userId, username) {
+    return conCandado(userId, async () => {
 
-    // Bucle `while` en caso de que alguien gane tanta XP de golpe que suba múltiples niveles
-    while (userDB.Social.XP >= xpMeta) {
-        userDB.Social.XP -= xpMeta; // Le restamos la XP usada para subir de nivel
-        userDB.Social.Nivel += 1; // Sube 1 nivel
-        subioNivel = true;
-        xpMeta = calcularXPMeta(userDB.Social.Nivel); // Recalculamos la nueva meta
-    }
+        // Re-fetch datos frescos DENTRO del candado para evitar estado stale
+        const freshUser = await Usuario.findOne({ Discord_ID: userId });
+        if (!freshUser?.Social) return;
 
-    // Si subió de nivel, comprobamos si también cambió de rango
-    if (subioNivel) {
+        let nivelActual = freshUser.Social.Nivel || 1;
+        let xpActual    = freshUser.Social.XP    || 0;
+        const nivelAnterior = nivelActual;
+        let xpMeta = calcularXPMeta(nivelActual);
+        let subioNivel = false;
+
+        while (xpActual >= xpMeta) {
+            xpActual   -= xpMeta;
+            nivelActual += 1;
+            subioNivel  = true;
+            xpMeta = calcularXPMeta(nivelActual);
+        }
+
+        if (!subioNivel) return;
+
+        // Optimistic lock: solo actualiza si el nivel en BD sigue siendo
+        // el que leímos. Si otro proceso ya subió el nivel, resultado = null
+        // y abortamos silenciosamente sin corromper datos.
+        const resultado = await Usuario.findOneAndUpdate(
+            { Discord_ID: userId, 'Social.Nivel': nivelAnterior },
+            { $set: { 'Social.Nivel': nivelActual, 'Social.XP': xpActual } },
+            { new: true }
+        );
+
+        if (!resultado) return; // Otro proceso ya procesó el level-up
+
         const tituloAnterior = obtenerTituloRango(nivelAnterior);
-        const tituloNuevo = obtenerTituloRango(userDB.Social.Nivel);
+        const tituloNuevo    = obtenerTituloRango(nivelActual);
 
-        // Si el título es diferente (cruzó un umbral múltiplo de 5)
         if (tituloAnterior !== tituloNuevo) {
             try {
-                // Cargamos los mensajes en vivo desde Discord
-                let msg = {};
-                try { 
-                    delete require.cache[require.resolve('./mensajes.js')];
-                    msg = require('./mensajes.js'); 
-                } catch(e) {
-                    msg = { AlertaNivel: (u, n, r) => `🎉 ¡Felicidades ${u}! Has alcanzado el **Nivel ${n}** y te conviertes en **${r}**.` };
+                let textoAlerta = `🎉 ¡Felicidades <@${userId}>! Has alcanzado el **Nivel ${nivelActual}** y te conviertes en **${tituloNuevo}**.`;
+
+                if (typeof msgCache.AlertaNivel === 'function') {
+                    textoAlerta = msgCache.AlertaNivel(`<@${userId}>`, nivelActual, tituloNuevo);
                 }
 
-                const mencion = `<@${userId}>`;
-                const textoAlerta = typeof msg.AlertaNivel === 'function' ? msg.AlertaNivel(mencion, userDB.Social.Nivel, tituloNuevo) : msg.AlertaNivel;
-
-                if (channel) {
-                    // Si subió de nivel por chatear, lo anunciamos en el mismo canal
-                    await channel.send(textoAlerta);
-                } else {
-                    // Si subió por estar en llamada de voz, le enviamos un Mensaje Directo
-                    const userDiscord = await client.users.fetch(userId);
-                    if (userDiscord) {
-                        await userDiscord.send(textoAlerta);
-                    }
-                }
+                const userDiscord = await client.users.fetch(userId).catch(() => null);
+                if (userDiscord) await userDiscord.send(textoAlerta).catch(() => null);
             } catch (error) {
-                console.log(`[Motor XP] No se pudo enviar alerta de nivel para ${username}.`);
+                console.log(`[Motor XP] MD bloqueado para ${username}.`);
+            }
+        }
+    });
+}
+
+// 💬 XP POR TEXTO
+async function otorgarXPMensaje(client, message) {
+    const userId = message.author.id;
+    const ahora  = Date.now();
+
+    if (cooldownsMensajes.has(userId)) {
+        if (ahora < cooldownsMensajes.get(userId) + (COOLDOWN_SEGUNDOS * 1000)) return;
+    }
+
+    cooldownsMensajes.set(userId, ahora);
+    const xpGanada = Math.floor(Math.random() * (XP_TEXTO_MAX - XP_TEXTO_MIN + 1)) + XP_TEXTO_MIN;
+
+    // $inc atómico: no hay window de race condition aquí
+    const userDB = await Usuario.findOneAndUpdate(
+        { Discord_ID: userId },
+        { $inc: { 'Social.XP': xpGanada, 'Social.Mensajes': 1 } },
+        { new: true }
+    );
+
+    if (!userDB?.Social) return;
+
+    if (userDB.Social.XP >= calcularXPMeta(userDB.Social.Nivel)) {
+        await procesarSubidaNivel(client, userId, message.author.username);
+    }
+}
+
+// 🎙️ XP DE VOZ
+async function rastrearVoz(client, oldState, newState) {
+    const userId = newState.member.id;
+    if (newState.member.user.bot) return;
+
+    const canalAnterior = oldState.channelId;
+    const canalNuevo    = newState.channelId;
+    const estaInactivo  = newState.selfMute || newState.serverMute || newState.selfDeaf || newState.serverDeaf;
+
+    // Entró a voz o se desmuteó
+    if ((!canalAnterior && canalNuevo && !estaInactivo) ||
+        (canalAnterior && canalNuevo && !estaInactivo && !sesionesVoz.has(userId))) {
+        sesionesVoz.set(userId, Date.now());
+        return;
+    }
+
+    // Salió del canal o se muteó
+    if ((canalAnterior && !canalNuevo) || estaInactivo) {
+        if (sesionesVoz.has(userId)) {
+            const tiempoEntrada = sesionesVoz.get(userId);
+            sesionesVoz.delete(userId);
+
+            const minutosTranscurridos = Math.floor((Date.now() - tiempoEntrada) / 60000);
+
+            if (minutosTranscurridos >= 1) {
+                // $inc atómico
+                const userDB = await Usuario.findOneAndUpdate(
+                    { Discord_ID: userId },
+                    { $inc: {
+                        'Social.XP': minutosTranscurridos * XP_VOZ_POR_MINUTO,
+                        'Social.Minutos_Voz': minutosTranscurridos
+                    }},
+                    { new: true }
+                );
+
+                if (!userDB?.Social) return;
+
+                if (userDB.Social.XP >= calcularXPMeta(userDB.Social.Nivel)) {
+                    await procesarSubidaNivel(client, userId, newState.member.user.username);
+                }
             }
         }
     }
-
-    return subioNivel;
 }
 
-// ==========================================
-// 💬 1. SISTEMA DE XP POR MENSAJES DE TEXTO
-// ==========================================
-async function otorgarXPMensaje(client, message) {
-    const userId = message.author.id;
-
-    // 1. Revisar Cooldown (Anti-Spam)
-    const ahora = Date.now();
-    if (cooldownsMensajes.has(userId)) {
-        const tiempoVencimiento = cooldownsMensajes.get(userId) + (COOLDOWN_SEGUNDOS * 1000);
-        if (ahora < tiempoVencimiento) return; // Si aún está en enfriamiento, no le damos XP
-    }
-
-    // 2. Aplicar nuevo cooldown
-    cooldownsMensajes.set(userId, ahora);
-
-    // 3. Buscar al usuario en la base de datos
-    const userDB = await Usuario.findOne({ Discord_ID: userId });
-    if (!userDB || !userDB.Social) return;
-
-    // 4. Calcular XP aleatoria
-    const xpGanada = Math.floor(Math.random() * (XP_TEXTO_MAX - XP_TEXTO_MIN + 1)) + XP_TEXTO_MIN;
-
-    // 5. Sumar a las estadísticas
-    userDB.Social.XP += xpGanada;
-    userDB.Social.Mensajes += 1; 
-
-    // 6. Comprobar si subió de nivel y rango (Pasamos message.channel para avisar ahí mismo)
-    await procesarSubidaNivel(client, userDB, userId, message.author.username, message.channel);
-
-    // 7. Guardar en MongoDB
-    await userDB.save().catch(() => {});
-}
-
-// ==========================================
-// 🎙️ 2. SISTEMA DE XP POR LLAMADA DE VOZ
-// ==========================================
-async function rastrearVoz(client, oldState, newState) {
-    // Ya no usamos eventos inestables, el cronjob abajo hace el trabajo pesado
-}
-
-// ==========================================
-// ⚙️ 3. INICIALIZADOR Y MOTOR EN SEGUNDO PLANO
-// ==========================================
 function iniciarMotorXP(client) {
-    console.log('\x1b[32m·\x1b[0m [Motor XP] El sistema de ganancia pasiva ha arrancado.');
-
-    // Configuramos un escáner que revisa todos los canales de voz CADA 1 MINUTO
-    setInterval(async () => {
-        if (!client || !client.guilds) return;
-
-        const usuariosParaXP = [];
-
-        client.guilds.cache.forEach(guild => {
-            guild.channels.cache.filter(c => c.isVoiceBased()).forEach(channel => {
-                
-                // Si hay menos de 2 personas reales en el canal, nadie gana XP (Anti-AFK solitarios)
-                const usuariosReales = channel.members.filter(m => !m.user.bot);
-                if (usuariosReales.size < 2) return;
-
-                // Evaluamos a cada miembro del canal
-                usuariosReales.forEach(member => {
-                    // No gana XP si está ensordecido o silenciado
-                    if (member.voice.selfMute || member.voice.serverMute || member.voice.selfDeaf || member.voice.serverDeaf) {
-                        return;
-                    }
-                    usuariosParaXP.push(member.id);
-                });
-            });
-        });
-
-        if (usuariosParaXP.length === 0) return;
-
-        const usuariosDB = await Usuario.find({ Discord_ID: { $in: usuariosParaXP } });
-
-        for (const userDB of usuariosDB) {
-            if (!userDB.Social) continue;
-
-            userDB.Social.XP += XP_VOZ_POR_MINUTO;
-            userDB.Social.Minutos_Voz += 1; 
-
-            // Le pasamos `null` al canal, así le mandará el mensaje por Privado si subió por voz
-            await procesarSubidaNivel(client, userDB, userDB.Discord_ID, userDB.Discord_Nick, null);
-            await userDB.save().catch(() => {});
-        }
-
-    }, 60000); // 60,000 ms = 1 Minuto
+    console.log('\x1b[32m·\x1b[0m [Motor XP] Sistema arrancado (Atomicidad + Candados + Optimistic Lock).');
 }
 
 module.exports = { otorgarXPMensaje, rastrearVoz, iniciarMotorXP };

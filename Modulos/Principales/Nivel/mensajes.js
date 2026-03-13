@@ -15,7 +15,7 @@ Si el problema persiste, contacta a soporte.`,
     AlertaNivel: (usuario, nivel, nombre_rango) => `¡Felicidades ${usuario}! <:Awowa_Yeii:1470377870009565184> 
 
 Has alcanzado el **Nivel ${nivel}** y obtenido el rango **${nombre_rango}**.
-Cada partida y cada conversación te acercan al siguiente nivel. ¡Sigue acumulando XP!
+Cada partida y cada conversación te acercan al siguiente nivel. 
 
 Consulta tu progreso con \`/nivel\`.`
 };
