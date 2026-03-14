@@ -79,7 +79,6 @@ async function generarBocetoSocial(datos = {}) {
     const mensajes = datos.mensajes ?? 0;
     const horasVoz = datos.horasVoz ?? 0;
     
-    // 👇 LOGICA DEL PUESTO: Toma la posicion, si es indefinida pone "-" pero NO SE OCULTA
     const ranking  = datos.posicion ?? datos.ranking ?? "-";
 
     const { titulo: rangoSocial, colorActual } = obtenerRangoSocial(nivel);
@@ -134,32 +133,54 @@ async function generarBocetoSocial(datos = {}) {
     // ==========================================
     
     // 1. CAJA DE NIVEL Y XP
-    const box1H = 120; 
+    const paddingLados = 15; 
+    const paddingAbajo = 15; 
+    const paddingTop = 13;   
+    
+    const espaciado1 = 5.5;  
+    const espaciado2 = 7; 
+    
+    const altoTitulo = subtituloFontSize; // 17px
+    const altoNivel = 46; 
+    const barraH = 12;
+
+    const box1H = paddingTop + altoTitulo + espaciado1 + altoNivel + espaciado2 + barraH + paddingAbajo; 
+
     ctx.fillStyle = COLOR_BG_CAJA;
     ctx.beginPath();
     ctx.roundRect(col1X, inicioCajasY, col1W, box1H, radioCajas);
     ctx.fill();
 
+    // -- Dibujar Título --
+    ctx.textBaseline = 'top'; 
     ctx.fillStyle = COLOR_TEXTO_BASE;
     ctx.font = fontBold;
-    ctx.fillText('Nivel en la Academia', px(col1X + 15), px(inicioCajasY + 12));
+    const titleY = inicioCajasY + paddingTop;
+    ctx.fillText('Nivel en la Academia', px(col1X + paddingLados), px(titleY));
 
-    const centerY = inicioCajasY + 62; 
-
-    ctx.textBaseline = 'middle';
+    // -- Dibujar Nivel (Número gigante) --
+    const levelY = titleY + altoTitulo + espaciado1; 
     ctx.fillStyle = '#ffffff';
-    ctx.font = `bold 46px "Plus Jakarta Sans"`; 
-    fillTextPro(ctx, `${nivel}`, col1X + 15, centerY);
+    ctx.font = `bold ${altoNivel}px "Plus Jakarta Sans"`; 
+    fillTextPro(ctx, `${nivel}`, col1X + paddingLados, levelY);
 
     const widthNum = ctx.measureText(`${nivel}`).width;
-    const textX = col1X + 15 + widthNum + 15; 
-    const maxTextWidth = col1W - (textX - col1X) - 15; 
+    const textX = col1X + paddingLados + widthNum + 15; 
+    const maxTextWidth = col1W - (textX - col1X) - paddingLados; 
 
+    const alturaRealNumeroCodigo = 36; 
+    const inicioVisualNumeroY = levelY + 4; 
+
+    // -- Dibujar Puesto y Rango --
+    const centroVisualNumeroY = inicioVisualNumeroY + (alturaRealNumeroCodigo / 2); 
+    
+    ctx.textBaseline = 'middle'; 
     ctx.textAlign = 'left';
     ctx.fillStyle = COLOR_TEXTO_BASE; 
-    const jointOffset = 11; 
+    
+    const jointOffset = 9.25; 
+    const compensacionFuente = 0.75; 
 
-    // Calculamos siempre la fuente del rango por si es muy largo
     let fontRango = subtituloFontSize;
     ctx.font = `bold ${fontRango}px "Plus Jakarta Sans"`;
     while(ctx.measureText(rangoSocial).width > maxTextWidth && fontRango > 11) {
@@ -167,26 +188,27 @@ async function generarBocetoSocial(datos = {}) {
         ctx.font = `bold ${fontRango}px "Plus Jakarta Sans"`;
     }
 
-    // 👇 LOGICA DE RENDERIZADO VISUAL DEL PUESTO (AUNQUE SEA "-")
+    // 👇 AQUÍ ESTÁ EL CAMBIO LÓGICO PARA EL TEXTO DEL PUESTO
     let fontClasif = subtituloFontSize;
-    const txtClasif = `Puesto #${ranking} en el servidor`;
+    const txtClasif = ranking === "-" ? "Usuario externo" : `Puesto #${ranking} en el servidor`;
+    
     ctx.font = `bold ${fontClasif}px "Plus Jakarta Sans"`;
     while(ctx.measureText(txtClasif).width > maxTextWidth && fontClasif > 11) {
         fontClasif--;
         ctx.font = `bold ${fontClasif}px "Plus Jakarta Sans"`;
     }
-    ctx.fillText(txtClasif, px(textX), px(centerY - jointOffset));
+    
+    ctx.fillText(txtClasif, px(textX), px(centroVisualNumeroY - jointOffset - compensacionFuente));
     
     ctx.font = `bold ${fontRango}px "Plus Jakarta Sans"`;
-    ctx.fillText(rangoSocial, px(textX), px(centerY + jointOffset));
+    ctx.fillText(rangoSocial, px(textX), px(centroVisualNumeroY + jointOffset - compensacionFuente));
 
-    ctx.textBaseline = 'top';
+    ctx.textBaseline = 'top'; 
 
-    // 👇 BARRA DE PROGRESO 
-    const barraX = col1X + 15;
-    const barraW = col1W - 30;
-    const barraH = 12; 
-    const barraY = inicioCajasY + box1H - 24;
+    // -- Dibujar Barra de Progreso -- 
+    const barraX = col1X + paddingLados;
+    const barraW = col1W - (paddingLados * 2); 
+    const barraY = levelY + altoNivel + espaciado2;
     const progreso = Math.min(Math.max(xpActual / xpMeta, 0), 1) || 0; 
     
     const numBloques = 12, gapBloques = 4, rBloque = 2;
