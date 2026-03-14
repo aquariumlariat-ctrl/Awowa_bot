@@ -8,10 +8,12 @@ const cooldownsMensajes = new Map();
 const sesionesVoz = new Map();
 
 // 🔧 CONFIGURACIÓN DEL SISTEMA
-const COOLDOWN_SEGUNDOS = 60;
-const XP_TEXTO_MIN = 15;
-const XP_TEXTO_MAX = 25;
-const XP_VOZ_POR_MINUTO = 10;
+const COOLDOWN_SEGUNDOS   = 60;
+const XP_TEXTO_MIN        = 15;
+const XP_TEXTO_MAX        = 25;
+const XP_VOZ_POR_MINUTO   = 10;
+const XP_PARTIDA_DERROTA  = 20; // XP base por jugar una partida
+const XP_PARTIDA_VICTORIA = 35; // XP extra si ganaron
 
 // 🧹 BARREDOR DE MEMORIA
 setInterval(() => {
@@ -145,7 +147,7 @@ async function procesarSubidaNivel(client, userId, username) {
         const resultado = await Usuario.findOneAndUpdate(
             { Discord_ID: userId, 'Social.Nivel': nivelAnterior },
             { $set: { 'Social.Nivel': nivelActual, 'Social.XP': xpActual } },
-            { new: true }
+            { returnDocument: 'after' }
         );
 
         if (!resultado) return; // Otro proceso ya procesó el level-up
@@ -186,7 +188,7 @@ async function otorgarXPMensaje(client, message) {
     const userDB = await Usuario.findOneAndUpdate(
         { Discord_ID: userId },
         { $inc: { 'Social.XP': xpGanada, 'Social.Mensajes': 1 } },
-        { new: true }
+        { returnDocument: 'after' }
     );
 
     if (!userDB?.Social) return;
@@ -228,7 +230,7 @@ async function rastrearVoz(client, oldState, newState) {
                         'Social.XP': minutosTranscurridos * XP_VOZ_POR_MINUTO,
                         'Social.Minutos_Voz': minutosTranscurridos
                     }},
-                    { new: true }
+                    { returnDocument: 'after' }
                 );
 
                 if (!userDB?.Social) return;
@@ -241,8 +243,54 @@ async function rastrearVoz(client, oldState, newState) {
     }
 }
 
+// 🎮 XP POR PARTIDAS (llamado desde actualizador_bg.js)
+// Recibe el userDB de MongoDB y el array de partidas nuevas ya procesadas.
+// Da XP por cada partida: más si ganaron, menos si perdieron.
+// También incrementa Partidas_Registradas para llevar el contador total.
+async function otorgarXPPartidas(client, userDB, partidas) {
+    if (!partidas || partidas.length === 0) return;
+
+    let xpTotal        = 0;
+    let partidasReales = 0; // No contamos remakes
+
+    for (const match of partidas) {
+        const info = match?.info;
+        if (!info) continue;
+
+        const yo = info.participants?.find(p => p.puuid === userDB.PUUID);
+        if (!yo) continue;
+
+        // Ignoramos remakes (menos de 5 minutos)
+        const duracionS = info.gameDuration > 10000
+            ? Math.floor(info.gameDuration / 1000)
+            : info.gameDuration;
+        if (duracionS <= 270) continue;
+
+        xpTotal += yo.win ? XP_PARTIDA_VICTORIA : XP_PARTIDA_DERROTA;
+        partidasReales++;
+    }
+
+    if (partidasReales === 0) return;
+
+    // $inc atómico: sin race conditions
+    const updatedUser = await Usuario.findOneAndUpdate(
+        { Discord_ID: userDB.Discord_ID },
+        { $inc: {
+            'Social.XP':                   xpTotal,
+            'Social.Partidas_Registradas': partidasReales
+        }},
+        { returnDocument: 'after' }
+    );
+
+    if (!updatedUser?.Social) return;
+
+    if (updatedUser.Social.XP >= calcularXPMeta(updatedUser.Social.Nivel)) {
+        await procesarSubidaNivel(client, userDB.Discord_ID, userDB.Discord_Nick);
+    }
+}
+
 function iniciarMotorXP(client) {
     console.log('\x1b[32m·\x1b[0m [Motor XP] Sistema arrancado (Atomicidad + Candados + Optimistic Lock).');
 }
 
-module.exports = { otorgarXPMensaje, rastrearVoz, iniciarMotorXP };
+module.exports = { otorgarXPMensaje, rastrearVoz, otorgarXPPartidas, iniciarMotorXP };

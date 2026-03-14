@@ -1,7 +1,7 @@
 {
     "Resumen": {
-        "Victorias": 111,
-        "Derrotas": 116,
+        "Victorias": 112,
+        "Derrotas": 117,
         "WinRate": 49
     },
     "Campeones": {
@@ -30,12 +30,12 @@
             "assists": 44
         },
         "Xayah": {
-            "partidas": 10,
-            "victorias": 4,
+            "partidas": 11,
+            "victorias": 5,
             "derrotas": 6,
-            "kills": 68,
-            "deaths": 58,
-            "assists": 63
+            "kills": 79,
+            "deaths": 60,
+            "assists": 74
         },
         "Smolder": {
             "partidas": 19,
@@ -86,12 +86,12 @@
             "assists": 4
         },
         "Yunara": {
-            "partidas": 4,
+            "partidas": 5,
             "victorias": 2,
-            "derrotas": 2,
-            "kills": 34,
-            "deaths": 30,
-            "assists": 46
+            "derrotas": 3,
+            "kills": 35,
+            "deaths": 31,
+            "assists": 56
         },
         "Jinx": {
             "partidas": 6,
@@ -4675,9 +4675,9 @@
             "nick": "L9Eric",
             "tag": "2003",
             "icono": 3457,
-            "partidas": 2,
+            "partidas": 3,
             "victorias": 1,
-            "derrotas": 1
+            "derrotas": 2
         },
         "if0uXllFfHwglNqxyKsQt4_0XqBVALlicINsuzcJl1bR5AY3rFIktgOUmgo78-NdmxkF1YlP40IhgA": {
             "nick": "4k Cannavi",
@@ -4835,6 +4835,46 @@
             "nick": "Sorcerer",
             "tag": "lkn",
             "icono": 6487,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "8iM2TdIAQvjmxakyLnwQdJshWwPiiFtTv4CqvGaT7w2b30EFctsGlmz9UiqflpqusteZmJN-Vionpw": {
+            "nick": "FranchitoLAN",
+            "tag": "LAN",
+            "icono": 6574,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "Q7UyprbRgCXTHhZLXhQNmYl_vCRsIszumsE23YTkD3vYpPA4tXnEFnO5ZW0Db2HuUYavmQSAlxamvg": {
+            "nick": "Sorry No Gankeo",
+            "tag": "GANK",
+            "icono": 6751,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "maRt-xC4LYPUHvIZbYy_3l7KY3tw9vTQlSX4j5v0UPwpq_fhZROjjthAxcs6xvqoHUSaR0fQvOxFcg": {
+            "nick": "BKL Supernova",
+            "tag": "ACE",
+            "icono": 6872,
+            "partidas": 2,
+            "victorias": 1,
+            "derrotas": 1
+        },
+        "B4rzf8sMgBFP7eLczmymMpTck5awQrXzJQRw-tBnF3vPTeS5MWwaFweuz-OGMCqyS8FBqiRltJWP6w": {
+            "nick": "melixenovia",
+            "tag": "LAN",
+            "icono": 3868,
+            "partidas": 2,
+            "victorias": 1,
+            "derrotas": 1
+        },
+        "QP-4td4qEQQitG1FZPMImROz1KMcMmEhhf59TPj3F1o39PJEtmHZzsK00ox6HwnBlC1Kh-ca4oabRA": {
+            "nick": "AXK Franchito",
+            "tag": "AXIS",
+            "icono": 3175,
             "partidas": 1,
             "victorias": 0,
             "derrotas": 1
@@ -7645,6 +7685,30 @@
             "kills": 8,
             "deaths": 7,
             "assists": 2,
+            "victoria": false,
+            "rol": "BOTTOM",
+            "esRemake": false
+        },
+        {
+            "matchId": "LA1_1701162948",
+            "fecha": 1773371354433,
+            "queueId": 440,
+            "campeon": "Xayah",
+            "kills": 11,
+            "deaths": 2,
+            "assists": 11,
+            "victoria": true,
+            "rol": "BOTTOM",
+            "esRemake": false
+        },
+        {
+            "matchId": "LA1_1701129545",
+            "fecha": 1773366774785,
+            "queueId": 440,
+            "campeon": "Yunara",
+            "kills": 1,
+            "deaths": 1,
+            "assists": 10,
             "victoria": false,
             "rol": "BOTTOM",
             "esRemake": false

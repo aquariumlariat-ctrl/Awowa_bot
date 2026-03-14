@@ -37,7 +37,7 @@ module.exports = {
     async execute(interaction) {
         await interaction.deferReply();
 
-        const optUser  = interaction.options.getUser('usuario');
+        const optUser    = interaction.options.getUser('usuario');
         const targetUser = optUser ?? interaction.user;
 
         if (targetUser.bot) {
@@ -60,20 +60,16 @@ module.exports = {
                 // ─────────────────────────────────────────────────────────────
                 // 🏆 RANKING FILTRADO POR SERVIDOR
                 //
-                // Obtenemos los IDs de todos los miembros de este servidor
-                // y los usamos como filtro en countDocuments, para que el
-                // ranking sea local al servidor y no mezcle usuarios de otros.
+                // Usamos Guild_ID guardado en MongoDB para filtrar directamente
+                // en la query, sin necesidad de traer arrays de IDs a Node.js.
+                // Esto es eficiente a cualquier escala de usuarios.
                 //
-                // guild.members.fetch() trae todos los miembros al caché de
-                // Discord.js. Para servidores de +2000 usuarios considera
-                // añadir el campo Guild_ID al schema de Usuario y filtrar
-                // directamente en MongoDB (más eficiente a esa escala).
+                // Si un usuario no tiene Guild_ID (se matriculó antes de esta
+                // mejora), simplemente no aparecerá en el ranking hasta que
+                // vuelva a ser procesado. No rompe nada.
                 // ─────────────────────────────────────────────────────────────
-                await interaction.guild.members.fetch().catch(() => {});
-                const memberIds = interaction.guild.members.cache.map(m => m.id);
-
                 posicionReal = await Usuario.countDocuments({
-                    Discord_ID: { $in: memberIds },
+                    Guild_ID: interaction.guild.id,
                     $or: [
                         { 'Social.Nivel': { $gt: uNivel } },
                         { 'Social.Nivel': uNivel, 'Social.XP': { $gt: uXP } }
@@ -86,9 +82,9 @@ module.exports = {
                 apodoReal = miembroEnServidor.displayName;
             }
 
-            const socialData  = { Nivel: uNivel, XP: uXP, Posicion: posicionReal };
-            const bufferImagen = await generarCanvasNivel(socialData, apodoReal, targetUser.username);
-            const adjunto      = new AttachmentBuilder(bufferImagen, { name: `nivel_${userDB.Numero_Matricula}.png` });
+            const socialData   = { Nivel: uNivel, XP: uXP, Posicion: posicionReal };
+            const bufferImagen = await generarCanvasNivel(socialData, apodoReal, targetUser.username, targetUser.id);
+            const adjunto      = new AttachmentBuilder(bufferImagen, { name: `nivel_${userDB.Numero_Matricula}.webp` });
 
             await interaction.editReply({ content: null, files: [adjunto] });
 

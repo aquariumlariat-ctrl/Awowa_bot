@@ -32,6 +32,34 @@ const RANK_URLS = {
     3: 'https://i.imgur.com/rGdiBn1.png'
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 🖼️ CACHÉ DE IMAGEN POR USUARIO
+// Evita re-renderizar si el mismo usuario consulta /nivel varias veces seguidas.
+// Cada entrada expira después de CACHE_TTL_MS, garantizando que los cambios
+// de nivel o XP se reflejen en el siguiente ciclo.
+// ─────────────────────────────────────────────────────────────────────────────
+const CACHE_TTL_MS = 60 * 1000; // 60 segundos
+const imageCache = new Map(); // clave: userId, valor: { buffer, expira }
+
+function getCachedImage(userId) {
+    const entry = imageCache.get(userId);
+    if (!entry) return null;
+    if (Date.now() > entry.expira) { imageCache.delete(userId); return null; }
+    return entry.buffer;
+}
+
+function setCachedImage(userId, buffer) {
+    imageCache.set(userId, { buffer, expira: Date.now() + CACHE_TTL_MS });
+}
+
+// 🧹 Limpieza periódica para evitar memory leak con usuarios inactivos
+setInterval(() => {
+    const ahora = Date.now();
+    for (const [key, entry] of imageCache.entries()) {
+        if (ahora > entry.expira) imageCache.delete(key);
+    }
+}, CACHE_TTL_MS * 2);
+
 async function fetchBuffer(url) {
     const response = await fetch(url);
     if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
@@ -124,7 +152,13 @@ function obtenerDatosRango(nivel) {
 
 const px = (n) => Math.round(n);
 
-async function generarCanvasNivel(socialData, discordNick, discordUsername) {
+async function generarCanvasNivel(socialData, discordNick, discordUsername, userId = null) {
+    // ── Caché de imagen ──────────────────────────────────────────────────────
+    if (userId) {
+        const cached = getCachedImage(userId);
+        if (cached) return cached;
+    }
+    // ────────────────────────────────────────────────────────────────────────
     const baseW = 750, baseH = 225, scale = 2;
     const canvas = createCanvas(baseW * scale, baseH * scale);
     const ctx = canvas.getContext('2d');
@@ -312,7 +346,10 @@ async function generarCanvasNivel(socialData, discordNick, discordUsername) {
         ctx.restore();
     }
 
-    return canvas.toBuffer('image/png');
+    // WebP: encoding más rápido que PNG y menor peso, Discord lo soporta
+    const buffer = canvas.toBuffer('image/webp');
+    if (userId) setCachedImage(userId, buffer);
+    return buffer;
 }
 
 module.exports = { generarCanvasNivel };

@@ -1,27 +1,27 @@
 // Modulos/Principales/Matricula/matricula.js
 const { AttachmentBuilder, EmbedBuilder } = require('discord.js');
 const fs = require('fs');
-const fsPromises = require('fs').promises; 
+const fsPromises = require('fs').promises;
 const path = require('path');
 const { generarTarjetaMatricula } = require('./canvas_matricula.js');
 const { regionAPlatforma, verificarCuentaRiot, obtenerSummoner, obtenerRangos } = require("../../../API's/Riot/lol_api");
 const { obtenerRangoTFT } = require("../../../API's/Riot/tft_api");
 
 const Usuario = require('../../../Base_Datos/MongoDB/Usuario.js');
-const IntentoMatricula = require('../../../Base_Datos/MongoDB/IntentoMatricula.js'); 
-const Contador = require('../../../Base_Datos/MongoDB/contador.js'); 
+const IntentoMatricula = require('../../../Base_Datos/MongoDB/IntentoMatricula.js');
+const Contador = require('../../../Base_Datos/MongoDB/contador.js');
 const { logNuevaMatricula, actualizarGaleria } = require('./bitacora');
 
 // 🎨 Paleta de colores ANSI
 const c = { v: '\x1b[32m', r: '\x1b[31m', a: '\x1b[33m', b: '\x1b[0m' };
 
 const ICONOS_VERIFICACION = [2, 5, 6, 11, 12];
-const TIEMPO_INICIAL = 10 * 60 * 1000;    
-const TIEMPO_EXPIRACION = 15 * 60 * 1000; 
-const INTERVALO_VERIFICACION = 30 * 1000; 
+const TIEMPO_INICIAL = 10 * 60 * 1000;
+const TIEMPO_EXPIRACION = 15 * 60 * 1000;
+const INTERVALO_VERIFICACION = 30 * 1000;
 
 const MAX_INTENTOS = 3;
-const TIEMPO_COOLDOWN = 30 * 60 * 1000; 
+const TIEMPO_COOLDOWN = 30 * 60 * 1000;
 
 const CANVAS_VERIFICACION = {
     2: 'https://i.imgur.com/z6bovLx.png',
@@ -32,10 +32,10 @@ const CANVAS_VERIFICACION = {
 };
 
 const ESTADO_VERIFICACION = {
-    APROBADA: 'https://i.imgur.com/U48F8TX.png',
-    DENEGADA: 'https://i.imgur.com/XScBueH.png',
+    APROBADA:  'https://i.imgur.com/U48F8TX.png',
+    DENEGADA:  'https://i.imgur.com/XScBueH.png',
     CANCELADA: 'https://i.imgur.com/LWwGrbf.png',
-    ERROR: 'https://i.imgur.com/PhzYaUF.png'
+    ERROR:     'https://i.imgur.com/PhzYaUF.png'
 };
 
 const CACHE_FILE = path.join(__dirname, '../../../Base_Datos/Cache/matriculas_pendientes.json');
@@ -53,7 +53,7 @@ async function actualizarCache() {
     }
     try {
         await fsPromises.writeFile(CACHE_FILE, JSON.stringify(data, null, 4), 'utf8');
-    } catch (err) { }
+    } catch (err) {}
 }
 
 function setEstadoUsuario(userId, estado) {
@@ -79,7 +79,7 @@ function obtenerIconoAleatorio(iconoActual = null) {
 async function usuarioYaRegistrado(discordId) {
     try {
         const usuario = await Usuario.findOne({ Discord_ID: discordId });
-        return !!usuario; 
+        return !!usuario;
     } catch {
         return false;
     }
@@ -90,7 +90,7 @@ async function guardarUsuario(datosUsuario) {
         await Usuario.findOneAndUpdate(
             { Discord_ID: datosUsuario.Discord_ID },
             datosUsuario,
-            { upsert: true, returnDocument: 'after' } 
+            { upsert: true, returnDocument: 'after' }
         );
         return true;
     } catch {
@@ -151,19 +151,19 @@ async function generarYGuardarTarjeta(estadoUsuario) {
         const docContador = await Contador.findOneAndUpdate(
             { id: 'matriculas_globales' },
             { $inc: { seq: 1 } },
-            { new: true, upsert: true } 
+            { new: true, upsert: true }
         );
         numeroTotal = docContador.seq;
     } catch (err) {
-        numeroTotal = (await Usuario.countDocuments()) + 1; 
+        numeroTotal = (await Usuario.countDocuments()) + 1;
     }
 
     const imageBuffer = await generarTarjetaMatricula({
-        gameName: estadoUsuario.gameName, 
+        gameName: estadoUsuario.gameName,
         tagLine: estadoUsuario.tagLine,
-        nivel: estadoUsuario.summonerLevel, 
+        nivel: estadoUsuario.summonerLevel,
         iconoId: estadoUsuario.iconoValidacion,
-        soloq: rangos.soloq, 
+        soloq: rangos.soloq,
         flex: rangos.flex,
         numeroUsuario: numeroTotal
     });
@@ -171,10 +171,10 @@ async function generarYGuardarTarjeta(estadoUsuario) {
     const attachment = new AttachmentBuilder(imageBuffer, { name: 'tarjeta.png' });
     const embed = new EmbedBuilder().setColor('#171b23').setImage('attachment://tarjeta.png');
 
-    return { 
-        tarjeta: { embed, attachment }, 
+    return {
+        tarjeta: { embed, attachment },
         rangosGuardados: { soloq: rangos.soloq, flex: rangos.flex, tft: rangoTFT },
-        numeroMatricula: numeroTotal 
+        numeroMatricula: numeroTotal
     };
 }
 
@@ -184,8 +184,8 @@ async function preGenerarTarjeta(userId, estadoUsuario) {
         const estadoActual = usuariosEnMatricula.get(userId);
         if (estadoActual && estadoActual.etapa === 'validacion') {
             estadoActual.tarjetaPreGenerada = datosGenerados.tarjeta;
-            estadoActual.rangosPreCargados = datosGenerados.rangosGuardados;
-            estadoActual.numeroMatricula = datosGenerados.numeroMatricula; 
+            estadoActual.rangosPreCargados  = datosGenerados.rangosGuardados;
+            estadoActual.numeroMatricula    = datosGenerados.numeroMatricula;
             setEstadoUsuario(userId, estadoActual);
         }
     } catch {}
@@ -199,10 +199,10 @@ async function validarRiotID(message, estadoUsuario) {
     const [nombre, tag] = riotIDLimpio.split('#');
     if (!nombre || !tag) return message.channel.send(getMensajes().IDIncorrectoMatricula);
 
-    estadoUsuario.riotID = riotIDLimpio;
-    estadoUsuario.gameName = nombre.trim();
-    estadoUsuario.tagLine = tag.trim();
-    estadoUsuario.etapa = 'region';
+    estadoUsuario.riotID    = riotIDLimpio;
+    estadoUsuario.gameName  = nombre.trim();
+    estadoUsuario.tagLine   = tag.trim();
+    estadoUsuario.etapa     = 'region';
     setEstadoUsuario(message.author.id, estadoUsuario);
 
     await message.channel.send(getMensajes().RegionMatricula(riotIDLimpio));
@@ -217,7 +217,7 @@ async function validarRegion(message, estadoUsuario) {
 
     estadoUsuario.region = region;
     const datosPreValidados = estadoUsuario.preValidacion?.find(d => d.region === region);
-    
+
     let loadingMessage = null;
     if (!datosPreValidados) loadingMessage = await message.channel.send(getMensajes().CargandoValidacion);
 
@@ -230,22 +230,21 @@ async function validarRegion(message, estadoUsuario) {
         if (!resultado.existe) return fallarBusquedaCuenta(message, loadingMessage, estadoUsuario);
 
         plataforma = regionAPlatforma[region];
-        puuid = resultado.data.puuid;
-        summoner = await obtenerSummoner(puuid, plataforma);
+        puuid      = resultado.data.puuid;
+        summoner   = await obtenerSummoner(puuid, plataforma);
 
         if (!summoner) return fallarBusquedaCuenta(message, loadingMessage, estadoUsuario);
 
         gameName = resultado.data.gameName;
-        tagLine = resultado.data.tagLine;
+        tagLine  = resultado.data.tagLine;
     }
 
     try {
         const cuentaExistente = await Usuario.findOne({ PUUID: puuid });
         if (cuentaExistente) {
-            estadoUsuario.etapa = 'riotid'; 
+            estadoUsuario.etapa = 'riotid';
             setEstadoUsuario(message.author.id, estadoUsuario);
             const msgEnUso = getMensajes().CuentaYaEnUso || 'Esta cuenta ya pertenece a otro usuario.';
-            // 👇 NUEVO LOG: FIN POR CUENTA EN USO 👇
             console.log(`${c.r}·${c.b} [Matricula] El usuario ${message.author.username} finalizó un proceso de matrícula. Razón: ${c.r}La cuenta de LoL ya está en uso${c.b}.`);
             return loadingMessage ? await loadingMessage.edit(msgEnUso) : await message.channel.send(msgEnUso);
         }
@@ -258,20 +257,20 @@ async function validarRegion(message, estadoUsuario) {
         }
 
         const iconoAsignado = obtenerIconoAleatorio(summoner.profileIconId);
-        
+
         Object.assign(estadoUsuario, {
             etapa: 'validacion', puuid, plataforma, gameName, tagLine,
             iconoActual: summoner.profileIconId, iconoValidacion: iconoAsignado,
             summonerLevel: summoner.summonerLevel,
-            tiempoInicio: Date.now(),
+            tiempoInicio:     Date.now(),
             tiempoExpiracion: Date.now() + TIEMPO_EXPIRACION
         });
 
         const embedVerificacion = new EmbedBuilder().setColor('#171b23').setImage(CANVAS_VERIFICACION[iconoAsignado]);
-        const contenidoMensaje = { content: getMensajes().ValidacionEnProceso, embeds: [embedVerificacion] };
-        
-        estadoUsuario.verificacionMsg = loadingMessage 
-            ? await loadingMessage.edit(contenidoMensaje) 
+        const contenidoMensaje  = { content: getMensajes().ValidacionEnProceso, embeds: [embedVerificacion] };
+
+        estadoUsuario.verificacionMsg = loadingMessage
+            ? await loadingMessage.edit(contenidoMensaje)
             : await message.channel.send(contenidoMensaje);
 
         setEstadoUsuario(message.author.id, estadoUsuario);
@@ -305,9 +304,8 @@ function iniciarPolling(message, estadoUsuario) {
 
             if (estadoActual.verificacionMsg) {
                 const embedDenegada = new EmbedBuilder().setColor('#171b23').setImage(ESTADO_VERIFICACION.DENEGADA);
-                await estadoActual.verificacionMsg.edit({ content: getMensajes().ValidacionDenegada, embeds: [embedDenegada] }).catch(()=>{});
+                await estadoActual.verificacionMsg.edit({ content: getMensajes().ValidacionDenegada, embeds: [embedDenegada] }).catch(() => {});
             }
-            // 👇 NUEVO LOG: FIN POR EXPIRACIÓN DE VALIDACIÓN 👇
             console.log(`${c.r}·${c.b} [Matricula] El usuario ${message.author.username} finalizó un proceso de matrícula. Razón: ${c.r}Tiempo de validación agotado${c.b}.`);
             return message.channel.send(getMensajes().ValidacionExpirada);
         }
@@ -321,7 +319,7 @@ function iniciarPolling(message, estadoUsuario) {
 
                 if (estadoActual.verificacionMsg) {
                     const embedAprobada = new EmbedBuilder().setColor('#171b23').setImage(ESTADO_VERIFICACION.APROBADA);
-                    await estadoActual.verificacionMsg.edit({ content: getMensajes().ValidacionAprobada, embeds: [embedAprobada] }).catch(()=>{});
+                    await estadoActual.verificacionMsg.edit({ content: getMensajes().ValidacionAprobada, embeds: [embedAprobada] }).catch(() => {});
                 }
 
                 let datosTarjeta;
@@ -335,23 +333,29 @@ function iniciarPolling(message, estadoUsuario) {
                     numMatricula = resultado.numeroMatricula;
                 }
 
-                const fechaActual = new Date();
+                const fechaActual    = new Date();
                 const fechaFormateada = `${String(fechaActual.getDate()).padStart(2, '0')}/${String(fechaActual.getMonth() + 1).padStart(2, '0')}/${fechaActual.getFullYear()}`;
 
                 const datosGuardar = {
-                    Discord_ID: userId,
-                    Discord_Nick: message.author.username,
-                    Fecha: fechaFormateada,
-                    Riot_ID: `${estadoActual.gameName}#${estadoActual.tagLine}`,
-                    Region: estadoActual.region,
-                    PUUID: estadoActual.puuid,
-                    Nivel: estadoActual.summonerLevel,
-                    Icono_ID: estadoActual.iconoValidacion,
+                    Discord_ID:       userId,
+                    Discord_Nick:     message.author.username,
+                    Fecha:            fechaFormateada,
+                    // ─────────────────────────────────────────────────────
+                    // 🏠 Guardamos el ID del servidor donde se matriculó.
+                    // Permite hacer rankings locales por servidor sin traer
+                    // arrays de IDs a Node.js en cada consulta.
+                    // ─────────────────────────────────────────────────────
+                    Guild_ID:         message.guild?.id || null,
+                    Riot_ID:          `${estadoActual.gameName}#${estadoActual.tagLine}`,
+                    Region:           estadoActual.region,
+                    PUUID:            estadoActual.puuid,
+                    Nivel:            estadoActual.summonerLevel,
+                    Icono_ID:         estadoActual.iconoValidacion,
                     Numero_Matricula: numMatricula,
                     Rangos: {
-                        Flex: datosTarjeta.rangosGuardados?.flex || null,
+                        Flex:  datosTarjeta.rangosGuardados?.flex  || null,
                         SoloQ: datosTarjeta.rangosGuardados?.soloq || null,
-                        TFT: datosTarjeta.rangosGuardados?.tft || null
+                        TFT:   datosTarjeta.rangosGuardados?.tft   || null
                     }
                 };
 
@@ -360,11 +364,11 @@ function iniciarPolling(message, estadoUsuario) {
                 await IntentoMatricula.deleteOne({ Discord_ID: userId });
 
                 try {
-                    const nickSeguro = message.author.username.replace(/[<>:"/\\|?*\x00-\x1F]/g, '').trim() || 'Jugador';
+                    const nickSeguro    = message.author.username.replace(/[<>:"/\\|?*\x00-\x1F]/g, '').trim() || 'Jugador';
                     const nombreCarpeta = `#${numMatricula}_${nickSeguro}`;
-                    const rutaCarpeta = path.join(__dirname, '../../../Base_Datos/Usuarios', nombreCarpeta);
+                    const rutaCarpeta   = path.join(__dirname, '../../../Base_Datos/Usuarios', nombreCarpeta);
 
-                    try { await fsPromises.access(rutaCarpeta); } 
+                    try { await fsPromises.access(rutaCarpeta); }
                     catch { await fsPromises.mkdir(rutaCarpeta, { recursive: true }); }
 
                     const plantillaJuegos = {
@@ -376,23 +380,23 @@ function iniciarPolling(message, estadoUsuario) {
 
                     const archivosCrear = {
                         'datos_basicos.json': {
-                            Discord_ID: userId,
-                            Discord_Nick: message.author.username,
+                            Discord_ID:       userId,
+                            Discord_Nick:     message.author.username,
                             Numero_Matricula: numMatricula,
-                            Riot_ID: `${estadoActual.gameName}#${estadoActual.tagLine}`,
-                            PUUID: estadoActual.puuid,
-                            Region: estadoActual.region,
-                            Fecha_Matricula: fechaFormateada
+                            Riot_ID:          `${estadoActual.gameName}#${estadoActual.tagLine}`,
+                            PUUID:            estadoActual.puuid,
+                            Region:           estadoActual.region,
+                            Fecha_Matricula:  fechaFormateada
                         },
-                        'datos_lol_soloq.json': plantillaJuegos,
-                        'datos_lol_flex.json': plantillaJuegos,
+                        'datos_lol_soloq.json':   plantillaJuegos,
+                        'datos_lol_flex.json':    plantillaJuegos,
                         'datos_lol_normals.json': plantillaJuegos,
-                        'datos_lol_total.json': plantillaJuegos
+                        'datos_lol_total.json':   plantillaJuegos
                     };
 
                     for (const [nombreArchivo, contenidoVacio] of Object.entries(archivosCrear)) {
                         const rutaArchivo = path.join(rutaCarpeta, nombreArchivo);
-                        try { await fsPromises.access(rutaArchivo); } 
+                        try { await fsPromises.access(rutaArchivo); }
                         catch { await fsPromises.writeFile(rutaArchivo, JSON.stringify(contenidoVacio, null, 4), 'utf8'); }
                     }
                 } catch (e) {
@@ -402,13 +406,12 @@ function iniciarPolling(message, estadoUsuario) {
                 await message.channel.send(getMensajes().MatriculaCompletada);
                 await message.channel.send({
                     embeds: [datosTarjeta.tarjeta.embed],
-                    files: [datosTarjeta.tarjeta.attachment]
+                    files:  [datosTarjeta.tarjeta.attachment]
                 });
 
                 await logNuevaMatricula(message.client, message.author, datosGuardar.Riot_ID, numMatricula);
                 await actualizarGaleria(message.client);
-                
-                // 👇 NUEVO LOG: FIN CON ÉXITO 👇
+
                 console.log(`${c.v}·${c.b} [Matricula] El usuario ${message.author.username} finalizó un proceso de matrícula. Razón: ${c.v}Completado con éxito${c.b}.`);
             }
         } catch {}
@@ -419,22 +422,22 @@ function iniciarPolling(message, estadoUsuario) {
 }
 
 async function cancelarMatricula(message) {
-    const userId = message.author.id;
+    const userId       = message.author.id;
     const estadoUsuario = usuariosEnMatricula.get(userId);
     if (!estadoUsuario) return;
 
     if (estadoUsuario.timeoutInicial) clearTimeout(estadoUsuario.timeoutInicial);
-    if (estadoUsuario.intervalo) clearInterval(estadoUsuario.intervalo);
+    if (estadoUsuario.intervalo)      clearInterval(estadoUsuario.intervalo);
 
     let mensajeCancelacion = getMensajes().MatriculaCancelada;
-    
+
     if (estadoUsuario.etapa === 'validacion') {
         mensajeCancelacion = getMensajes().CancelacionDuranteValidacion;
         if (estadoUsuario.verificacionMsg) {
             const embedCancelada = new EmbedBuilder().setColor('#171b23').setImage(ESTADO_VERIFICACION.CANCELADA);
             await estadoUsuario.verificacionMsg.edit({
                 content: getMensajes().ValidacionCancelada,
-                embeds: [embedCancelada]
+                embeds:  [embedCancelada]
             }).catch(() => {});
         }
     }
@@ -442,24 +445,23 @@ async function cancelarMatricula(message) {
     deleteEstadoUsuario(userId);
     await registrarFalloIntento(userId);
     await message.channel.send(mensajeCancelacion);
-    
-    // 👇 NUEVO LOG: FIN POR CANCELACIÓN 👇
+
     console.log(`${c.a}·${c.b} [Matricula] El usuario ${message.author.username} finalizó un proceso de matrícula. Razón: Cancelado manualmente.`);
 }
 
 async function ejecutarMatricula(message) {
-    const esEnDM = message.channel.isDMBased();
+    const esEnDM  = message.channel.isDMBased();
     const responder = (texto) => esEnDM ? message.channel.send(texto) : message.reply(texto);
-    const userId = message.author.id;
-    
+    const userId  = message.author.id;
+
     try {
         const recordIntentos = await IntentoMatricula.findOne({ Discord_ID: userId });
         if (recordIntentos && recordIntentos.CooldownHasta) {
             if (Date.now() < recordIntentos.CooldownHasta.getTime()) {
                 const timestampSegundos = Math.floor(recordIntentos.CooldownHasta.getTime() / 1000);
-                const tiempoDinamico = `<t:${timestampSegundos}:R>`;
-                const msgCooldown = getMensajes().EnCooldownMatricula 
-                    ? getMensajes().EnCooldownMatricula(tiempoDinamico) 
+                const tiempoDinamico    = `<t:${timestampSegundos}:R>`;
+                const msgCooldown = getMensajes().EnCooldownMatricula
+                    ? getMensajes().EnCooldownMatricula(tiempoDinamico)
                     : `¡Has superado el límite de intentos permitidos! \n\nPor favor, espera **${tiempoDinamico}** antes de volver a intentarlo.`;
                 return responder(msgCooldown);
             } else {
@@ -471,27 +473,25 @@ async function ejecutarMatricula(message) {
     if (await usuarioYaRegistrado(userId)) {
         return responder(getMensajes().UsuarioYaMatriculado(message.author));
     }
-    
+
     if (usuariosEnMatricula.has(userId)) {
         return responder(getMensajes().MatriculaYaEnProceso);
     }
-    
+
     try {
         const dmChannel = esEnDM ? message.channel : await message.author.createDM();
-        
-        // 👇 NUEVO LOG: INICIO DE PROCESO 👇
+
         console.log(`${c.a}·${c.b} [Matricula] El usuario ${message.author.username} comenzó un proceso de matrícula.`);
-        
+
         await dmChannel.send(getMensajes().ArranqueMatricula);
-        
+
         const timeoutInicial = setTimeout(async () => {
             const estado = usuariosEnMatricula.get(userId);
             if (estado && (estado.etapa === 'riotid' || estado.etapa === 'region')) {
                 deleteEstadoUsuario(userId);
                 await registrarFalloIntento(userId);
                 try { await dmChannel.send(getMensajes().TiempoAgotadoInicial); } catch {}
-                
-                // 👇 NUEVO LOG: FIN POR INACTIVIDAD INICIAL 👇
+
                 console.log(`${c.r}·${c.b} [Matricula] El usuario ${message.author.username} finalizó un proceso de matrícula. Razón: ${c.r}Tiempo inicial agotado${c.b}.`);
             }
         }, TIEMPO_INICIAL);
@@ -510,7 +510,7 @@ async function ejecutarMatricula(message) {
 async function procesarRespuestaDM(message) {
     const estadoUsuario = usuariosEnMatricula.get(message.author.id);
     if (!estadoUsuario) return;
-    
+
     if (estadoUsuario.etapa === 'riotid') {
         await validarRiotID(message, estadoUsuario);
     } else if (estadoUsuario.etapa === 'region') {
@@ -521,14 +521,14 @@ async function procesarRespuestaDM(message) {
 async function restaurarMatriculas(client) {
     try {
         if (!fs.existsSync(CACHE_FILE)) return;
-        const data = JSON.parse(await fsPromises.readFile(CACHE_FILE, 'utf8'));
+        const data    = JSON.parse(await fsPromises.readFile(CACHE_FILE, 'utf8'));
         const userIds = Object.keys(data);
 
         if (userIds.length === 0) return;
         console.log(`${c.v}·${c.b} [Matricula] Rescatando ${userIds.length} procesos interrumpidos por el reinicio...`);
 
         for (const userId of userIds) {
-            await IntentoMatricula.deleteOne({ Discord_ID: userId }).catch(()=>{}); 
+            await IntentoMatricula.deleteOne({ Discord_ID: userId }).catch(() => {});
             try {
                 const user = await client.users.fetch(userId);
                 await user.send(getMensajes().MatriculaCanceladaReinicio);
@@ -542,8 +542,8 @@ async function restaurarMatriculas(client) {
 
 module.exports = {
     name: 'matricula',
-    execute: ejecutarMatricula,
-    ejecutarCancelar: cancelarMatricula,
+    execute:              ejecutarMatricula,
+    ejecutarCancelar:     cancelarMatricula,
     procesarRespuestaDM,
     restaurarMatriculas,
     usuariosEnMatricula,
