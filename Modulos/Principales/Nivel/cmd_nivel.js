@@ -2,7 +2,7 @@
 const { SlashCommandBuilder, AttachmentBuilder } = require('discord.js');
 const Usuario = require('../../../Base_Datos/MongoDB/Usuario');
 const { generarCanvasNivel } = require('./canvas_nivel');
-const { obtenerPuesto } = require('./motor_ranking');
+const { obtenerPuesto } = require('./ranking');
 const fs = require('fs');
 const path = require('path');
 
@@ -48,7 +48,7 @@ module.exports = {
         }
 
         const userDB = await Usuario.findOne({ Discord_ID: targetUser.id });
-        if (!userDB) return interaction.editReply(msgCache.ErrNoDB || "❌ No pude encontrar a ese usuario en la base de datos.");
+        if (!userDB) return interaction.editReply(msgCache.ErrNoDB);
 
         const miembroEnServidor = await interaction.guild.members.fetch(targetUser.id).catch(() => null);
 
@@ -56,7 +56,7 @@ module.exports = {
             const uNivel = userDB.Social?.Nivel || 1;
             const uXP    = userDB.Social?.XP    || 0;
 
-            // Puesto desde el ranking en memoria — instantáneo, sin query a MongoDB
+            // Puesto desde el ranking en memoria
             const posicionReal = miembroEnServidor
                 ? obtenerPuesto(interaction.guild.id, targetUser.id)
                 : "-";
@@ -66,15 +66,50 @@ module.exports = {
                 apodoReal = miembroEnServidor.displayName;
             }
 
+            // 👇 SISTEMA DE DEPURACIÓN DE NOMBRES (IDÉNTICO AL CANVAS)
+            let nickFiltrado = (apodoReal || "").replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '').replace(/\s+/g, ' ').trim();
+            if (nickFiltrado.length === 0) {
+                nickFiltrado = (targetUser.username || "jugador").toLowerCase().replace(/\s+/g, '');
+            }
+            const nombreVisible = nickFiltrado.charAt(0).toUpperCase() + nickFiltrado.slice(1);
+
+            // 👇 EXTRACCIÓN DEL EMOJI DE LA APP (IDÉNTICO A LA BITÁCORA)
+            let emojiAsignado = "👤"; 
+            try {
+                const nombreEsperado = `mat_${targetUser.id}`.substring(0, 32);
+                
+                // Primero busca en caché rápido
+                let emojiExistente = interaction.client.application.emojis.cache.find(e => e.name === nombreEsperado);
+                
+                // Si no está, lo pedimos a la API
+                if (!emojiExistente) {
+                    const fetchedEmojis = await interaction.client.application.emojis.fetch();
+                    emojiExistente = fetchedEmojis.find(e => e.name === nombreEsperado);
+                }
+
+                if (emojiExistente) {
+                    emojiAsignado = `<:${emojiExistente.name}:${emojiExistente.id}>`;
+                }
+            } catch (e) {
+                // Silencioso. Si falla, usamos el 👤 de respaldo.
+            }
+
             const socialData   = { Nivel: uNivel, XP: uXP, Posicion: posicionReal };
-            const bufferImagen = await generarCanvasNivel(socialData, apodoReal, targetUser.username, targetUser.id);
+            
+            // 👇 Pasamos la ID del servidor como el 5to parámetro
+            const guildIdToCache = interaction.guild?.id || "DM";
+            const bufferImagen = await generarCanvasNivel(socialData, apodoReal, targetUser.username, targetUser.id, guildIdToCache);
+            
             const adjunto      = new AttachmentBuilder(bufferImagen, { name: `nivel_${userDB.Numero_Matricula}.webp` });
 
-            await interaction.editReply({ content: null, files: [adjunto] });
+            // 👇 SE MANDA AL MENSAJERO CACHEADO EL EMOJI Y EL NOMBRE YA DEPURADO
+            const textoAcompañante = typeof msgCache.CmdNivelMsg === 'function' ? msgCache.CmdNivelMsg(emojiAsignado, nombreVisible) : msgCache.CmdNivelMsg;
+
+            await interaction.editReply({ content: textoAcompañante, files: [adjunto] });
 
         } catch (error) {
             console.error('\x1b[31m·\x1b[0m [Error Cmd Nivel]', error);
-            await interaction.editReply(msgCache.ErrInterno || "❌ Ocurrió un error interno al intentar procesar las estadísticas.");
+            await interaction.editReply(msgCache.ErrInterno);
         }
     }
 };

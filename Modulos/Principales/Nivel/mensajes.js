@@ -17,5 +17,6 @@ Si el problema persiste, contacta a soporte.`,
 Has alcanzado el **Nivel ${nivel}** y obtenido el rango **${nombre_rango}**.
 Cada partida y cada conversación te acercan al siguiente nivel. 
 
-Consulta tu progreso con \`/nivel\`.`
+Consulta tu progreso con \`/nivel\`.`,
+    CmdNivelMsg: (emoji, nombre) => `¡${emoji} **${nombre}** quiere enserñarnos su tarjeta de nivel! <:Awowa_Noted:1470726561207554140>`
 };

@@ -7,7 +7,7 @@ const Usuario = require('../../../Base_Datos/MongoDB/Usuario');
 const { generarTarjetaMatricula } = require('../Matricula/canvas_matricula.js');
 const { generarBoceto } = require('./canvas_resumen.js');
 const { generarBocetoSocial } = require('./canvas_social.js');
-const { obtenerPuesto } = require('../Nivel/motor_ranking');
+const { obtenerPuesto } = require('../Nivel/ranking.js');
 
 const c = { v: '\x1b[32m', r: '\x1b[31m', a: '\x1b[33m', b: '\x1b[0m' };
 

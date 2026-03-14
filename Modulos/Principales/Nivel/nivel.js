@@ -2,7 +2,7 @@
 const Usuario = require('../../../Base_Datos/MongoDB/Usuario');
 const fs   = require('fs');
 const path = require('path');
-const { actualizarUsuario, inicializarRankings } = require('./motor_ranking');
+const { actualizarUsuario, inicializarRankings } = require('./ranking.js');
 
 // ⏱️ Mapas de Memoria Cache
 const cooldownsMensajes = new Map();

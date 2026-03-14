@@ -33,23 +33,20 @@ const RANK_URLS = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 🖼️ CACHÉ DE IMAGEN POR USUARIO
-// Evita re-renderizar si el mismo usuario consulta /nivel varias veces seguidas.
-// Cada entrada expira después de CACHE_TTL_MS, garantizando que los cambios
-// de nivel o XP se reflejen en el siguiente ciclo.
+// 🖼️ CACHÉ DE IMAGEN POR USUARIO Y SERVIDOR
 // ─────────────────────────────────────────────────────────────────────────────
 const CACHE_TTL_MS = 60 * 1000; // 60 segundos
-const imageCache = new Map(); // clave: userId, valor: { buffer, expira }
+const imageCache = new Map(); // clave: guildId_userId, valor: { buffer, expira }
 
-function getCachedImage(userId) {
-    const entry = imageCache.get(userId);
+function getCachedImage(cacheKey) {
+    const entry = imageCache.get(cacheKey);
     if (!entry) return null;
-    if (Date.now() > entry.expira) { imageCache.delete(userId); return null; }
+    if (Date.now() > entry.expira) { imageCache.delete(cacheKey); return null; }
     return entry.buffer;
 }
 
-function setCachedImage(userId, buffer) {
-    imageCache.set(userId, { buffer, expira: Date.now() + CACHE_TTL_MS });
+function setCachedImage(cacheKey, buffer) {
+    imageCache.set(cacheKey, { buffer, expira: Date.now() + CACHE_TTL_MS });
 }
 
 // 🧹 Limpieza periódica para evitar memory leak con usuarios inactivos
@@ -152,10 +149,13 @@ function obtenerDatosRango(nivel) {
 
 const px = (n) => Math.round(n);
 
-async function generarCanvasNivel(socialData, discordNick, discordUsername, userId = null) {
+// 👇 Agregado guildId como parámetro extra
+async function generarCanvasNivel(socialData, discordNick, discordUsername, userId = null, guildId = null) {
     // ── Caché de imagen ──────────────────────────────────────────────────────
-    if (userId) {
-        const cached = getCachedImage(userId);
+    // Creamos la llave combinando guildId y userId para aislar cachés por servidor
+    const cacheKey = (userId && guildId) ? `${guildId}_${userId}` : null;
+    if (cacheKey) {
+        const cached = getCachedImage(cacheKey);
         if (cached) return cached;
     }
     // ────────────────────────────────────────────────────────────────────────
@@ -265,7 +265,7 @@ async function generarCanvasNivel(socialData, discordNick, discordUsername, user
         ctx.fillStyle = '#ffffff';
         ctx.font      = 'bold 34px "JakartaBold"';
         ctx.textAlign = 'left';
-        const textoRango = `Rango #${rankPos}`;
+        const textoRango = `Puesto #${rankPos}`;
         ctx.fillText(textoRango, px(divX + 20), px(textTopY));
         const rangoW = ctx.measureText(textoRango).width;
 
@@ -348,7 +348,7 @@ async function generarCanvasNivel(socialData, discordNick, discordUsername, user
 
     // WebP: encoding más rápido que PNG y menor peso, Discord lo soporta
     const buffer = canvas.toBuffer('image/webp');
-    if (userId) setCachedImage(userId, buffer);
+    if (cacheKey) setCachedImage(cacheKey, buffer);
     return buffer;
 }
 

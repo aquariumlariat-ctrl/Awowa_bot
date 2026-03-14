@@ -11,7 +11,7 @@ const Usuario = require('../../../Base_Datos/MongoDB/Usuario.js');
 const IntentoMatricula = require('../../../Base_Datos/MongoDB/IntentoMatricula.js');
 const Contador = require('../../../Base_Datos/MongoDB/contador.js');
 const { logNuevaMatricula, actualizarGaleria } = require('./bitacora');
-const { actualizarUsuario } = require('../Nivel/motor_ranking');
+const { actualizarUsuario } = require('../Nivel/ranking.js');
 
 // 🎨 Paleta de colores ANSI
 const c = { v: '\x1b[32m', r: '\x1b[31m', a: '\x1b[33m', b: '\x1b[0m' };
