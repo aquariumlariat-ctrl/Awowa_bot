@@ -73,13 +73,14 @@ const PENDIENTE = '—';
 // datos = objeto construido en perfil.js con los campos reales del usuario.
 // ─────────────────────────────────────────────────────────────────────────────
 async function generarBocetoSocial(datos = {}) {
-    // 👇 --- SE RESTAURAN LOS DATOS DINÁMICOS REALES --- 👇
     const nivel    = datos.nivel    ?? 1;
     const xpActual = datos.xpActual ?? 0;
     const xpMeta   = datos.xpMeta   ?? calcularXPMetaSocial(nivel);
     const mensajes = datos.mensajes ?? 0;
     const horasVoz = datos.horasVoz ?? 0;
-    const ranking  = datos.ranking  ?? 1;
+    
+    // 👇 LOGICA DEL PUESTO: Toma la posicion, si es indefinida pone "-" pero NO SE OCULTA
+    const ranking  = datos.posicion ?? datos.ranking ?? "-";
 
     const { titulo: rangoSocial, colorActual } = obtenerRangoSocial(nivel);
 
@@ -90,7 +91,6 @@ async function generarBocetoSocial(datos = {}) {
     const soulmate   = datos.soulmate   ?? null;
     const amigos     = datos.amigos     ?? [];
     const insignias  = datos.insignias  ?? [];
-    // 👆 --- FIN RESTAURACIÓN --- 👆
     
     const baseWidth = 800;
     const baseHeight = 327; 
@@ -159,6 +159,15 @@ async function generarBocetoSocial(datos = {}) {
     ctx.fillStyle = COLOR_TEXTO_BASE; 
     const jointOffset = 11; 
 
+    // Calculamos siempre la fuente del rango por si es muy largo
+    let fontRango = subtituloFontSize;
+    ctx.font = `bold ${fontRango}px "Plus Jakarta Sans"`;
+    while(ctx.measureText(rangoSocial).width > maxTextWidth && fontRango > 11) {
+        fontRango--;
+        ctx.font = `bold ${fontRango}px "Plus Jakarta Sans"`;
+    }
+
+    // 👇 LOGICA DE RENDERIZADO VISUAL DEL PUESTO (AUNQUE SEA "-")
     let fontClasif = subtituloFontSize;
     const txtClasif = `Puesto #${ranking} en el servidor`;
     ctx.font = `bold ${fontClasif}px "Plus Jakarta Sans"`;
@@ -167,13 +176,8 @@ async function generarBocetoSocial(datos = {}) {
         ctx.font = `bold ${fontClasif}px "Plus Jakarta Sans"`;
     }
     ctx.fillText(txtClasif, px(textX), px(centerY - jointOffset));
-
-    let fontRango = subtituloFontSize;
+    
     ctx.font = `bold ${fontRango}px "Plus Jakarta Sans"`;
-    while(ctx.measureText(rangoSocial).width > maxTextWidth && fontRango > 11) {
-        fontRango--;
-        ctx.font = `bold ${fontRango}px "Plus Jakarta Sans"`;
-    }
     ctx.fillText(rangoSocial, px(textX), px(centerY + jointOffset));
 
     ctx.textBaseline = 'top';
@@ -183,7 +187,7 @@ async function generarBocetoSocial(datos = {}) {
     const barraW = col1W - 30;
     const barraH = 12; 
     const barraY = inicioCajasY + box1H - 24;
-    const progreso = Math.min(Math.max(xpActual / xpMeta, 0), 1) || 0; // Se asegura de que no de NaN
+    const progreso = Math.min(Math.max(xpActual / xpMeta, 0), 1) || 0; 
     
     const numBloques = 12, gapBloques = 4, rBloque = 2;
     const bloqueW = (barraW - (gapBloques * (numBloques - 1))) / numBloques;

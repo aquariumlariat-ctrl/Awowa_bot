@@ -1,7 +1,8 @@
 // Modulos/Principales/Nivel/nivel.js
 const Usuario = require('../../../Base_Datos/MongoDB/Usuario');
-const fs = require('fs');
+const fs   = require('fs');
 const path = require('path');
+const { actualizarUsuario, inicializarRankings } = require('./motor_ranking');
 
 // ⏱️ Mapas de Memoria Cache
 const cooldownsMensajes = new Map();
@@ -152,6 +153,9 @@ async function procesarSubidaNivel(client, userId, username) {
 
         if (!resultado) return; // Otro proceso ya procesó el level-up
 
+        // Actualizamos el ranking en memoria con los nuevos valores
+        actualizarUsuario(resultado.Guild_ID, userId, nivelActual, xpActual);
+
         const tituloAnterior = obtenerTituloRango(nivelAnterior);
         const tituloNuevo    = obtenerTituloRango(nivelActual);
 
@@ -192,6 +196,9 @@ async function otorgarXPMensaje(client, message) {
     );
 
     if (!userDB?.Social) return;
+
+    // Actualizamos el ranking en memoria
+    actualizarUsuario(userDB.Guild_ID, userId, userDB.Social.Nivel, userDB.Social.XP);
 
     if (userDB.Social.XP >= calcularXPMeta(userDB.Social.Nivel)) {
         await procesarSubidaNivel(client, userId, message.author.username);
@@ -234,6 +241,9 @@ async function rastrearVoz(client, oldState, newState) {
                 );
 
                 if (!userDB?.Social) return;
+
+                // Actualizamos el ranking en memoria
+                actualizarUsuario(userDB.Guild_ID, userId, userDB.Social.Nivel, userDB.Social.XP);
 
                 if (userDB.Social.XP >= calcularXPMeta(userDB.Social.Nivel)) {
                     await procesarSubidaNivel(client, userId, newState.member.user.username);
@@ -284,13 +294,17 @@ async function otorgarXPPartidas(client, userDB, partidas) {
 
     if (!updatedUser?.Social) return;
 
+    // Actualizamos el ranking en memoria
+    actualizarUsuario(updatedUser.Guild_ID, userDB.Discord_ID, updatedUser.Social.Nivel, updatedUser.Social.XP);
+
     if (updatedUser.Social.XP >= calcularXPMeta(updatedUser.Social.Nivel)) {
         await procesarSubidaNivel(client, userDB.Discord_ID, userDB.Discord_Nick);
     }
 }
 
 function iniciarMotorXP(client) {
-    console.log('\x1b[32m·\x1b[0m [Motor XP] Sistema arrancado (Atomicidad + Candados + Optimistic Lock).');
+    inicializarRankings(client);
+    console.log('\x1b[32m·\x1b[0m [Motor XP] Sistema arrancado (Atomicidad + Candados + Optimistic Lock + Ranking en Memoria).');
 }
 
 module.exports = { otorgarXPMensaje, rastrearVoz, otorgarXPPartidas, iniciarMotorXP };

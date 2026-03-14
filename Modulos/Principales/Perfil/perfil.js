@@ -6,7 +6,8 @@ const Usuario = require('../../../Base_Datos/MongoDB/Usuario');
 
 const { generarTarjetaMatricula } = require('../Matricula/canvas_matricula.js');
 const { generarBoceto } = require('./canvas_resumen.js');
-const { generarBocetoSocial } = require('./canvas_social.js'); // 👇 Añadido
+const { generarBocetoSocial } = require('./canvas_social.js');
+const { obtenerPuesto } = require('../Nivel/motor_ranking');
 
 const c = { v: '\x1b[32m', r: '\x1b[31m', a: '\x1b[33m', b: '\x1b[0m' };
 
@@ -112,25 +113,8 @@ async function renderizarYGuardarPerfil(targetUser) {
             await fs.writeFile(path.join(carpetaPath, arch.img), bocetoBuffer);
         }
 
-        // Construimos el objeto de datos sociales con los campos reales del usuario.
-        // Los campos no implementados se omiten (el canvas los muestra como placeholder).
-        const datosSocial = {
-            nivel:    targetUser.Social?.Nivel        || 1,
-            xpActual: targetUser.Social?.XP           || 0,
-            mensajes: targetUser.Social?.Mensajes      || 0,
-            horasVoz: Math.floor((targetUser.Social?.Minutos_Voz || 0) / 60),
-            // Campos pendientes de implementar — se pasan como null
-            racha:      null,
-            monedas:    null,
-            reputacion: null,
-            club:       null,
-            soulmate:   null,
-            amigos:     [],
-            insignias:  []
-        };
-
-        const bocetoSocialBuffer = await generarBocetoSocial(datosSocial);
-        await fs.writeFile(path.join(carpetaPath, 'stats_social.png'), bocetoSocialBuffer);
+        // stats_social ya NO se guarda en disco porque depende del servidor
+        // desde donde se consulta. Se genera en vivo en cmd_perfil.js.
 
         return true;
     } catch (error) {
@@ -151,7 +135,7 @@ async function precargarPerfiles() {
             const carpetaPath = path.join(__dirname, '../../../Base_Datos/Usuarios', `#${numMatricula}_${nickSeguro}`);
             const rutaTarjeta = path.join(carpetaPath, 'tarjeta.png');
             
-            const statsFiles = ['stats_soloq.png', 'stats_flex.png', 'stats_normals.png', 'stats_total.png', 'stats_social.png'];
+            const statsFiles = ['stats_soloq.png', 'stats_flex.png', 'stats_normals.png', 'stats_total.png'];
             let needsRender = !fsSync.existsSync(rutaTarjeta);
             for (const s of statsFiles) {
                 if (!fsSync.existsSync(path.join(carpetaPath, s))) needsRender = true;
@@ -177,4 +161,38 @@ async function precargarPerfiles() {
     }
 }
 
-module.exports = { renderizarYGuardarPerfil, precargarPerfiles };
+// ─────────────────────────────────────────────────────────────────────────────
+// 🔴 SOCIAL EN VIVO
+// Se llama desde cmd_perfil.js cada vez que alguien pulsa el botón "Comunidad".
+// Calcula el puesto real en el servidor en ese instante y genera el buffer
+// sin tocardisco, garantizando que el ranking siempre esté actualizado.
+// ─────────────────────────────────────────────────────────────────────────────
+async function generarSocialEnVivo(targetUser, guildId) {
+    const uNivel = targetUser.Social?.Nivel || 1;
+    const uXP    = targetUser.Social?.XP    || 0;
+
+    // Puesto desde el ranking en memoria — instantáneo, sin query a MongoDB
+    const posicion = guildId
+        ? obtenerPuesto(guildId, targetUser.Discord_ID)
+        : "-";
+
+    const datosSocial = {
+        nivel:    uNivel,
+        xpActual: uXP,
+        mensajes: targetUser.Social?.Mensajes    || 0,
+        horasVoz: Math.floor((targetUser.Social?.Minutos_Voz || 0) / 60),
+        posicion,
+        // Campos pendientes de implementar — se pasan como null
+        racha:      null,
+        monedas:    null,
+        reputacion: null,
+        club:       null,
+        soulmate:   null,
+        amigos:     [],
+        insignias:  []
+    };
+
+    return generarBocetoSocial(datosSocial);
+}
+
+module.exports = { renderizarYGuardarPerfil, precargarPerfiles, generarSocialEnVivo };

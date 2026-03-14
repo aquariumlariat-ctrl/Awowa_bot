@@ -3,7 +3,7 @@ const { AttachmentBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, Compone
 const fs = require('fs'); 
 const path = require('path');
 const Usuario = require('../../../Base_Datos/MongoDB/Usuario');
-const { renderizarYGuardarPerfil } = require('./perfil'); 
+const { renderizarYGuardarPerfil, generarSocialEnVivo } = require('./perfil'); 
 
 module.exports = [
     {
@@ -43,7 +43,7 @@ module.exports = [
             const carpetaPath = path.join(__dirname, '../../../Base_Datos/Usuarios', `#${numMatricula}_${nickSeguro}`);
             
             const rutaTarjeta = path.join(carpetaPath, 'tarjeta.png');
-            const statsFiles = ['stats_soloq.png', 'stats_flex.png', 'stats_normals.png', 'stats_total.png', 'stats_social.png'];
+            const statsFiles = ['stats_soloq.png', 'stats_flex.png', 'stats_normals.png', 'stats_total.png'];
             
             let needsRender = !fs.existsSync(rutaTarjeta);
             for (const s of statsFiles) {
@@ -140,24 +140,35 @@ module.exports = [
 
             // 1. Escuchamos los botones de la TARJETA
             const colMain = msgTarjeta.createMessageComponentCollector({ componentType: ComponentType.Button, time: tiempoInactividad });
-            
+
             colMain.on('collect', async (i) => {
-                const mode = i.customId; 
-                let mainState = mode === 'btn_social' ? 'social' : 'invocador';
-                let targetImg = mode === 'btn_social' ? 'stats_social.png' : 'stats_soloq.png';
+                const mode      = i.customId;
+                const mainState = mode === 'btn_social' ? 'social' : 'invocador';
 
-                const statPath = path.join(carpetaPath, targetImg);
-                if (!fs.existsSync(statPath)) {
-                    return i.reply({ content: '⚠️ Ocurrió un error cargando esta pestaña.', ephemeral: true });
-                }
-
+                // Confirmamos el click inmediatamente para evitar timeout de Discord
                 await i.update({ components: [getRowMain(mainState)] });
 
-                const newAttachment = new AttachmentBuilder(statPath, { name: 'stats.png' });
-                await msgPanel.edit({
-                    files: [newAttachment],
-                    components: mainState === 'social' ? [] : [getRowSub('stats_soloq')] 
-                }).catch(()=>{});
+                if (mode === 'btn_social') {
+                    // ─────────────────────────────────────────────────────────
+                    // 🔴 SOCIAL EN VIVO: generamos el canvas en este instante
+                    // con el puesto real del servidor donde se ejecutó el cmd.
+                    // ─────────────────────────────────────────────────────────
+                    try {
+                        const buffer     = await generarSocialEnVivo(targetUser, i.guildId);
+                        const attachment = new AttachmentBuilder(buffer, { name: 'stats.png' });
+                        await msgPanel.edit({ files: [attachment], components: [] }).catch(() => {});
+                    } catch (err) {
+                        await msgPanel.edit({ content: '⚠️ Error cargando la pestaña social.', components: [] }).catch(() => {});
+                    }
+                } else {
+                    // Pestaña LoL: leemos desde disco (caché estática)
+                    const statPath = path.join(carpetaPath, 'stats_soloq.png');
+                    if (!fs.existsSync(statPath)) {
+                        return;
+                    }
+                    const attachment = new AttachmentBuilder(statPath, { name: 'stats.png' });
+                    await msgPanel.edit({ files: [attachment], components: [getRowSub('stats_soloq')] }).catch(() => {});
+                }
             });
 
             // 2. Escuchamos los botones del PANEL

@@ -2,6 +2,7 @@
 const { SlashCommandBuilder, AttachmentBuilder } = require('discord.js');
 const Usuario = require('../../../Base_Datos/MongoDB/Usuario');
 const { generarCanvasNivel } = require('./canvas_nivel');
+const { obtenerPuesto } = require('./motor_ranking');
 const fs = require('fs');
 const path = require('path');
 
@@ -54,28 +55,11 @@ module.exports = {
         try {
             const uNivel = userDB.Social?.Nivel || 1;
             const uXP    = userDB.Social?.XP    || 0;
-            let posicionReal = "-";
 
-            if (miembroEnServidor) {
-                // ─────────────────────────────────────────────────────────────
-                // 🏆 RANKING FILTRADO POR SERVIDOR
-                //
-                // Usamos Guild_ID guardado en MongoDB para filtrar directamente
-                // en la query, sin necesidad de traer arrays de IDs a Node.js.
-                // Esto es eficiente a cualquier escala de usuarios.
-                //
-                // Si un usuario no tiene Guild_ID (se matriculó antes de esta
-                // mejora), simplemente no aparecerá en el ranking hasta que
-                // vuelva a ser procesado. No rompe nada.
-                // ─────────────────────────────────────────────────────────────
-                posicionReal = await Usuario.countDocuments({
-                    Guild_ID: interaction.guild.id,
-                    $or: [
-                        { 'Social.Nivel': { $gt: uNivel } },
-                        { 'Social.Nivel': uNivel, 'Social.XP': { $gt: uXP } }
-                    ]
-                }).then(count => count + 1);
-            }
+            // Puesto desde el ranking en memoria — instantáneo, sin query a MongoDB
+            const posicionReal = miembroEnServidor
+                ? obtenerPuesto(interaction.guild.id, targetUser.id)
+                : "-";
 
             let apodoReal = userDB.Discord_Nick || targetUser.username;
             if (miembroEnServidor?.displayName) {
