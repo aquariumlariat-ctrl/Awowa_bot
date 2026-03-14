@@ -112,8 +112,24 @@ async function renderizarYGuardarPerfil(targetUser) {
             await fs.writeFile(path.join(carpetaPath, arch.img), bocetoBuffer);
         }
 
-        // 👇 Renderizamos el perfil Social en caché
-        const bocetoSocialBuffer = await generarBocetoSocial();
+        // Construimos el objeto de datos sociales con los campos reales del usuario.
+        // Los campos no implementados se omiten (el canvas los muestra como placeholder).
+        const datosSocial = {
+            nivel:    targetUser.Social?.Nivel        || 1,
+            xpActual: targetUser.Social?.XP           || 0,
+            mensajes: targetUser.Social?.Mensajes      || 0,
+            horasVoz: Math.floor((targetUser.Social?.Minutos_Voz || 0) / 60),
+            // Campos pendientes de implementar — se pasan como null
+            racha:      null,
+            monedas:    null,
+            reputacion: null,
+            club:       null,
+            soulmate:   null,
+            amigos:     [],
+            insignias:  []
+        };
+
+        const bocetoSocialBuffer = await generarBocetoSocial(datosSocial);
         await fs.writeFile(path.join(carpetaPath, 'stats_social.png'), bocetoSocialBuffer);
 
         return true;

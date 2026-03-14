@@ -22,27 +22,71 @@ function fillTextPro(ctx, text, x, y) {
     ctx.fillText(text, px(x), px(y));
 }
 
-const fakeData = {
-    nivel: 42,
-    rangoSocial: "Guardián de la Academia",
-    xpActual: 8450,
-    xpMeta: 10000,
-    racha: 28,
-    monedas: 12500,
-    mensajes: 15420,
-    horasVoz: 450,
-    reputacion: 342,
-    club: { nombre: 'Skye Esports', tag: 'SKYE', rol: 'Capitán' },
-    soulmate: { nombre: 'Toukabloom', fecha: '12/05/2025' },
-    amigos: [
-        { nombre: 'Faker' },
-        { nombre: 'Deft' },
-        { nombre: 'Keria' }
-    ],
-    insignias: [true, true, true, true, false, false, false, false]
-};
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers internos
+// ─────────────────────────────────────────────────────────────────────────────
+const RANGOS_DATA_SOCIAL = [
+    { lvl: 100, titulo: "Entidad Entre Mundos" },
+    { lvl: 95,  titulo: "Voz del Gran Carnero" },
+    { lvl: 90,  titulo: "Leyenda Vastaya" },
+    { lvl: 85,  titulo: "Maestro de los Dos Reinos" },
+    { lvl: 80,  titulo: "Caminante del Hogar" },
+    { lvl: 75,  titulo: "Guía de lo Invisible" },
+    { lvl: 70,  titulo: "Sabio de la Escarcha" },
+    { lvl: 65,  titulo: "Purificador de Almas" },
+    { lvl: 60,  titulo: "Heraldo de la Forja" },
+    { lvl: 55,  titulo: "Protector del Rebaño" },
+    { lvl: 50,  titulo: "Guardián de los Recuerdos" },
+    { lvl: 45,  titulo: "Saltador de Reinos" },
+    { lvl: 40,  titulo: "Tejedor de Vínculos" },
+    { lvl: 35,  titulo: "Viajero de la Nieve" },
+    { lvl: 30,  titulo: "Amigo de los Extraviados" },
+    { lvl: 25,  titulo: "Investigador de Runas" },
+    { lvl: 20,  titulo: "Vidente del Velo" },
+    { lvl: 15,  titulo: "Estudiante Bryni" },
+    { lvl: 10,  titulo: "Caminante de la Tundra" },
+    { lvl: 5,   titulo: "Oyente de los Susurros" },
+    { lvl: 0,   titulo: "Forastero de Aamu" }
+];
 
-async function generarBocetoSocial() {
+function obtenerRangoSocial(nivel) {
+    for (const r of RANGOS_DATA_SOCIAL) {
+        if (nivel >= r.lvl) return r.titulo;
+    }
+    return RANGOS_DATA_SOCIAL[RANGOS_DATA_SOCIAL.length - 1].titulo;
+}
+
+function calcularXPMetaSocial(nivel) {
+    const n = nivel < 1 ? 1 : nivel;
+    return Math.floor(100 * Math.pow(n, 1.5));
+}
+
+// Texto que se muestra cuando un campo todavía no está implementado
+const PENDIENTE = '—';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// datos = objeto construido en perfil.js con los campos reales del usuario.
+// Los campos no implementados llegan como null y se muestran como placeholder.
+// ─────────────────────────────────────────────────────────────────────────────
+async function generarBocetoSocial(datos = {}) {
+    // Campos reales (disponibles en el schema)
+    const nivel    = datos.nivel    ?? 1;
+    const xpActual = datos.xpActual ?? 0;
+    const xpMeta   = datos.xpMeta   ?? calcularXPMetaSocial(nivel);
+    const mensajes = datos.mensajes ?? 0;
+    const horasVoz = datos.horasVoz ?? 0;
+
+    // Rango calculado igual que en el motor de XP
+    const rangoSocial = obtenerRangoSocial(nivel);
+
+    // Campos pendientes de implementar → placeholder
+    const racha      = datos.racha      ?? null;
+    const monedas    = datos.monedas    ?? null;
+    const reputacion = datos.reputacion ?? null;
+    const club       = datos.club       ?? null;
+    const soulmate   = datos.soulmate   ?? null;
+    const amigos     = datos.amigos     ?? [];
+    const insignias  = datos.insignias  ?? [];
     const baseWidth = 800;
     // 👇 ALTURA RECORTADA (-50px)
     const baseHeight = 300; 
@@ -87,11 +131,11 @@ async function generarBocetoSocial() {
 
     ctx.fillStyle = '#ffffff';
     ctx.font = `bold 32px "Plus Jakarta Sans"`;
-    fillTextPro(ctx, `${fakeData.nivel}`, col1X + 15, inicioCajasY + 40);
+    fillTextPro(ctx, `${nivel}`, col1X + 15, inicioCajasY + 40);
     
     ctx.font = fontPequena;
     ctx.fillStyle = COLOR_TEXTO_BASE;
-    ctx.fillText(fakeData.rangoSocial, px(col1X + 60), px(inicioCajasY + 55));
+    ctx.fillText(rangoSocial, px(col1X + 60), px(inicioCajasY + 55));
 
     const barraX = col1X + 15;
     const barraY = inicioCajasY + 85;
@@ -99,7 +143,7 @@ async function generarBocetoSocial() {
     ctx.fillStyle = 'rgba(12, 15, 20, 0.6)';
     ctx.beginPath(); ctx.roundRect(px(barraX), px(barraY), barraW, 10, 5); ctx.fill();
     
-    const progreso = fakeData.xpActual / fakeData.xpMeta;
+    const progreso = Math.min(xpActual / xpMeta, 1);
     ctx.fillStyle = '#36d1dc';
     ctx.beginPath(); ctx.roundRect(px(barraX), px(barraY), barraW * progreso, 10, 5); ctx.fill();
 
@@ -113,10 +157,10 @@ async function generarBocetoSocial() {
     ctx.fillText('Billetera y Stats', px(col1X + 15), px(actY + 12));
 
     ctx.fillStyle = '#ffffff'; ctx.font = fontPequena;
-    ctx.fillText(`🪙 ${fakeData.monedas} Coins`, px(col1X + 15), px(actY + 40));
-    ctx.fillText(`🔥 Racha: ${fakeData.racha} Días`, px(col1X + 130), px(actY + 40));
-    ctx.fillText(`💬 ${fakeData.mensajes} Msjs`, px(col1X + 15), px(actY + 65));
-    ctx.fillText(`🎙️ ${fakeData.horasVoz}h Voz`, px(col1X + 130), px(actY + 65));
+    ctx.fillText(`🪙 ${monedas !== null ? monedas + ' Coins' : PENDIENTE}`,     px(col1X + 15),  px(actY + 40));
+    ctx.fillText(`🔥 Racha: ${racha !== null ? racha + ' Días' : PENDIENTE}`,   px(col1X + 130), px(actY + 40));
+    ctx.fillText(`💬 ${mensajes} Msjs`,                                          px(col1X + 15),  px(actY + 65));
+    ctx.fillText(`🎙️ ${horasVoz}h Voz`,                                         px(col1X + 130), px(actY + 65));
 
     // 3. ROLES ESPECIALES
     const rolesY = actY + 100 + gap;
@@ -148,8 +192,12 @@ async function generarBocetoSocial() {
     ctx.fillStyle = 'rgba(255, 179, 186, 0.2)';
     ctx.beginPath(); ctx.arc(px(col2X + col1W/2), px(inicioCajasY + 70), 30, 0, Math.PI*2); ctx.fill();
 
-    ctx.fillStyle = '#ffffff'; ctx.font = fontPequena;
-    ctx.fillText(`Unido a ${fakeData.soulmate.nombre}`, px(col2X + col1W/2), px(inicioCajasY + 110));
+    ctx.fillStyle = soulmate ? '#ffffff' : COLOR_TEXTO_BASE;
+    ctx.font = fontPequena;
+    ctx.fillText(
+        soulmate ? `Unido a ${soulmate.nombre}` : 'Próximamente',
+        px(col2X + col1W/2), px(inicioCajasY + 110)
+    );
 
     // 5. CÍRCULO ÍNTIMO
     const amigosY = inicioCajasY + 130 + gap;
@@ -161,14 +209,24 @@ async function generarBocetoSocial() {
     ctx.textAlign = 'left';
     ctx.fillText('Círculo Íntimo', px(col2X + 15), px(amigosY + 12));
 
-    for(let i=0; i<3; i++) {
-        const yPos = amigosY + 40 + (i*32);
-        ctx.fillStyle = 'rgba(158, 224, 244, 0.2)';
-        ctx.beginPath(); ctx.arc(px(col2X + 30), px(yPos + 10), 12, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = '#ffffff'; ctx.font = fontPequena;
-        ctx.fillText(fakeData.amigos[i].nombre, px(col2X + 50), px(yPos + 4));
+    if (amigos.length > 0) {
+        for(let i = 0; i < Math.min(amigos.length, 3); i++) {
+            const yPos = amigosY + 40 + (i*32);
+            ctx.fillStyle = 'rgba(158, 224, 244, 0.2)';
+            ctx.beginPath(); ctx.arc(px(col2X + 30), px(yPos + 10), 12, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#ffffff'; ctx.font = fontPequena;
+            ctx.fillText(amigos[i].nombre, px(col2X + 50), px(yPos + 4));
+            ctx.fillStyle = COLOR_TEXTO_BASE;
+            if (amigos[i].interacciones !== undefined) {
+                ctx.fillText(`Interacciones: ${amigos[i].interacciones}`, px(col2X + 140), px(yPos + 4));
+            }
+        }
+    } else {
         ctx.fillStyle = COLOR_TEXTO_BASE;
-        ctx.fillText(`Interacciones: ${150 - i*30}`, px(col2X + 140), px(yPos + 4));
+        ctx.font = fontPequena;
+        ctx.textAlign = 'center';
+        ctx.fillText('Próximamente', px(col2X + col1W / 2), px(amigosY + 75));
+        ctx.textAlign = 'left';
     }
 
     // ==========================================
@@ -188,10 +246,15 @@ async function generarBocetoSocial() {
     ctx.fillStyle = 'rgba(196, 238, 176, 0.2)';
     ctx.beginPath(); ctx.roundRect(col3X + 15, inicioCajasY + 40, 45, 45, 8); ctx.fill();
 
-    ctx.fillStyle = '#ffffff'; ctx.font = `bold 18px "Plus Jakarta Sans"`;
-    ctx.fillText(`[${fakeData.club.tag}] ${fakeData.club.nombre}`, px(col3X + 70), px(inicioCajasY + 45));
-    ctx.fillStyle = COLOR_TEXTO_BASE; ctx.font = fontPequena;
-    ctx.fillText(`Rango: ${fakeData.club.rol}`, px(col3X + 70), px(inicioCajasY + 68));
+    if (club) {
+        ctx.fillStyle = '#ffffff'; ctx.font = `bold 18px "Plus Jakarta Sans"`;
+        ctx.fillText(`[${club.tag}] ${club.nombre}`, px(col3X + 70), px(inicioCajasY + 45));
+        ctx.fillStyle = COLOR_TEXTO_BASE; ctx.font = fontPequena;
+        ctx.fillText(`Rango: ${club.rol}`, px(col3X + 70), px(inicioCajasY + 68));
+    } else {
+        ctx.fillStyle = COLOR_TEXTO_BASE; ctx.font = fontPequena;
+        ctx.fillText('Sin club', px(col3X + 70), px(inicioCajasY + 55));
+    }
 
     // 7. REPUTACIÓN
     const repY = inicioCajasY + 100 + gap;
@@ -203,7 +266,11 @@ async function generarBocetoSocial() {
     ctx.fillText('Reputación', px(col3X + 15), px(repY + 10));
 
     ctx.fillStyle = '#ffffff'; ctx.font = `bold 24px "Plus Jakarta Sans"`;
-    fillTextPro(ctx, `🌟 ${fakeData.reputacion} Elogios`, col3X + 15, repY + 35);
+    fillTextPro(
+        ctx,
+        reputacion !== null ? `🌟 ${reputacion} Elogios` : `🌟 ${PENDIENTE}`,
+        col3X + 15, repY + 35
+    );
 
     // 8. INSIGNIAS
     const insY = repY + 70 + gap;
@@ -215,16 +282,16 @@ async function generarBocetoSocial() {
     ctx.fillText('Vitrina de Logros', px(col3X + 15), px(insY + 10));
 
     const sizeIns = 36;
-    for(let i=0; i<8; i++) {
+    for(let i = 0; i < 8; i++) {
         const fila = Math.floor(i / 4);
-        const col = i % 4;
+        const col  = i % 4;
         const xPos = col3X + 15 + (col * (sizeIns + 12));
         const yPos = insY + 35 + (fila * (sizeIns + 8));
 
         ctx.fillStyle = 'rgba(12, 15, 20, 0.6)';
         ctx.beginPath(); ctx.roundRect(xPos, yPos, sizeIns, sizeIns, 6); ctx.fill();
 
-        if(fakeData.insignias[i]) {
+        if (insignias[i]) {
             ctx.fillStyle = '#fce28b';
             ctx.beginPath(); ctx.arc(xPos + sizeIns/2, yPos + sizeIns/2, 10, 0, Math.PI*2); ctx.fill();
         }
