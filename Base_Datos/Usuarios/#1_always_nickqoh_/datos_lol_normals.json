@@ -1,8 +1,8 @@
 {
     "Resumen": {
         "Victorias": 17,
-        "Derrotas": 13,
-        "WinRate": 57
+        "Derrotas": 14,
+        "WinRate": 55
     },
     "Campeones": {
         "Xayah": {
@@ -179,6 +179,14 @@
             "derrotas": 0,
             "kills": 2,
             "deaths": 7,
+            "assists": 6
+        },
+        "Swain": {
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1,
+            "kills": 1,
+            "deaths": 9,
             "assists": 6
         }
     },
@@ -926,6 +934,38 @@
             "partidas": 1,
             "victorias": 0,
             "derrotas": 1
+        },
+        "6beVPikda1LTojDY5tKy-0ID-6WYBXNV1J9WYd1yLcM3-tFpXhSuW22YWc645UC_Hu_qsG-rkCnseg": {
+            "nick": "Maurior",
+            "tag": "LAN",
+            "icono": 7,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "-sj9trmKs0PGDQPr82DTiCAjLVJ91mDWkcfCyHavAEVEjS1H8n876CGZzvwl6EWiMCSZZsMHiZFeCw": {
+            "nick": "LoloTM",
+            "tag": "MDB",
+            "icono": 6420,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "VO0YyWLacrVb6z-VgMjGShfuwAuevyrF8rdnPulVq9D7Z38t-49dkZugQVmGkQYYBpFzSErb91C1pg": {
+            "nick": "OsbamaBinRussell",
+            "tag": "Pepo",
+            "icono": 6001,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "bfpcaURIkAMojpfzhfOfuqcacHGtj5d8A-VTtWMAg8CYAc5jgkwTWlMn_jGNIvAWDmIVZwCrSXZHGQ": {
+            "nick": "FLORENTINO",
+            "tag": "NMM",
+            "icono": 7028,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
         }
     },
     "Historial": [
@@ -1309,6 +1349,18 @@
             "kills": 3,
             "deaths": 8,
             "assists": 5,
+            "victoria": false,
+            "rol": "BOTTOM",
+            "esRemake": false
+        },
+        {
+            "matchId": "LA1_1702272914",
+            "fecha": 1773704484806,
+            "queueId": 400,
+            "campeon": "Swain",
+            "kills": 1,
+            "deaths": 9,
+            "assists": 6,
             "victoria": false,
             "rol": "BOTTOM",
             "esRemake": false

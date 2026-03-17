@@ -15,6 +15,16 @@
       "nombre": "NivelMensajes",
       "channelId": "1481587280991883315",
       "outputPath": "../../Principales/Nivel/mensajes.js"
+    },
+    {
+      "nombre": "MatrimonioMensajes",
+      "channelId": "1482644302688424097",
+      "outputPath": "../../Principales/Matrimonio/mensajes.js"
+    },
+    {
+      "nombre": "MatrimonioSlash",
+      "channelId": "1482635196573548707",
+      "outputPath": "../../Principales/Matrimonio/slash_descripciones.js"
     }
   ]
 }

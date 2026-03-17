@@ -153,7 +153,6 @@ async function procesarSubidaNivel(client, userId, username) {
 
         if (!resultado) return; // Otro proceso ya procesó el level-up
 
-        // Actualizamos el ranking en memoria con los nuevos valores
         actualizarUsuario(resultado.Guild_ID, userId, nivelActual, xpActual);
 
         const tituloAnterior = obtenerTituloRango(nivelAnterior);
@@ -197,7 +196,6 @@ async function otorgarXPMensaje(client, message) {
 
     if (!userDB?.Social) return;
 
-    // Actualizamos el ranking en memoria
     actualizarUsuario(userDB.Guild_ID, userId, userDB.Social.Nivel, userDB.Social.XP);
 
     if (userDB.Social.XP >= calcularXPMeta(userDB.Social.Nivel)) {
@@ -242,7 +240,6 @@ async function rastrearVoz(client, oldState, newState) {
 
                 if (!userDB?.Social) return;
 
-                // Actualizamos el ranking en memoria
                 actualizarUsuario(userDB.Guild_ID, userId, userDB.Social.Nivel, userDB.Social.XP);
 
                 if (userDB.Social.XP >= calcularXPMeta(userDB.Social.Nivel)) {
@@ -294,7 +291,6 @@ async function otorgarXPPartidas(client, userDB, partidas) {
 
     if (!updatedUser?.Social) return;
 
-    // Actualizamos el ranking en memoria
     actualizarUsuario(updatedUser.Guild_ID, userDB.Discord_ID, updatedUser.Social.Nivel, updatedUser.Social.XP);
 
     if (updatedUser.Social.XP >= calcularXPMeta(updatedUser.Social.Nivel)) {
@@ -302,8 +298,8 @@ async function otorgarXPPartidas(client, userDB, partidas) {
     }
 }
 
-function iniciarMotorXP(client) {
-    inicializarRankings(client);
+async function iniciarMotorXP(client) {
+    await inicializarRankings(client);
     console.log('\x1b[32m·\x1b[0m [Motor XP] Sistema arrancado (Atomicidad + Candados + Optimistic Lock + Ranking en Memoria).');
 }
 

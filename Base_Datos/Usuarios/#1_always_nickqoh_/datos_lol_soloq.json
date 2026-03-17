@@ -1,8 +1,8 @@
 {
     "Resumen": {
         "Victorias": 1,
-        "Derrotas": 0,
-        "WinRate": 100
+        "Derrotas": 1,
+        "WinRate": 50
     },
     "Campeones": {
         "Corki": {
@@ -11,6 +11,14 @@
             "derrotas": 0,
             "kills": 14,
             "deaths": 7,
+            "assists": 5
+        },
+        "Jhin": {
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1,
+            "kills": 2,
+            "deaths": 10,
             "assists": 5
         }
     },
@@ -46,6 +54,38 @@
             "partidas": 1,
             "victorias": 1,
             "derrotas": 0
+        },
+        "HqihRAq1a7_tYf5T7zyI2c2WqgQouLVrUjvJ1HhLRE3aMQkdCoeGdiM2Xv3OyB-evTGBtfwc6dLPZg": {
+            "nick": "Pi r a te L i fe",
+            "tag": "LAN",
+            "icono": 6621,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "a1EJzBiJ5-nN27rkH-EW0gxDQpGx9OlY7Yzh6JixrV8_KTpDHZ3_6P0zWBNBT2qFFCYd5O2Tt8aF_Q": {
+            "nick": "Rize Kamishiro",
+            "tag": "21LUV",
+            "icono": 3166,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "_Hhx895IEKT4kGEUuTi7E-G7y1ZxcWpSwAxCQZsbiGeUPmoUJRA_hGJdhgwomkwnHseX2HCPgFFR4w": {
+            "nick": "Peace",
+            "tag": "0w0",
+            "icono": 3608,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "B2ozAcTZnqlu4lh9ZP2JN5nIa8soyZ7FYsuA2IEU_6GLVoC8gQlYcr5qhE17Wvc8gZ6fxEw2ItBZSw": {
+            "nick": "Pepelunga",
+            "tag": "Ppe",
+            "icono": 6740,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
         }
     },
     "Historial": [
@@ -58,6 +98,18 @@
             "deaths": 7,
             "assists": 5,
             "victoria": true,
+            "rol": "BOTTOM",
+            "esRemake": false
+        },
+        {
+            "matchId": "LA1_1702133551",
+            "fecha": 1773643068073,
+            "queueId": 420,
+            "campeon": "Jhin",
+            "kills": 2,
+            "deaths": 10,
+            "assists": 5,
+            "victoria": false,
             "rol": "BOTTOM",
             "esRemake": false
         }

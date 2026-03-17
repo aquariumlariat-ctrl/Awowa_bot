@@ -1,17 +1,17 @@
 {
     "Resumen": {
-        "Victorias": 20,
-        "Derrotas": 16,
-        "WinRate": 56
+        "Victorias": 23,
+        "Derrotas": 17,
+        "WinRate": 57
     },
     "Campeones": {
         "Jinx": {
-            "partidas": 26,
-            "victorias": 15,
-            "derrotas": 11,
-            "kills": 192,
-            "deaths": 151,
-            "assists": 257
+            "partidas": 30,
+            "victorias": 18,
+            "derrotas": 12,
+            "kills": 232,
+            "deaths": 177,
+            "assists": 308
         },
         "Ashe": {
             "partidas": 3,
@@ -998,6 +998,110 @@
             "partidas": 1,
             "victorias": 1,
             "derrotas": 0
+        },
+        "H_XUAPYyru7FhDrFkFtQB6qTrooZFxpH-2d6bjVtM8GFXv7X6GqRqfaFgfb9lG7hO4j9NCHNctoCfw": {
+            "nick": "HiImObito",
+            "tag": "Obito",
+            "icono": 5331,
+            "partidas": 4,
+            "victorias": 3,
+            "derrotas": 1
+        },
+        "XSlNx77pMLZc9Jm_4e9rLlI7QLOTHWGJLjbOQX7zT7OAuHMUr86FoZd6hC6Ha-xzUyNpWeWLkOnYMw": {
+            "nick": "Anh Qua Đây Đi",
+            "tag": "ACE",
+            "icono": 3227,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "Lc5oiMNsQXTPdNSeckyh4tnldpFCE_7mY0WNMmHrjzQtHhRx7jey9viYNUhWLSX9ou-aZO6-hk2DZw": {
+            "nick": "PanicOnTheBrain",
+            "tag": "2141",
+            "icono": 6879,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "KLjZTALcIDtvRK0vmV2nxJSzjMa7P0CAZpS5yraBrhP3i_Oc8FO8mQcYTR7ZZGRrM2ngoZi9P8QiPg": {
+            "nick": "iZuet",
+            "tag": "LAN",
+            "icono": 5453,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "LsmjKOd8yafWdm6QziFrHbMX-TwYb3u6Z7LjBRfJ8rxkX8pjmQWsYdFtWgD52uspMyS4BXlXUvWTQA": {
+            "nick": "AcosadorDtemmos",
+            "tag": "sixs7",
+            "icono": 787,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "_2qhW5ZCL8omgEfi3t7EhItzXYA9cmMZn9JalU0SMXg_bnD3RvRczya71IS44GoDR6BXnEypxttR-A": {
+            "nick": "Wh Insanity",
+            "tag": "LAN",
+            "icono": 5091,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "Cf-TLtz6Z7d-1uCTYBh92BM991jsloDgMjJiwC98lVVuFnvXCVoOX5WHElaR5_Pm7WTdvD3DERRSJw": {
+            "nick": "Gamexcopy",
+            "tag": "LAN",
+            "icono": 3533,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "LGO08Ks85Wqu9SE5_p-MeA7C7RJ366ztMAjoZjN019dZt2mH7IX6D7ZojdpUP7z3VPocHUynns5Gyg": {
+            "nick": "Soyca Corra",
+            "tag": "SNTF",
+            "icono": 6226,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "B22BUgF8ZE0neUc6ip8CXKLQDxzFBNDrowfJiG8ST1BbRW3GGNYUNPXiL97Vk8Ug2I6-Kj5m1g0plQ": {
+            "nick": "Autuns",
+            "tag": "LAN",
+            "icono": 1135,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "TeDBgvMXNlrTB7tWoT1jvvANyzJ1iVRyhwNTdLD0lfHS_nzCGZAYOS5N9dSf6gphCgVQyRyoruUmPw": {
+            "nick": "Y u b ı",
+            "tag": "LAN",
+            "icono": 3152,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "5RNtxvTRkYvTdQX6kcWMyZ_6yO-5Y9DwjHmy-_3qHrIfEJdgBzk_AnteX0vLHiJblLO_cgbbJylI7w": {
+            "nick": "King Kamus",
+            "tag": "LAN",
+            "icono": 0,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "_xHAfxFFPiFh6yNFP8f7IBtJMhMai26t7_jfqmVXNjSaBcRvlQjBOy2rqA8OzCsTRyz2Eiy8tjr4yA": {
+            "nick": "deadmax16",
+            "tag": "LAN",
+            "icono": 6923,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
+        },
+        "tTp_hDHsu3NgZIOzmFYpJA9HM80d1gNGpwMwfu2qPbCDYqs60wkIV6GLsg2Jcjh2zjnK0a8E7tfxNA": {
+            "nick": "LittleAguacate",
+            "tag": "WEB0N",
+            "icono": 4419,
+            "partidas": 1,
+            "victorias": 1,
+            "derrotas": 0
         }
     },
     "Historial": [
@@ -1441,6 +1545,54 @@
             "kills": 8,
             "deaths": 4,
             "assists": 6,
+            "victoria": true,
+            "rol": "BOTTOM",
+            "esRemake": false
+        },
+        {
+            "matchId": "LA1_1702033870",
+            "fecha": 1773626298783,
+            "queueId": 420,
+            "campeon": "Jinx",
+            "kills": 6,
+            "deaths": 2,
+            "assists": 11,
+            "victoria": true,
+            "rol": "BOTTOM",
+            "esRemake": false
+        },
+        {
+            "matchId": "LA1_1702050443",
+            "fecha": 1773628416820,
+            "queueId": 420,
+            "campeon": "Jinx",
+            "kills": 11,
+            "deaths": 7,
+            "assists": 13,
+            "victoria": false,
+            "rol": "BOTTOM",
+            "esRemake": false
+        },
+        {
+            "matchId": "LA1_1702416271",
+            "fecha": 1773727235472,
+            "queueId": 420,
+            "campeon": "Jinx",
+            "kills": 7,
+            "deaths": 9,
+            "assists": 16,
+            "victoria": true,
+            "rol": "BOTTOM",
+            "esRemake": false
+        },
+        {
+            "matchId": "LA1_1702424177",
+            "fecha": 1773729499705,
+            "queueId": 420,
+            "campeon": "Jinx",
+            "kills": 16,
+            "deaths": 8,
+            "assists": 11,
             "victoria": true,
             "rol": "BOTTOM",
             "esRemake": false

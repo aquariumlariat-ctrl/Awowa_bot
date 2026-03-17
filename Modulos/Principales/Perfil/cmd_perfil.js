@@ -154,7 +154,7 @@ module.exports = [
                     // con el puesto real del servidor donde se ejecutó el cmd.
                     // ─────────────────────────────────────────────────────────
                     try {
-                        const buffer     = await generarSocialEnVivo(targetUser, i.guildId);
+                        const buffer     = await generarSocialEnVivo(targetUser, i.guildId, i.client);
                         const attachment = new AttachmentBuilder(buffer, { name: 'stats.png' });
                         await msgPanel.edit({ files: [attachment], components: [] }).catch(() => {});
                     } catch (err) {

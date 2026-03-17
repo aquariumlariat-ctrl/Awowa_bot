@@ -8,7 +8,7 @@ Son criaturas libres y no tienen estadísticas de nivel.`,
     ErrNoDB: `¡Ese usuario no se encuentra matriculado! <:Awowa_Cry:1470435511901487117> 
 
 Estaría genial si alguien lo convenciera de matricularse…`,
-    ErrInterno: `¡Hubo un problema al obtener la información de tu cuenta! <:Awowa_Thinking:1470765623435858115>
+    ErrInterno: `¡Hubo un problema interno! <:Awowa_Thinking:1470765623435858115>
 
 Por favor, inténtalo nuevamente más tarde.
 Si el problema persiste, contacta a soporte.`,

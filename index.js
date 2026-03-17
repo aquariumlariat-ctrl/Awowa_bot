@@ -4,7 +4,6 @@ const { Client, GatewayIntentBits, Collection, Partials } = require('discord.js'
 const fs = require('fs');
 const path = require('path');
 const mongoose = require('mongoose');
-const { iniciarSincronizador } = require('./API\'s/Riot/sincronizador');
 
 // 🎨 Paleta de colores ANSI
 const c = { v: '\x1b[32m', r: '\x1b[31m', a: '\x1b[33m', b: '\x1b[0m' };
@@ -107,7 +106,10 @@ client.once('clientReady', async () => {
     iniciarCronSincronizacion(client);
     
     const { iniciarMotorXP } = require('./Modulos/Principales/Nivel/nivel.js');
-    iniciarMotorXP(client);
+    await iniciarMotorXP(client);
+
+    const { iniciarModulo } = require('./Modulos/Principales/Matrimonio/matrimonio.js');
+    await iniciarModulo(client);
 
     // ==========================================
     // 🌍 EDITOR DE MENSAJES GLOBAL (MULTICANAL)
@@ -169,8 +171,6 @@ client.on('messageUpdate', async (oldMessage, newMessage) => {
 });
 
 client.on('voiceStateUpdate', async (oldState, newState) => {
-    // Importamos el rastreador de voz dinámicamente
-    const { rastrearVoz } = require('./Modulos/Principales/Nivel/motor_xp.js');
     await rastrearVoz(client, oldState, newState);
 });
 

@@ -3,6 +3,7 @@ const fs = require('fs').promises;
 const fsSync = require('fs');
 const path = require('path');
 const Usuario = require('../../../Base_Datos/MongoDB/Usuario');
+const Matrimonio = require('../../../Base_Datos/MongoDB/Matrimonio');
 
 const { generarTarjetaMatricula } = require('../Matricula/canvas_matricula.js');
 const { generarBoceto } = require('./canvas_resumen.js');
@@ -167,14 +168,62 @@ async function precargarPerfiles() {
 // Calcula el puesto real en el servidor en ese instante y genera el buffer
 // sin tocardisco, garantizando que el ranking siempre esté actualizado.
 // ─────────────────────────────────────────────────────────────────────────────
-async function generarSocialEnVivo(targetUser, guildId) {
+async function generarSocialEnVivo(targetUser, guildId, client) {
     const uNivel = targetUser.Social?.Nivel || 1;
     const uXP    = targetUser.Social?.XP    || 0;
 
-    // Puesto desde el ranking en memoria — instantáneo, sin query a MongoDB
     const posicion = guildId
         ? obtenerPuesto(guildId, targetUser.Discord_ID)
         : "-";
+
+    // ── DATOS DE PAREJA ───────────────────────────────────────────────────────
+    let soulmateData = null;
+    try {
+        const matrimonio = await Matrimonio.findOne({
+            $or: [{ Usuario1_ID: targetUser.Discord_ID }, { Usuario2_ID: targetUser.Discord_ID }]
+        });
+
+        if (matrimonio && client) {
+            const parejaId = matrimonio.Usuario1_ID === targetUser.Discord_ID
+                ? matrimonio.Usuario2_ID
+                : matrimonio.Usuario1_ID;
+
+            // Nick — mismo extractor que canvas_nivel
+            let apodoPareja = '';
+            const parejaDB = await Usuario.findOne({ Discord_ID: parejaId });
+            if (parejaDB?.Discord_Nick) apodoPareja = parejaDB.Discord_Nick;
+
+            try {
+                const parejaDiscord = await client.users.fetch(parejaId);
+                if (parejaDiscord.username) apodoPareja = apodoPareja || parejaDiscord.username;
+            } catch(e) {}
+
+            let nickFiltrado = (apodoPareja || '').replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+            if (nickFiltrado.length === 0) nickFiltrado = 'jugador';
+            const nombrePareja = nickFiltrado.charAt(0).toUpperCase() + nickFiltrado.slice(1);
+
+            // Avatar
+            let avatarBuffer = null;
+            try {
+                const parejaDiscord = await client.users.fetch(parejaId);
+                const avatarURL = parejaDiscord.displayAvatarURL({ extension: 'webp', size: 256 });
+                const res = await fetch(avatarURL);
+                avatarBuffer = Buffer.from(await res.arrayBuffer());
+            } catch(e) {}
+
+            // Fecha DD/MM/YY
+            const fecha = matrimonio.Fecha || new Date();
+            const dia   = String(fecha.getDate()).padStart(2, '0');
+            const mes   = String(fecha.getMonth() + 1).padStart(2, '0');
+            const anio  = String(fecha.getFullYear()).slice(-2);
+
+            soulmateData = {
+                nombre:       nombrePareja,
+                fecha:        `${dia}/${mes}/${anio}`,
+                avatarBuffer
+            };
+        }
+    } catch(e) {}
 
     const datosSocial = {
         nivel:    uNivel,
@@ -182,12 +231,11 @@ async function generarSocialEnVivo(targetUser, guildId) {
         mensajes: targetUser.Social?.Mensajes    || 0,
         horasVoz: Math.floor((targetUser.Social?.Minutos_Voz || 0) / 60),
         posicion,
-        // Campos pendientes de implementar — se pasan como null
         racha:      null,
         monedas:    null,
         reputacion: null,
         club:       null,
-        soulmate:   null,
+        soulmate:   soulmateData,
         amigos:     [],
         insignias:  []
     };
