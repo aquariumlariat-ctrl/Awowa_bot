@@ -1,17 +1,17 @@
 {
     "Resumen": {
         "Victorias": 105,
-        "Derrotas": 81,
+        "Derrotas": 83,
         "WinRate": 56
     },
     "Campeones": {
         "Jinx": {
-            "partidas": 142,
+            "partidas": 144,
             "victorias": 82,
-            "derrotas": 60,
-            "kills": 890,
-            "deaths": 797,
-            "assists": 1160
+            "derrotas": 62,
+            "kills": 904,
+            "deaths": 814,
+            "assists": 1178
         },
         "Caitlyn": {
             "partidas": 16,
@@ -1299,9 +1299,9 @@
             "nick": "HiImObito",
             "tag": "Obito",
             "icono": 5331,
-            "partidas": 7,
+            "partidas": 9,
             "victorias": 4,
-            "derrotas": 3
+            "derrotas": 5
         },
         "KLI9YoVbxYRe2Wwsyf_VHvu3S39QhOsuMFrHSLRWLIxrmQ06dI05eSSOs2N38tn1c3eXvCeamIc6hA": {
             "nick": "Maki52",
@@ -2542,6 +2542,54 @@
             "partidas": 1,
             "victorias": 1,
             "derrotas": 0
+        },
+        "iB2Izqetg3dHz6rjFqMBWAiAZHUzNhKEknX1i_IQcFxHkSRxdYm-LzNTnri1tVPDf2RwHJ3gGiF-NA": {
+            "nick": "xBestTrollx",
+            "tag": "LAN",
+            "icono": 3166,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "44YH7QO6LPhoIiEGDo4b1fspwbEZqCzpWaAm-2NJ9RqYdoUGkdwSU6GOwL6Nz_m1Cqf_OuDqA49oaA": {
+            "nick": "princedestiny",
+            "tag": "LAN",
+            "icono": 3184,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "dDqkd6UlVYBWJQQ13fFHNZd6QaoPZiATsy7ufae-VxwxHa_7wxgj2WfeWqx81-HDwMrBAwPP_0TKgA": {
+            "nick": "wichisex",
+            "tag": "VLR",
+            "icono": 3151,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "ysFgS_AsJguOWRtmsI_albtSZKIxIWExViLZnzeOBLDRRa9WIwL7r4sZToaS-Y0ljiNKHWJkbC819w": {
+            "nick": "Everslol25",
+            "tag": "1216",
+            "icono": 7096,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "dqXirwYSjEqyqSr3sqN6G7ozYFbaqVMLacLrNN5lvJL-RG3QGlf0IPmGJSOD50B0zYSndLAplzztyA": {
+            "nick": "La Bestia Grr",
+            "tag": "LAN",
+            "icono": 4418,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
+        },
+        "YJJsznef09Yg9p829oOrUKHHdy8HJ_3Gr1f3brtvfO1ptTPjZGEo9fpIDEwIBy2zk5dUbVNHd2l6PQ": {
+            "nick": "KING TEI",
+            "tag": "LAN",
+            "icono": 7094,
+            "partidas": 1,
+            "victorias": 0,
+            "derrotas": 1
         }
     },
     "Historial": [
@@ -4798,6 +4846,30 @@
             "deaths": 8,
             "assists": 11,
             "victoria": true,
+            "rol": "BOTTOM",
+            "esRemake": false
+        },
+        {
+            "matchId": "LA1_1702519849",
+            "fecha": 1773786706652,
+            "queueId": 420,
+            "campeon": "Jinx",
+            "kills": 10,
+            "deaths": 7,
+            "assists": 7,
+            "victoria": false,
+            "rol": "BOTTOM",
+            "esRemake": false
+        },
+        {
+            "matchId": "LA1_1702530274",
+            "fecha": 1773789109260,
+            "queueId": 420,
+            "campeon": "Jinx",
+            "kills": 4,
+            "deaths": 10,
+            "assists": 11,
+            "victoria": false,
             "rol": "BOTTOM",
             "esRemake": false
         }

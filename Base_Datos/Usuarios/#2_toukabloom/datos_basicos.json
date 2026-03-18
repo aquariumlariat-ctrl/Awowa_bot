@@ -7,10 +7,10 @@
     "Region": "LAN",
     "Fecha_Matricula": "24/02/2026",
     "Social": {
-        "Nivel": 1,
-        "XP": 0,
+        "Nivel": 2,
+        "XP": 70,
         "Mensajes": 0,
         "Minutos_Voz": 0,
-        "Partidas_Registradas": 0
+        "Partidas_Registradas": 6
     }
 }

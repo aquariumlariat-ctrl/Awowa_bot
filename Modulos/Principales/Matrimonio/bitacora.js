@@ -9,7 +9,7 @@ module.exports = {
 
     // ── ENCENDIDO ────────────────────────────────────────────────────────────
     iniciandoCarga: () =>
-        console.log(`${c.z}·${c.b} ${TAG} Iniciando carga del módulo.`),
+        console.log(`${TAG} Iniciando carga del módulo.`),
 
     estructuraCargada: () =>
         console.log(`${c.v}·${c.b} Estructura cargada correctamente.`),

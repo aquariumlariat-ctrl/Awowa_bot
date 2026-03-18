@@ -5,6 +5,7 @@ const { generarCanvasNivel } = require('./canvas_nivel');
 const { obtenerPuesto } = require('./ranking');
 const fs = require('fs');
 const path = require('path');
+const log = require('./bitacora'); // 👈 Bitácora importada
 
 // 🚀 WATCHER ASÍNCRONO PARA LOS MENSAJES (Fuera del Event Loop)
 let txtSlash = {};
@@ -53,8 +54,8 @@ module.exports = {
         const miembroEnServidor = await interaction.guild.members.fetch(targetUser.id).catch(() => null);
 
         try {
-            const uNivel = userDB.Social?.Nivel || 1;
-            const uXP    = userDB.Social?.XP    || 0;
+            const uNivel = userDB.Social?.Nivel ?? 1;
+            const uXP    = userDB.Social?.XP    ?? 0;
 
             // Puesto desde el ranking en memoria
             const posicionReal = miembroEnServidor
@@ -106,9 +107,11 @@ module.exports = {
             const textoAcompañante = typeof msgCache.CmdNivelMsg === 'function' ? msgCache.CmdNivelMsg(emojiAsignado, nombreVisible) : msgCache.CmdNivelMsg;
 
             await interaction.editReply({ content: textoAcompañante, files: [adjunto] });
+            log.comandoEjecutado(interaction.user.username, 'nivel');
 
         } catch (error) {
-            console.error('\x1b[31m·\x1b[0m [Error Cmd Nivel]', error);
+            log.errorComandoNivel(error);
+            log.comandoEjecutadoConError(interaction.user.username, 'nivel'); // 👈 Log actualizado
             await interaction.editReply(msgCache.ErrInterno);
         }
     }

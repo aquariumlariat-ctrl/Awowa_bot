@@ -1,4 +1,4 @@
-// Modulos/Principales/Nivel/motor_ranking.js
+// Modulos/Principales/Nivel/ranking.js
 //
 // 🏆 SISTEMA DE RANKING EN MEMORIA
 //
@@ -16,13 +16,26 @@
 const fs   = require('fs');
 const path = require('path');
 const Usuario = require('../../../Base_Datos/MongoDB/Usuario');
-
-// 🎨 Paleta de colores ANSI
-const c = { v: '\x1b[32m', r: '\x1b[31m', a: '\x1b[33m', b: '\x1b[0m' };
+const log = require('./bitacora'); // 👈 Bitácora importada
 
 // Versión del formato JSON. Incrementar si cambia la estructura del ranking.
 // Esto invalida automáticamente JSONs de versiones anteriores al arrancar.
 const RANKING_VERSION = 2;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GUILDS EXCLUIDOS — servidores de prueba/emotes donde solo está el bot y el dev.
+// Se saltan silenciosamente en la carga de rankings y en los logs de arranque.
+// ─────────────────────────────────────────────────────────────────────────────
+const GUILDS_EXCLUIDOS = new Set([
+    '1463643762101321770', // Dev / pruebas
+    '1465503493333848077', // Emotes
+    '1465464968605601998', // Emotes
+    '1465294891008524465', // Emotes
+    '1465281206110392343', // Emotes
+    '1466642279979552872',
+    '1465300596163739701',
+    '1469588794599800895',
+]);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ─────────────────────────────────────────────────────────────────────────────
@@ -113,7 +126,7 @@ function guardarRanking(guildId) {
             'utf8'
         );
     } catch (e) {
-        console.error(`${c.r}·${c.b} [Ranking] Error guardando JSON de ${guildId}:`, e.message);
+        log.errorGuardandoJSON(guildId, e.message); // 👈 Log actualizado
     }
 }
 
@@ -129,33 +142,22 @@ async function cargarRankingGuild(guild) {
     const guildId  = guild.id;
     const rutaJSON = path.join(DIR_RANKINGS, `ranking_${guildId}.json`);
 
-    // 1. Intentar desde JSON (arranques sucesivos son instantáneos)
-    if (fs.existsSync(rutaJSON)) {
-        try {
-            const raw      = fs.readFileSync(rutaJSON, 'utf8');
-            const parsed   = JSON.parse(raw);
-            // Verificamos versión — si no coincide descartamos y reconstruimos
-            const data     = parsed.version === RANKING_VERSION ? parsed.lista : null;
-            if (Array.isArray(data) && data.length > 0) {
-                data.sort(cmpDesc);
-                rankings.set(guildId, data);
-                return;
-            }
-        } catch (e) {}
+    // Mongo es siempre la fuente de verdad para nivel y XP.
+    // El JSON en disco solo sirve como cache de arranque rapido, pero sus valores
+    // pueden estar desactualizados si el bot se cayo antes del debounce de 30s.
+    // Por eso siempre consultamos Mongo y sobreescribimos nivel/xp del JSON.
+
+    // 1. Traer miembros del servidor
+    const members = await guild.members.fetch().catch(() => null);
+    if (!members || members.size === 0) {
+        rankings.set(guildId, []);
+        return;
     }
 
-    // 2. Reconstruir desde MongoDB cruzando con miembros reales del servidor
+    const memberIds = Array.from(members.keys());
+
+    // 2. Consultar Mongo — fuente de verdad
     try {
-        // Traemos todos los miembros del servidor
-        const members = await guild.members.fetch().catch(() => null);
-        if (!members || members.size === 0) {
-            rankings.set(guildId, []);
-            return;
-        }
-
-        const memberIds = Array.from(members.keys());
-
-        // Consultamos MongoDB solo por los IDs de este servidor
         const usuarios = await Usuario.find(
             { Discord_ID: { $in: memberIds } },
             { Discord_ID: 1, 'Social.Nivel': 1, 'Social.XP': 1 }
@@ -164,18 +166,32 @@ async function cargarRankingGuild(guild) {
         if (usuarios.length > 0) {
             const lista = usuarios.map(u => ({
                 userId: u.Discord_ID,
-                nivel:  u.Social?.Nivel || 1,
-                xp:     u.Social?.XP    || 0
+                nivel:  u.Social?.Nivel ?? 1,
+                xp:     u.Social?.XP    ?? 0
             }));
             lista.sort(cmpDesc);
             rankings.set(guildId, lista);
-            guardarRanking(guildId);
-            console.log(`${c.v}·${c.b} [Ranking] Guild ${guild.name}: ${lista.length} usuarios indexados.`);
+            guardarRanking(guildId); // Actualizamos el JSON con datos frescos de Mongo
+            log.rankingGuildCargado(guild.name, lista.length);
         } else {
             rankings.set(guildId, []);
+            log.rankingGuildFallido(guild.name);
         }
     } catch (e) {
-        console.error(`${c.r}·${c.b} [Ranking] Error cargando guild ${guild.name}:`, e.message);
+        // Mongo fallo — intentamos el JSON como fallback de emergencia
+        log.errorCargandoGuild(guild.name, e.message);
+        if (fs.existsSync(rutaJSON)) {
+            try {
+                const raw    = fs.readFileSync(rutaJSON, 'utf8');
+                const parsed = JSON.parse(raw);
+                const data   = parsed.version === RANKING_VERSION ? parsed.lista : null;
+                if (Array.isArray(data) && data.length > 0) {
+                    data.sort(cmpDesc);
+                    rankings.set(guildId, data);
+                    return;
+                }
+            } catch (_) {}
+        }
         rankings.set(guildId, []);
     }
 }
@@ -185,13 +201,14 @@ async function cargarRankingGuild(guild) {
 // Carga en paralelo los rankings de todos los servidores donde está el bot
 // ─────────────────────────────────────────────────────────────────────────────
 async function inicializarRankings(client) {
-    const guilds = Array.from(client.guilds.cache.values());
-    console.log(`${c.a}·${c.b} [Ranking] Cargando rankings de ${guilds.length} servidor(es)...`);
+    const guilds = Array.from(client.guilds.cache.values())
+        .filter(g => !GUILDS_EXCLUIDOS.has(g.id));
+    log.iniciandoCargaRankings(guilds.length);
 
     await Promise.all(guilds.map(guild => cargarRankingGuild(guild)));
 
     const totalUsuarios = Array.from(rankings.values()).reduce((s, l) => s + l.length, 0);
-    console.log(`${c.v}·${c.b} [Ranking] Rankings cargados. Total usuarios indexados: ${c.v}${totalUsuarios}${c.b}.`);
+    log.rankingsCargados(totalUsuarios);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -3,6 +3,8 @@ const Usuario = require('../../../Base_Datos/MongoDB/Usuario');
 const fs   = require('fs');
 const path = require('path');
 const { actualizarUsuario, inicializarRankings } = require('./ranking.js');
+const { iniciarCanvas } = require('./canvas_nivel');
+const log = require('./bitacora'); // 👈 Bitácora importada
 
 // ⏱️ Mapas de Memoria Cache
 const cooldownsMensajes = new Map();
@@ -112,27 +114,24 @@ function calcularXPMeta(nivel) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 🎉 LÓGICA DE SUBIDA DE NIVEL
-//
-// DOBLE PROTECCIÓN contra race conditions:
-//   1. conCandado(): un solo hilo por usuario a la vez.
-//   2. findOneAndUpdate con condición de nivel: si otro proceso ya subió
-//      el nivel antes que nosotros, el update devuelve null y abortamos.
-//      Esto es "optimistic locking" y elimina el problema de forma definitiva.
+// 🎉 LÓGICA DE SUBIDA DE NIVEL (Con candado inteligente)
 // ─────────────────────────────────────────────────────────────────────────────
 async function procesarSubidaNivel(client, userId, username) {
     return conCandado(userId, async () => {
 
-        // Re-fetch datos frescos DENTRO del candado para evitar estado stale
         const freshUser = await Usuario.findOne({ Discord_ID: userId });
         if (!freshUser?.Social) return;
 
-        let nivelActual = freshUser.Social.Nivel || 1;
-        let xpActual    = freshUser.Social.XP    || 0;
-        const nivelAnterior = nivelActual;
+        // 1. Guardamos exactamente lo que dice MongoDB (puede ser undefined si es nuevo)
+        const nivelEnBD = freshUser.Social.Nivel;
+
+        // 2. Si es undefined, asumimos 1 para las matemáticas
+        let nivelActual = nivelEnBD ?? 1;
+        let xpActual    = freshUser.Social.XP ?? 0;
         let xpMeta = calcularXPMeta(nivelActual);
         let subioNivel = false;
 
+        // 3. Calculamos cuántos niveles sube
         while (xpActual >= xpMeta) {
             xpActual   -= xpMeta;
             nivelActual += 1;
@@ -142,20 +141,25 @@ async function procesarSubidaNivel(client, userId, username) {
 
         if (!subioNivel) return;
 
-        // Optimistic lock: solo actualiza si el nivel en BD sigue siendo
-        // el que leímos. Si otro proceso ya subió el nivel, resultado = null
-        // y abortamos silenciosamente sin corromper datos.
+        // 4. Optimistic lock basado en XP (no en Nivel, que puede ser null/undefined en legacy)
+        // Si otro proceso modificó el XP entre el findOne y este update, el filtro no matchea
+        // y abortamos correctamente sin pisar datos. El candado en memoria reduce esto a casi cero.
+        const xpLeido = freshUser.Social.XP ?? 0;
+
+        // 5. Intentamos guardar en MongoDB
         const resultado = await Usuario.findOneAndUpdate(
-            { Discord_ID: userId, 'Social.Nivel': nivelAnterior },
+            { Discord_ID: userId, 'Social.XP': xpLeido },
             { $set: { 'Social.Nivel': nivelActual, 'Social.XP': xpActual } },
             { returnDocument: 'after' }
         );
 
-        if (!resultado) return; // Otro proceso ya procesó el level-up
+        if (!resultado) return; // El XP cambio entre medio, otro proceso ya lo manejo
 
+        // 6. Sincronizamos con la memoria (ranking)
         actualizarUsuario(resultado.Guild_ID, userId, nivelActual, xpActual);
 
-        const tituloAnterior = obtenerTituloRango(nivelAnterior);
+        // 7. Avisamos de la subida
+        const tituloAnterior = obtenerTituloRango(nivelEnBD ?? 1);
         const tituloNuevo    = obtenerTituloRango(nivelActual);
 
         if (tituloAnterior !== tituloNuevo) {
@@ -169,7 +173,7 @@ async function procesarSubidaNivel(client, userId, username) {
                 const userDiscord = await client.users.fetch(userId).catch(() => null);
                 if (userDiscord) await userDiscord.send(textoAlerta).catch(() => null);
             } catch (error) {
-                console.log(`[Motor XP] MD bloqueado para ${username}.`);
+                log.mdBloqueado(username);
             }
         }
     });
@@ -196,9 +200,10 @@ async function otorgarXPMensaje(client, message) {
 
     if (!userDB?.Social) return;
 
-    actualizarUsuario(userDB.Guild_ID, userId, userDB.Social.Nivel, userDB.Social.XP);
+    const nivelActualMensaje = userDB.Social.Nivel ?? 1;
+    actualizarUsuario(userDB.Guild_ID, userId, nivelActualMensaje, userDB.Social.XP);
 
-    if (userDB.Social.XP >= calcularXPMeta(userDB.Social.Nivel)) {
+    if (userDB.Social.XP >= calcularXPMeta(nivelActualMensaje)) {
         await procesarSubidaNivel(client, userId, message.author.username);
     }
 }
@@ -240,9 +245,10 @@ async function rastrearVoz(client, oldState, newState) {
 
                 if (!userDB?.Social) return;
 
-                actualizarUsuario(userDB.Guild_ID, userId, userDB.Social.Nivel, userDB.Social.XP);
+                const nivelActualVoz = userDB.Social.Nivel ?? 1;
+                actualizarUsuario(userDB.Guild_ID, userId, nivelActualVoz, userDB.Social.XP);
 
-                if (userDB.Social.XP >= calcularXPMeta(userDB.Social.Nivel)) {
+                if (userDB.Social.XP >= calcularXPMeta(nivelActualVoz)) {
                     await procesarSubidaNivel(client, userId, newState.member.user.username);
                 }
             }
@@ -291,16 +297,105 @@ async function otorgarXPPartidas(client, userDB, partidas) {
 
     if (!updatedUser?.Social) return;
 
-    actualizarUsuario(updatedUser.Guild_ID, userDB.Discord_ID, updatedUser.Social.Nivel, updatedUser.Social.XP);
+    const nivelActualPartida = updatedUser.Social.Nivel ?? 1;
+    actualizarUsuario(updatedUser.Guild_ID, userDB.Discord_ID, nivelActualPartida, updatedUser.Social.XP);
 
-    if (updatedUser.Social.XP >= calcularXPMeta(updatedUser.Social.Nivel)) {
+    if (updatedUser.Social.XP >= calcularXPMeta(nivelActualPartida)) {
         await procesarSubidaNivel(client, userDB.Discord_ID, userDB.Discord_Nick);
     }
 }
 
 async function iniciarMotorXP(client) {
-    await inicializarRankings(client);
-    console.log('\x1b[32m·\x1b[0m [Motor XP] Sistema arrancado (Atomicidad + Candados + Optimistic Lock + Ranking en Memoria).');
+    log.moduloIniciando();
+    log.estructuraCargando();
+
+    let hayFallos       = false;
+    let hayAdvertencias = false;
+    let estructuraOk    = true;
+
+    // 1. Control de flujo (candados + cooldowns)
+    try {
+        // Los Maps ya existen al importar; aquí verificamos que respondan
+        _candados.size;
+        cooldownsMensajes.size;
+        log.controlFlujoListo();
+    } catch (err) {
+        log.controlFlujoFallido(err);
+        estructuraOk = false;
+        hayFallos = true;
+    }
+
+    // 2. Rastreo de canales de voz
+    try {
+        sesionesVoz.size;
+        log.rastreoVozListo();
+    } catch (err) {
+        log.rastreoVozFallido(err);
+        estructuraOk = false;
+        hayFallos = true;
+    }
+
+    // 3. Escucha de mensajes (watcher de mensajes.js)
+    try {
+        if (!msgCache || typeof msgCache !== 'object') throw new Error('msgCache no disponible');
+        log.escuchaMensajesLista();
+    } catch (err) {
+        log.escuchaMensajesFallida(err);
+        estructuraOk = false;
+        hayFallos = true;
+    }
+
+    // 4. Motor de experiencia
+    try {
+        if (typeof otorgarXPMensaje !== 'function') throw new Error('Motor no disponible');
+        log.motorListo();
+    } catch (err) {
+        log.motorFallido(err);
+        estructuraOk = false;
+        hayFallos = true;
+    }
+
+    if (!estructuraOk) {
+        log.estructuraCargadaConFallos();
+        return;
+    }
+
+    log.estructuraCargada();
+
+    // Canvas — fuentes e imágenes
+    const canvasOk = await iniciarCanvas();
+    if (!canvasOk) hayFallos = true;
+
+    // Comandos slash del módulo
+    log.comandosCargando();
+    let comandosOk = true;
+    const archivosComandos = fs.readdirSync(__dirname).filter(f => f.startsWith('cmd_') && f.endsWith('.js'));
+    for (const archivo of archivosComandos) {
+        try {
+            const cmd = require(path.join(__dirname, archivo));
+            const cmds = Array.isArray(cmd) ? cmd : [cmd];
+            for (const c of cmds) {
+                if (c.data) log.comandoListo(c.name);
+            }
+        } catch (err) {
+            log.comandoFallido(archivo.replace('cmd_', '').replace('.js', ''), err);
+            comandosOk = false;
+        }
+    }
+    if (comandosOk) log.comandosCargados();
+    else          { log.comandosCargadosConFallos(); hayFallos = true; }
+
+    try {
+        await inicializarRankings(client);
+    } catch (err) {
+        log.rankingsFallidos(err);
+        hayFallos = true;
+    }
+
+    if (hayFallos)       log.moduloCargadoConFallos();
+    else if (hayAdvertencias) log.moduloCargadoConAdvertencias();
+    else                 log.moduloCargado();
 }
 
-module.exports = { otorgarXPMensaje, rastrearVoz, otorgarXPPartidas, iniciarMotorXP };
+// 👇 Ahora exportamos todas las funciones necesarias
+module.exports = { otorgarXPMensaje, rastrearVoz, otorgarXPPartidas, iniciarMotorXP, procesarSubidaNivel, calcularXPMeta };

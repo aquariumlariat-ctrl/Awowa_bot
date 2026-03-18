@@ -290,30 +290,39 @@ mongoose.connect(process.env.MONGODB_URI)
                     Historial: []
                 };
 
-                const archivosCrear = {
-                    'datos_basicos.json': {
-                        Discord_ID: user.Discord_ID,
-                        Discord_Nick: user.Discord_Nick,
-                        Numero_Matricula: user.Numero_Matricula,
-                        Riot_ID: user.Riot_ID,
-                        PUUID: user.PUUID,
-                        Region: user.Region,
-                        Fecha_Matricula: user.Fecha,
-                        Social: {
-                            Nivel: 1,
-                            XP: 0,
-                            Mensajes: 0,
-                            Minutos_Voz: 0,
-                            Partidas_Registradas: 0
-                        }
-                    },
+                // datos_basicos.json: siempre se escribe con datos frescos de Mongo
+                // para que refleje el nivel/XP actual, no el del momento de matricula.
+                const datosBasicos = {
+                    Discord_ID: user.Discord_ID,
+                    Discord_Nick: user.Discord_Nick,
+                    Numero_Matricula: user.Numero_Matricula,
+                    Riot_ID: user.Riot_ID,
+                    PUUID: user.PUUID,
+                    Region: user.Region,
+                    Fecha_Matricula: user.Fecha,
+                    Social: {
+                        Nivel:                user.Social?.Nivel                ?? 1,
+                        XP:                   user.Social?.XP                   ?? 0,
+                        Mensajes:             user.Social?.Mensajes              ?? 0,
+                        Minutos_Voz:          user.Social?.Minutos_Voz           ?? 0,
+                        Partidas_Registradas: user.Social?.Partidas_Registradas  ?? 0
+                    }
+                };
+                fs.writeFileSync(
+                    path.join(carpetaUsuario, 'datos_basicos.json'),
+                    JSON.stringify(datosBasicos, null, 4),
+                    'utf8'
+                );
+
+                // El resto de archivos de juego solo se crean si no existen
+                const archivosJuego = {
                     'datos_lol_soloq.json': plantillaJuegos,
                     'datos_lol_flex.json': plantillaJuegos,
                     'datos_lol_normals.json': plantillaJuegos,
                     'datos_lol_total.json': plantillaJuegos
                 };
 
-                for (const [nombreArchivo, contenidoVacio] of Object.entries(archivosCrear)) {
+                for (const [nombreArchivo, contenidoVacio] of Object.entries(archivosJuego)) {
                     const rutaArchivo = path.join(carpetaUsuario, nombreArchivo);
                     if (!fs.existsSync(rutaArchivo)) {
                         fs.writeFileSync(rutaArchivo, JSON.stringify(contenidoVacio, null, 4), 'utf8');

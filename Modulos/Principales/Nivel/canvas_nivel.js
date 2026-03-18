@@ -1,16 +1,9 @@
 // Modulos/Principales/Nivel/canvas_nivel.js
 const { createCanvas, GlobalFonts, loadImage } = require('@napi-rs/canvas');
 const path = require('path');
+const log = require('./bitacora'); // 👈 Bitácora importada
 
-// 🎨 Paleta de colores ANSI
-const c = { v: '\x1b[32m', r: '\x1b[31m', a: '\x1b[33m', b: '\x1b[0m' };
-
-try {
-    GlobalFonts.registerFromPath(path.join(__dirname, '../../../Fonts/PlusJakartaSans-Bold.ttf'), 'JakartaBold');
-    GlobalFonts.registerFromPath(path.join(__dirname, '../../../Fonts/PlusJakartaSans-Regular.ttf'), 'JakartaRegular');
-} catch (e) {
-    console.error(`${c.r}·${c.b} [Canvas Nivel] Error registrando fuentes.`, e.message);
-}
+// Las fuentes se registran en iniciarCanvas() para poder loguear correctamente.
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 🧠 SISTEMA DE CACHÉ + CIRCUIT BREAKER CON RECUPERACIÓN AUTOMÁTICA
@@ -76,7 +69,7 @@ async function loadAvatarFijo() {
         } catch (error) {
             avatarFijoBuffer = null; // Aseguramos que no quede basura en caché
             avatarFijoFailedUntil = Date.now() + IMGUR_RETRY_MS; // Reintento en 5 min
-            console.warn(`${c.a}·${c.b} [Canvas Nivel] Avatar Imgur falló. Reintentando en 5 min.`);
+            log.avatarImgurFallido(); // 👈 Log actualizado
             throw error;
         }
     }
@@ -97,7 +90,7 @@ async function loadRankIcon(rank) {
         } catch (error) {
             rankBuffers[rank] = null;
             rankFailedUntil[rank] = Date.now() + IMGUR_RETRY_MS;
-            console.warn(`${c.a}·${c.b} [Canvas Nivel] Rank icon ${rank} Imgur falló. Reintentando en 5 min.`);
+            log.iconoImgurFallido(rank); // 👈 Log actualizado
             throw error;
         }
     }
@@ -352,4 +345,37 @@ async function generarCanvasNivel(socialData, discordNick, discordUsername, user
     return buffer;
 }
 
-module.exports = { generarCanvasNivel };
+// ─────────────────────────────────────────────────────────────────────────────
+// 🚀 INICIALIZACIÓN EXPLÍCITA — llamada desde iniciarMotorXP al arrancar
+// Registra fuentes y precarga imágenes de Imgur para tenerlas listas desde el inicio.
+// ─────────────────────────────────────────────────────────────────────────────
+async function iniciarCanvas() {
+    log.canvasCargando();
+    let ok = true;
+
+    // 1. Fuentes
+    try {
+        GlobalFonts.registerFromPath(path.join(__dirname, '../../../Fonts/PlusJakartaSans-Bold.ttf'), 'JakartaBold');
+        GlobalFonts.registerFromPath(path.join(__dirname, '../../../Fonts/PlusJakartaSans-Regular.ttf'), 'JakartaRegular');
+        log.canvasFuentesListas();
+    } catch (err) {
+        log.canvasFuentesFallidas(err.message);
+        ok = false;
+    }
+
+    // 2. Imágenes — precargamos avatar e iconos de rango desde Imgur
+    try {
+        await loadAvatarFijo();
+        await Promise.all([1, 2, 3].map(r => loadRankIcon(r)));
+        log.canvasImagenesListas();
+    } catch (err) {
+        log.canvasImagenesFallidas(err.message);
+        ok = false;
+    }
+
+    if (ok) log.canvasCargado();
+    else     log.canvasCargadoConFallos();
+    return ok;
+}
+
+module.exports = { generarCanvasNivel, iniciarCanvas };

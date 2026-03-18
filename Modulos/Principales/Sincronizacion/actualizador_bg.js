@@ -57,6 +57,36 @@ async function ejecutarMotorSilencioso(client) {  // <-- Añade (client) aquí
                     }
                 }
                 
+                // Actualizar datos_basicos.json con Social fresco de Mongo
+                // (el user que llega aqui puede tener nivel/XP desactualizado
+                // si procesarSubidaNivel corrio durante otorgarXPPartidas)
+                try {
+                    const userFresco = await Usuario.findOne({ Discord_ID: user.Discord_ID }).lean();
+                    if (userFresco) {
+                        const datosBasicos = {
+                            Discord_ID:       userFresco.Discord_ID,
+                            Discord_Nick:     userFresco.Discord_Nick,
+                            Numero_Matricula: userFresco.Numero_Matricula,
+                            Riot_ID:          userFresco.Riot_ID,
+                            PUUID:            userFresco.PUUID,
+                            Region:           userFresco.Region,
+                            Fecha_Matricula:  userFresco.Fecha,
+                            Social: {
+                                Nivel:                userFresco.Social?.Nivel                ?? 1,
+                                XP:                   userFresco.Social?.XP                   ?? 0,
+                                Mensajes:             userFresco.Social?.Mensajes              ?? 0,
+                                Minutos_Voz:          userFresco.Social?.Minutos_Voz           ?? 0,
+                                Partidas_Registradas: userFresco.Social?.Partidas_Registradas  ?? 0
+                            }
+                        };
+                        fs.writeFileSync(
+                            path.join(carpetaPath, 'datos_basicos.json'),
+                            JSON.stringify(datosBasicos, null, 4),
+                            'utf8'
+                        );
+                    }
+                } catch (_) {}
+
                 // 👇 MAGIA AUTOMÁTICA: REDIBUJAMOS LA FOTO EN CACHÉ 👇
                 await renderizarYGuardarPerfil(user);
                 console.log(`${c.a}·${c.b} [Sincronizacion] Caché visual de ${user.Discord_Nick} actualizada en segundo plano.`);
